@@ -1,7 +1,7 @@
 ## Tech stack
 * Build tool: maven >= 3.9.5
 * Java: 21
-* Framework: Spring boot 3.2.x
+* Framework: Spring boot 3.4.5
 * DBMS: MySQL
 
 ## Prerequisites
