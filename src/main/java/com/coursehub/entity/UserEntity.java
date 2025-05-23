@@ -20,11 +20,11 @@ public class UserEntity extends BaseEntity{
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "full_name")
+    @Column
     private String name;
 
-    @Column(name = "avatar_url")
-    private String avatarUrl;
+    @Column
+    private String avatar;
 
     @Column(name = "is_active")
     private Boolean isActive = true;

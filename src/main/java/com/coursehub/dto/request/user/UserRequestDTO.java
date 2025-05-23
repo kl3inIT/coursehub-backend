@@ -1,7 +1,11 @@
 package com.coursehub.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class UserRequestDTO {
 
 
@@ -14,8 +18,10 @@ public class UserRequestDTO {
     @NotBlank(message = "confirm password is required")
     private String confirmPassword;
 
-    @NotBlank(message = "email password is required")
+    @NotBlank(message = "email is required")
     private String email;
+
+    private String otp;
 
 }
 
