@@ -17,3 +17,10 @@ spring:
       hibernate:
         format_sql: true
 
+  aws:
+    credentials:
+      access-key: AKIAVRKAPVE6FGFGBTNN
+      secret-key: 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
+    region: ap-southeast-2
+    s3:
+      bucket: course-hub-resourses
