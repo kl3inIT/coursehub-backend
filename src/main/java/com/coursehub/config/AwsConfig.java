@@ -9,21 +9,43 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
+/**
+ * Configuration class for AWS services.
+ * This class provides beans for interacting with AWS S3 services
+ * and retrieves configuration properties from the application properties file.
+ */
 @Configuration
 public class AwsConfig {
 
-    @Value("${aws.credentials.access-key}")
+    /**
+     * AWS Access Key ID, injected from application properties.
+     */
+    @Value("${spring.aws.access-key}")
     private String accessKey;
 
-    @Value("${aws.credentials.secret-key}")
+    /**
+     * AWS Secret Access Key, injected from application properties.
+     */
+    @Value("${spring.aws.secret-key}")
     private String secretKey;
 
-    @Value("${aws.region}")
+    /**
+     * AWS Region, injected from application properties.
+     */
+    @Value("${spring.aws.region}")
     private String region;
 
-    @Value("${aws.s3.bucket}")
+    /**
+     * AWS S3 Bucket Name, injected from application properties.
+     */
+    @Value("${spring.aws.s3.bucket}")
     private String bucketName;
 
+    /**
+     * Creates and configures an S3Client bean for interacting with AWS S3.
+     *
+     * @return an instance of {@link S3Client}
+     */
     @Bean
     public S3Client s3Client() {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
@@ -34,6 +56,11 @@ public class AwsConfig {
                 .build();
     }
 
+    /**
+     * Creates and configures an S3Presigner bean for generating pre-signed URLs for S3 objects.
+     *
+     * @return an instance of {@link S3Presigner}
+     */
     @Bean
     public S3Presigner s3Presigner() {
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
@@ -44,6 +71,11 @@ public class AwsConfig {
                 .build();
     }
 
+    /**
+     * Retrieves the configured S3 bucket name.
+     *
+     * @return the S3 bucket name
+     */
     public String getBucketName() {
         return bucketName;
     }
