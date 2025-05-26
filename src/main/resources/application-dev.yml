@@ -40,3 +40,6 @@ spring:
           starttls:
             enable: true
             required: true
+jwt:
+  secret: WaVbZbGzZMYGHUjNYrh87xGyib8ivGWndlsf4bsX2mB47MbdsUTwf2Dsv1TPuBG+
+  expiration: 86400000

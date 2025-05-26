@@ -8,10 +8,9 @@ import com.coursehub.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -36,6 +35,14 @@ public class UserController {
         ResponseDTO<UserResponseDTO> responseDTO = new ResponseDTO<>();
         responseDTO.setMessage("Success");
         responseDTO.setData(userService.verifyUser(otpRequest));
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/myInfo")
+    public ResponseEntity<ResponseDTO<UserResponseDTO>> getMyInfo() {
+        ResponseDTO<UserResponseDTO> responseDTO = new ResponseDTO<>();
+        responseDTO.setMessage("Success");
+        responseDTO.setData(userService.getMyInfo());
         return ResponseEntity.ok(responseDTO);
     }
 

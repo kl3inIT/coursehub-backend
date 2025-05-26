@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
         ResponseDTO<String> responseDTO = new ResponseDTO<>();
         responseDTO.setMessage("Bad request from password");
         responseDTO.setData(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
+        return ResponseEntity.badRequest().body(responseDTO);
     }
 
     @ExceptionHandler(RedisOperationException.class)
@@ -81,6 +81,23 @@ public class GlobalExceptionHandler {
         responseDTO.setData(ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDTO);
     }
+
+    @ExceptionHandler(DataNotFoundException.class)
+    public ResponseEntity<ResponseDTO<String>> handleDataNotFoundException(DataNotFoundException ex){
+        ResponseDTO<String> responseDTO = new ResponseDTO<>();
+        responseDTO.setMessage("Data Not Found");
+        responseDTO.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseDTO);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ResponseDTO<String>> handleDataNotFoundException(InvalidTokenException ex){
+        ResponseDTO<String> responseDTO = new ResponseDTO<>();
+        responseDTO.setMessage("Forbidden");
+        responseDTO.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseDTO);
+    }
+
 
 
 

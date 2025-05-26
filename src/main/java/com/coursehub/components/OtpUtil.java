@@ -1,26 +1,21 @@
-package com.coursehub.service;
+package com.coursehub.components;
 
 import com.coursehub.exception.auth.EmailSendingException;
-import com.coursehub.exception.auth.RedisOperationException;
-import io.lettuce.core.RedisConnectionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
-import java.util.concurrent.TimeUnit;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class OtpService {
+public class OtpUtil {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final JavaMailSender mailSender;
-
-
 
     // Tạo OTP ngẫu nhiên
     public String generateOtp() {

@@ -9,7 +9,7 @@ import lombok.Setter;
 public class UserRequestDTO {
 
 
-    @NotBlank(message = "username is required")
+    @NotBlank(message = "name is required")
     private String name;
 
     @NotBlank(message = "password is required")
@@ -20,8 +20,6 @@ public class UserRequestDTO {
 
     @NotBlank(message = "email is required")
     private String email;
-
-    private String otp;
 
 }
 
