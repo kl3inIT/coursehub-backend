@@ -22,7 +22,7 @@ public class UserController {
     //@Valid de validate du lieu dau vao -> kiem tra requestDTO la biet
 
     @PostMapping("/register/init")
-    public ResponseEntity<ResponseDTO<String>> initUser(@Valid @RequestBody UserRequestDTO user) {
+    public ResponseEntity<ResponseDTO<String>> initUser( @RequestBody UserRequestDTO user) {
         ResponseDTO<String> responseDTO = new ResponseDTO<>();
         responseDTO.setMessage("Success");
         responseDTO.setData(userService.initUser(user));
