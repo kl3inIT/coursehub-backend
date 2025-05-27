@@ -28,61 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final OtpUtil otpUtil;
-    private final RedisTemplate<String, Object> redisTemplate;
     private final UserConverter userConverter;
-    private final PasswordEncoder passwordEncoder;
-
-    @Override
-    public String initUser(UserRequestDTO userDTO) {
-        if(userRepository.findByEmailAndIsActive(userDTO.getEmail(), 1L) != null){
-            throw new EmailAlreadyExistsException("Email already exists");
-        }
-
-        if(!userDTO.getPassword().equals(userDTO.getConfirmPassword())){
-            throw new PasswordNotMatchException("Password not match");
-        }
-
-        // luu tam user vao redis
-        saveToRedis("user:" + userDTO.getEmail(), userDTO);
-
-        // tao va gui otp
-        String otp = otpUtil.generateOtp();
-        saveToRedis("otp:" + userDTO.getEmail(), otp);
-        otpUtil.sendOtpEmail(userDTO.getEmail(), otp);
-        return "Otp is sent to " + userDTO.getEmail();
-
-    }
-
-    @Override
-    public UserResponseDTO verifyUser(OtpRequestDTO otpRequestDTO) {
-        String storedOtp = (String) getFromRedis("otp:" + otpRequestDTO.getEmail());
-
-        if (storedOtp == null) {
-            throw new OtpNotFoundException("Otp not found");
-        }
-        if (!storedOtp.equals(otpRequestDTO.getOtp())) {
-            throw new InvalidOtpException("Invalid OTP");
-        }
-        UserRequestDTO userRequestDTO = (UserRequestDTO) getFromRedis("user:" + otpRequestDTO.getEmail());
-        UserEntity  userEntity = userConverter.toUserEntity(userRequestDTO);
-        String encodedPassword = passwordEncoder.encode(userRequestDTO.getPassword());
-        userEntity.setPassword(encodedPassword);
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setUserEntity(userEntity);
-        userRoleEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
-        userEntity.setUserRoleEntityList(Collections.singleton(userRoleEntity));
-        userRepository.save(userEntity);
-        return userConverter.toUserResponseDTO(userEntity);
-    }
-
-    @Override
-//    @PostAuthorize("hasRole('ADMIN') or returnObject.email == authentication.name")
-    public UserResponseDTO getUser(long userId) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new DataNotFoundException("User not found"));
-        return userConverter.toUserResponseDTO(userEntity);
-    }
 
     @Override
     public UserResponseDTO getMyInfo() {
@@ -95,17 +41,7 @@ public class UserServiceImpl implements UserService {
         return userConverter.toUserResponseDTO(userEntity);
     }
 
-    public void saveToRedis(String key, Object value) {
-        try {
-            redisTemplate.opsForValue().set( key, value, 1, TimeUnit.MINUTES);
-        } catch (RedisConnectionException e) {
-            throw new RedisOperationException("Failed to save " + key + " to Redis", e);
-        }
-    }
 
-    public Object getFromRedis(String key) {
-        return redisTemplate.opsForValue().get(key);
-    }
 
 
 }

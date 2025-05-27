@@ -7,8 +7,5 @@ import com.coursehub.dto.response.user.UserResponseDTO;
 
 public interface UserService {
 
-    String initUser(UserRequestDTO userDTO);
-    UserResponseDTO verifyUser(OtpRequestDTO otpRequestDTO);
-    UserResponseDTO getUser(long userId);
     UserResponseDTO getMyInfo();
 }

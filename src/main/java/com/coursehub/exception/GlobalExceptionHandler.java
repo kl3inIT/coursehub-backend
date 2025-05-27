@@ -42,8 +42,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(responseDTO);
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ResponseDTO<String>> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex){
+    @ExceptionHandler(IllegalEmailException.class)
+    public ResponseEntity<ResponseDTO<String>> handleEmailAlreadyExistsException(IllegalEmailException ex){
         ResponseDTO<String> responseDTO = new ResponseDTO<>();
         responseDTO.setMessage("Bad request from email");
         responseDTO.setData(ex.getMessage());

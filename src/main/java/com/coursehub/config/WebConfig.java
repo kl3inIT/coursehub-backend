@@ -16,4 +16,5 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true) // Cho phép gửi cookie hoặc thông tin xác thực
                 .maxAge(3600); // Thời gian cache CORS preflight request (giây)
     }
+
 }
