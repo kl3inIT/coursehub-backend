@@ -1,14 +1,20 @@
 package com.coursehub.entity;
 
-
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
-public class UserEntity extends BaseEntity{
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserEntity extends BaseEntity {
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -31,4 +37,15 @@ public class UserEntity extends BaseEntity{
             inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false))
     private List<RoleEntity> roles = new ArrayList<>();
 
+    // Relationship with courses (as instructor)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<CourseEntity> courses = new HashSet<>();
+
+    // Relationship with reviews
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<ReviewEntity> reviews = new HashSet<>();
+
+    // Relationship with enrollments
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<EnrollmentEntity> enrollments = new HashSet<>();
 }

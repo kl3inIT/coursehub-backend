@@ -1,5 +1,6 @@
 package com.coursehub.entity;
 
+import com.coursehub.enums.CourseLevel;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,10 +36,25 @@ public class CourseEntity extends BaseEntity{
     @Column(columnDefinition = "TEXT")
     private String thumbnail;
 
+    @Column(name = "level")
+    @Enumerated(EnumType.STRING)
+    private CourseLevel level;
+
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @Column(name = "duration")
+    private Integer duration;
 
     // Relationship with lessons
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
     private Set<LessonEntity> lessons;
+
+    // Relationship with reviews
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    private Set<ReviewEntity> reviews;
+
+    // Relationship with enrollments
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    private Set<EnrollmentEntity> enrollments;
 }

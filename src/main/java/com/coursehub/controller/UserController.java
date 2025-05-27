@@ -1,6 +1,6 @@
 package com.coursehub.controller;
 
-import com.coursehub.dto.ResponseDTO;
+import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.UserRequestDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.service.UserService;
@@ -19,7 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<ResponseDTO<UserResponseDTO>> createUser(@RequestBody UserRequestDTO user) {
+    public ResponseEntity<ResponseGeneral<UserResponseDTO>> createUser(@RequestBody UserRequestDTO user) {
 
         return null;
     }

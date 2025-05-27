@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ResponseDTO<T> {
+public class ResponseGeneral<T> {
     private T data;
     private String message;
     private String detail;
