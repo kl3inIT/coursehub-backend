@@ -4,7 +4,7 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:mysql://localhost:3307/CourseHub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3307/CourseHub
     username: root
     password: 123456
 
@@ -17,3 +17,36 @@ spring:
       hibernate:
         format_sql: true
 
+  aws:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+    region: ap-southeast-2
+    s3:
+      bucket: course-hub-resourses
+
+    #redis la mot bo luu tru doc lap voi dang key value, dung de luu tru tam thoi mot so thong tin khi minh chua muon luu vao database
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: it4beginer@gmail.com
+    password: eywvbyghvnkthibx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+jwt:
+  secret: WaVbZbGzZMYGHUjNYrh87xGyib8ivGWndlsf4bsX2mB47MbdsUTwf2Dsv1TPuBG+
+  expiration: 86400000

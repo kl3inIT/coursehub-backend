@@ -22,6 +22,12 @@ docker-compose up -d --build
 # Step 3: Check running services
 docker ps
 
+# Step 4: Build redis config
+docker pull redis:latest
+
+# Step 5: check running redis
+docker run -d --name redis-container -p 6379:6379 redis:latest
+
 # App runs at: http://localhost:8080
 # MySQL runs at: localhost:3306 (user: root / password: password)
 ```

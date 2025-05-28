@@ -3,10 +3,11 @@ server:
 
 spring:
   application:
-    name: backend-service
+    name: coursehub-backend
   profiles:
     active:
-        - dev
+      - dev
+
 
 management:
   endpoints:
@@ -18,5 +19,7 @@ logging:
   level:
     root: INFO
     web: INFO
+
+
 
 

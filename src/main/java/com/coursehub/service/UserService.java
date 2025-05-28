@@ -1,8 +1,10 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.UserDTO;
-import java.util.List;
+import com.coursehub.dto.request.user.OtpRequestDTO;
+import com.coursehub.dto.request.user.UserRequestDTO;
+import com.coursehub.dto.response.user.UserResponseDTO;
 
 public interface UserService {
-    List<UserDTO> getAllUsers();
+
+    UserResponseDTO getMyInfo();
 }

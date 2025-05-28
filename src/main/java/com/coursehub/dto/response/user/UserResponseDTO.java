@@ -1,16 +1,19 @@
 package com.coursehub.dto.response.user;
 
-import lombok.AccessLevel;
+
 import lombok.Getter;
-import lombok.experimental.FieldDefaults;
+import lombok.Setter;
+
+import java.util.List;
 
 @Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Setter
 public class UserResponseDTO {
 
-    int id;
-    String username;
-    String fullName;
-    String email;
+    private int id;
+    private String email;
+    private String name;
+    private String fullName;
+    private List<String> roles;
 
 }

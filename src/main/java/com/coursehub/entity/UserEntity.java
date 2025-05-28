@@ -1,23 +1,18 @@
 package com.coursehub.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
+@Table(name = "users")
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "users")
 public class UserEntity extends BaseEntity{
 
     @Column(unique = true, nullable = false)
@@ -26,19 +21,17 @@ public class UserEntity extends BaseEntity{
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "full_name")
+    @Column
     private String name;
 
-    @Column(name = "avatar_url")
-    private String avatarUrl;
+    @Column
+    private String avatar;
 
     @Column(name = "is_active")
-    private Boolean isActive = true;
+    private Long isActive = 1L;
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinTable(name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id", nullable = false),
-            inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false))
-    private List<RoleEntity> roles = new ArrayList<>();
+    @JsonManagedReference(value = "user-userRole")
+    private Set<UserRoleEntity> userRoleEntityList = new HashSet<>();
 
 }
