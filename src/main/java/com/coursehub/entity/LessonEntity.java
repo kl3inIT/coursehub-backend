@@ -1,34 +1,41 @@
 package com.coursehub.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "lessons")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class LessonEntity extends BaseEntity{
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private CourseEntity course;
+public class LessonEntity extends BaseEntity {
 
     @Column
     private String title;
 
-    @Column(name = "video_url", columnDefinition = "TEXT")
+    @Column(name = "video_url")
     private String videoUrl;
 
-    @Column(columnDefinition = "TEXT")
+    @Column
     private String description;
 
     @Column(name = "order_number")
     private Long orderNumber;
 
     @Column(name = "is_active")
-    private Boolean isActive = true;
+    private Long isActive = 1L;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id")
+    private ModuleEntity moduleEntity;
+
+    @OneToMany(mappedBy = "lessonEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CommentEntity> commentEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "lessonEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserLessonEntity> userLessonEntities = new HashSet<>();
+
 }
