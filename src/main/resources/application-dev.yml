@@ -25,15 +25,15 @@ spring:
       bucket: course-hub-resourses
 
     #redis la mot bo luu tru doc lap voi dang key value, dung de luu tru tam thoi mot so thong tin khi minh chua muon luu vao database
-    data:
-      redis:
-        host: localhost
-        port: 6379
-        database: 0
-    cache:
-      type: redis
-      redis:
-        time-to-live: 600000
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
 
   mail:
     host: smtp.gmail.com
