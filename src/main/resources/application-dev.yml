@@ -4,9 +4,9 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:mysql://localhost:3307/CourseHub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3307/CourseHub
     username: root
-    password: dat123456
+    password: 123456
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect

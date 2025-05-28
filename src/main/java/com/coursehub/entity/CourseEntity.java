@@ -41,11 +41,7 @@ public class CourseEntity extends BaseEntity{
     private CourseLevel level;
 
     @Column(name = "is_active")
-    private Boolean isActive = true;
-
-    // Relationship with lessons
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private Set<LessonEntity> lessons;
+    private Long isActive = 1L;
 
     // Relationship with reviews
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)

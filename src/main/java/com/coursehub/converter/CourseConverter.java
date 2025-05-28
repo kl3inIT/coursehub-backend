@@ -37,7 +37,6 @@ public class CourseConverter {
         dto.setAverageRating(calculateAverageRating(course.getReviews()));
         dto.setTotalReviews(calculateTotalReviews(course.getReviews()));
         dto.setTotalStudents(calculateTotalStudents(course.getEnrollments()));
-        dto.setTotalLessons(calculateTotalLessons(course.getLessons()));
         dto.setFinalPrice(calculateFinalPrice(course.getPrice(), course.getDiscount()));
 
         return dto;
