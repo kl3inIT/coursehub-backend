@@ -1,11 +1,12 @@
 package com.coursehub.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -19,7 +20,8 @@ public class RoleEntity extends BaseEntity{
     @Column
     private String description;
 
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private List<UserEntity> users = new ArrayList<>();
+    @OneToMany(mappedBy = "roleEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "role-userRole")
+    private Set<UserRoleEntity> userRoleEntityList = new HashSet<>();
 
 }

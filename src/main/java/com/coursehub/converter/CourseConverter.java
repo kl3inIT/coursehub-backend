@@ -33,7 +33,7 @@ public class CourseConverter {
 
         // Apply complex transformations
         dto.setThumbnailUrl(generateThumbnailUrl(course.getThumbnail()));
-        dto.setInstructorName(course.getUser() != null ? course.getUser().getName() : null);
+        dto.setInstructorName("CourseHub");
         dto.setAverageRating(calculateAverageRating(course.getReviews()));
         dto.setTotalReviews(calculateTotalReviews(course.getReviews()));
         dto.setTotalStudents(calculateTotalStudents(course.getEnrollments()));

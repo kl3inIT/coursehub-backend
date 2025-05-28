@@ -21,7 +21,6 @@ public class CourseResponseDTO {
     private String thumbnailUrl;
 
     private CourseLevel courseLevel;
-    private Integer duration;
     private Double finalPrice;
 
     private Boolean isActive;

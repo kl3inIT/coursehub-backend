@@ -43,9 +43,6 @@ public class CourseEntity extends BaseEntity{
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "duration")
-    private Integer duration;
-
     // Relationship with lessons
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
     private Set<LessonEntity> lessons;

@@ -60,8 +60,8 @@ public class CourseServiceImpl implements CourseService {
         mockUser.setEmail("test@example.com");
         mockUser.setPassword("123456");
         mockUser.setName("Test User");
-        mockUser.setAvatarUrl("https://example.com/avatar.png"); // hoặc null nếu nullable
-        mockUser.setIsActive(true);
+        mockUser.setAvatar("https://example.com/avatar.png"); // hoặc null nếu nullable
+        mockUser.setIsActive(1L);
         userRepository.save(mockUser);
         courseEntity.setUser(mockUser); // Set instructor from request
         // Generate unique course code
