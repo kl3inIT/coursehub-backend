@@ -45,17 +45,7 @@ public class CourseServiceImpl implements CourseService {
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
             
-            // Create mock user (you might want to get actual user from context)
-            UserEntity mockUser = new UserEntity();
-            mockUser.setEmail("test@example.com");
-            mockUser.setPassword("123456");
-            mockUser.setName("Test User");
-            mockUser.setAvatar("https://example.com/avatar.png");
-            mockUser.setIsActive(1L);
-            userRepository.save(mockUser);
-            
-            courseEntity.setUser(mockUser);
-            
+
             CourseEntity savedCourse = courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", savedCourse.getId());
             

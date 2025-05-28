@@ -142,7 +142,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserRoleEntity userRoleEntity = new UserRoleEntity();
         userRoleEntity.setUserEntity(userEntity);
         userRoleEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
-        userEntity.setUserRoleEntityList(Collections.singleton(userRoleEntity));
+        userEntity.setUserRoleEntities(Collections.singleton(userRoleEntity));
         userRepository.save(userEntity);
         return userConverter.toUserResponseDTO(userEntity);
     }
@@ -202,7 +202,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     public String getScope(UserEntity user) {
         StringJoiner joiner = new StringJoiner(" ");
-        user.getUserRoleEntityList().forEach(userRoleEntity -> joiner.add(userRoleEntity.getRoleEntity().getCode()));
+        user.getUserRoleEntities().forEach(userRoleEntity -> joiner.add(userRoleEntity.getRoleEntity().getCode()));
         return joiner.toString();
     }
 

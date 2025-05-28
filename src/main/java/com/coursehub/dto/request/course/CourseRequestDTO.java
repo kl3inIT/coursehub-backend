@@ -2,6 +2,7 @@ package com.coursehub.dto.request.course;
 
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.utils.validator.EnumValue;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -32,6 +33,5 @@ public class CourseRequestDTO {
     @EnumValue(name = "level", enumClass = CourseLevel.class)
     private String level;
 
-    @Builder.Default
-    private Boolean isActive = true;
+    private Long isActive = 1L;
 }

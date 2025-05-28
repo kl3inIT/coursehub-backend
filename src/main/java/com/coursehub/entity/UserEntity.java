@@ -31,7 +31,24 @@ public class UserEntity extends BaseEntity{
     private Long isActive = 1L;
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "user-userRole")
-    private Set<UserRoleEntity> userRoleEntityList = new HashSet<>();
+    private Set<UserRoleEntity> userRoleEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CommentEntity> commentEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserLessonEntity> userLessonEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EnrollmentEntity>  enrollmentEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CourseProgressEntity>  courseProgressEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PaymentEntity>  paymentEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CertificateEntity>  certificateEntities = new HashSet<>();
 
 }

@@ -1,17 +1,15 @@
 package com.coursehub.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 
-import java.util.Date;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Table(name = "enrollments")
+@Table(name = "certificates")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class EnrollmentEntity extends BaseEntity {
+public class CertificateEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -25,4 +23,4 @@ public class EnrollmentEntity extends BaseEntity {
     @Column(name = "certificate_url")
     private String certificateUrl;
 
-} 
+}
