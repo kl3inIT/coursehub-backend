@@ -20,6 +20,7 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
            "LEFT JOIN FETCH c.user " +
            "LEFT JOIN FETCH c.reviews " +
            "LEFT JOIN FETCH c.enrollments " +
+           "LEFT JOIN FETCH c.lessons " +
            "WHERE c.id = :courseId")
     Optional<CourseEntity> findByIdWithDetails(@Param("courseId") Long courseId);
 
@@ -27,7 +28,7 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
      * Find featured courses (top 4 active courses with highest ratings)
      * @return List of top 4 featured courses
      */
-    @Query("SELECT c FROM CourseEntity c WHERE c.isActive = 1")
+    @Query("SELECT c FROM CourseEntity c WHERE c.isActive = true")
     List<CourseEntity> findFeaturedCourses();
 
 }

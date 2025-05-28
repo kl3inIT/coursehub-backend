@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.coursehub.exception.auth.*;
+import com.coursehub.exception.course.*;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,18 +19,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseGeneral<Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        log.error("Resource not found: {}", ex.getMessage());
-        
-        ResponseGeneral<Object> response = new ResponseGeneral<>();
-        response.setMessage("Resource not found");
-        response.setDetail(ex.getMessage());
-        response.setData(null);
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ResponseGeneral<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.error("Invalid argument: {}", ex.getMessage());
@@ -37,18 +26,6 @@ public class GlobalExceptionHandler {
         ResponseGeneral<Object> response = new ResponseGeneral<>();
         response.setMessage("Invalid request");
         response.setDetail(ex.getMessage());
-        response.setData(null);
-        
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ResponseGeneral<Object>> handleMaxUploadSizeException(MaxUploadSizeExceededException ex) {
-        log.error("File size exceeded: {}", ex.getMessage());
-        
-        ResponseGeneral<Object> response = new ResponseGeneral<>();
-        response.setMessage("File size too large");
-        response.setDetail("Maximum upload size exceeded");
         response.setData(null);
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -139,6 +116,55 @@ public class GlobalExceptionHandler {
         ResponseGeneral.setMessage("Forbidden");
         ResponseGeneral.setData(ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseGeneral);
+    }
+
+    // Course-specific exception handlers
+    @ExceptionHandler(CourseNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCourseNotFoundException(CourseNotFoundException ex) {
+        log.error("Course not found: {}", ex.getMessage());
+        
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Course Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(CourseCreationException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCourseCreationException(CourseCreationException ex) {
+        log.error("Course creation failed: {}", ex.getMessage());
+        
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Course Creation Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidFileException(InvalidFileException ex) {
+        log.error("Invalid file: {}", ex.getMessage());
+        
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Invalid File");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(FileUploadException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleFileUploadException(FileUploadException ex) {
+        log.error("File upload failed: {}", ex.getMessage());
+        
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("File Upload Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
 }
