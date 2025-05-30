@@ -4,7 +4,6 @@ import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
-import com.coursehub.entity.UserEntity;
 import com.coursehub.exception.course.*;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.UserRepository;
@@ -27,7 +26,6 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseConverter courseConverter;
-    private final UserRepository userRepository;
     private final S3Service s3Service;
 
     // Allowed file types for thumbnails
@@ -44,8 +42,6 @@ public class CourseServiceImpl implements CourseService {
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
-            
-
             CourseEntity savedCourse = courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", savedCourse.getId());
             

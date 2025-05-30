@@ -1,19 +1,35 @@
 package com.coursehub.exception;
 
-import com.coursehub.dto.ResponseGeneral;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import com.coursehub.exception.auth.*;
-import com.coursehub.exception.course.*;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exception.auth.DataNotFoundException;
+import com.coursehub.exception.auth.EmailSendingException;
+import com.coursehub.exception.auth.IllegalEmailException;
+import com.coursehub.exception.auth.InvalidOtpException;
+import com.coursehub.exception.auth.InvalidTokenException;
+import com.coursehub.exception.auth.OtpNotFoundException;
+import com.coursehub.exception.auth.PasswordNotMatchException;
+import com.coursehub.exception.auth.RedisOperationException;
+import com.coursehub.exception.course.CourseCreationException;
+import com.coursehub.exception.course.CourseNotFoundException;
+import com.coursehub.exception.course.FileUploadException;
+import com.coursehub.exception.course.InvalidFileException;
+import com.coursehub.exception.user.DuplicateUserException;
+import com.coursehub.exception.user.UserAuthenticationException;
+import com.coursehub.exception.user.UserNotFoundException;
+import com.coursehub.exception.user.UserPermissionException;
+import com.coursehub.exception.user.UserValidationException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
 @Slf4j
@@ -122,49 +138,94 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CourseNotFoundException.class)
     public ResponseEntity<ResponseGeneral<String>> handleCourseNotFoundException(CourseNotFoundException ex) {
         log.error("Course not found: {}", ex.getMessage());
-        
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Course Not Found");
         response.setDetail(ex.getMessage());
         response.setData(null);
-        
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(CourseCreationException.class)
     public ResponseEntity<ResponseGeneral<String>> handleCourseCreationException(CourseCreationException ex) {
         log.error("Course creation failed: {}", ex.getMessage());
-        
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Course Creation Failed");
         response.setDetail(ex.getMessage());
         response.setData(null);
-        
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(InvalidFileException.class)
     public ResponseEntity<ResponseGeneral<String>> handleInvalidFileException(InvalidFileException ex) {
         log.error("Invalid file: {}", ex.getMessage());
-        
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Invalid File");
         response.setDetail(ex.getMessage());
         response.setData(null);
-        
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(FileUploadException.class)
     public ResponseEntity<ResponseGeneral<String>> handleFileUploadException(FileUploadException ex) {
         log.error("File upload failed: {}", ex.getMessage());
-        
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("File Upload Failed");
         response.setDetail(ex.getMessage());
         response.setData(null);
-        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+
+    // User Exception Handler
+
+    @ExceptionHandler(DuplicateUserException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleDuplicateUserException(DuplicateUserException ex) {
+        log.error("Duplicate user error: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Duplicate User");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(UserAuthenticationException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleAuthenticationException(UserAuthenticationException ex) {
+        log.error("Authentication failed: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Authentication Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserNotFoundException(UserNotFoundException ex) {
+        log.error("User not found: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("User Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(UserPermissionException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserPermissionException(UserPermissionException ex) {
+        log.error("Permission denied: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Permission Denied");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(UserValidationException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserValidationException(UserValidationException ex) {
+        log.error("Validation error: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Validation Error");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
 }

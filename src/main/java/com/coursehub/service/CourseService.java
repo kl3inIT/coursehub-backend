@@ -2,11 +2,7 @@ package com.coursehub.service;
 
 import com.coursehub.dto.request.course.CourseRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
-import com.coursehub.entity.CourseEntity;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface CourseService {
 
@@ -26,4 +22,5 @@ public interface CourseService {
      * @return CourseResponseDTO containing course information
      */
     CourseResponseDTO findCourseById(Long courseId);
+
 }    

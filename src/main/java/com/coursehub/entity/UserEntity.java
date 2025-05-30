@@ -1,19 +1,22 @@
 package com.coursehub.entity;
-
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
-public class UserEntity extends BaseEntity{
+public class UserEntity extends BaseEntity {
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -21,11 +24,26 @@ public class UserEntity extends BaseEntity{
     @Column(nullable = false)
     private String password;
 
-    @Column
+    @Column(nullable = false)
     private String name;
 
     @Column
     private String avatar;
+
+    @Column
+    private String phone;
+
+    @Column
+    private String address;
+
+    @Column
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
+
+    @Column
+    private String bio;
 
     @Column(name = "is_active")
     private Long isActive = 1L;
@@ -40,15 +58,14 @@ public class UserEntity extends BaseEntity{
     private Set<UserLessonEntity> userLessonEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<EnrollmentEntity>  enrollmentEntities = new HashSet<>();
+    private Set<EnrollmentEntity> enrollmentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseProgressEntity>  courseProgressEntities = new HashSet<>();
+    private Set<CourseProgressEntity> courseProgressEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<PaymentEntity>  paymentEntities = new HashSet<>();
+    private Set<PaymentEntity> paymentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CertificateEntity>  certificateEntities = new HashSet<>();
-
+    private Set<CertificateEntity> certificateEntities = new HashSet<>();
 }
