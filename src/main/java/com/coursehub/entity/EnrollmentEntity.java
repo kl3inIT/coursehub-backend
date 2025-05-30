@@ -15,13 +15,14 @@ public class EnrollmentEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private UserEntity userEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
-    private CourseEntity course;
+    private CourseEntity courseEntity;
 
-    @Column(name = "enrollment_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+
+    @Column(name = "certificate_url")
+    private String certificateUrl;
+
 } 

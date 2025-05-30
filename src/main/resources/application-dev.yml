@@ -3,10 +3,22 @@ spring:
     activate:
       on-profile: dev
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}e
+            redirect-uri: http://localhost:3000/auth/google/callback
+        provider:
+          google:
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
   datasource:
-    url: jdbc:mysql://localhost:3307/CourseHub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3307/CourseHub
     username: root
-    password: dat123456
+    password: 123456
 
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -23,3 +35,31 @@ spring:
     region: ap-southeast-2
     s3:
       bucket: course-hub-resourses
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: it4beginer@gmail.com
+    password: eywvbyghvnkthibx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+jwt:
+  secret: WaVbZbGzZMYGHUjNYrh87xGyib8ivGWndlsf4bsX2mB47MbdsUTwf2Dsv1TPuBG+
+  expiration: 86400000
+

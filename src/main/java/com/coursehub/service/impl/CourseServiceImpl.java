@@ -5,23 +5,20 @@ import com.coursehub.dto.request.course.CourseRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.exception.ResourceNotFoundException;
+import com.coursehub.exception.course.*;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.CourseService;
 import com.coursehub.service.S3Service;
+import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,50 +30,79 @@ public class CourseServiceImpl implements CourseService {
     private final UserRepository userRepository;
     private final S3Service s3Service;
 
-    // Business Logic Methods
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CourseResponseDTO> getFeaturedCourses() {
-        log.info("Fetching featured courses");
-
-        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourses();
-
-        // Limit to 4 courses for featured section
-        List<CourseEntity> topFourCourses = featuredCourses.stream()
-                .limit(4)
-                .toList();
-
-        return courseConverter.toResponseDTOList(topFourCourses);
-    }
+    // Allowed file types for thumbnails
+    private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
+        "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
+    );
+    
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     @Override
     @Transactional
     public CourseResponseDTO createCourse(CourseRequestDTO courseRequestDTO) {
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
 
-        CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
-        UserEntity mockUser = new UserEntity();
-        mockUser.setEmail("test@example.com");
-        mockUser.setPassword("123456");
-        mockUser.setName("Test User");
-        mockUser.setAvatarUrl("https://example.com/avatar.png"); // hoặc null nếu nullable
-        mockUser.setIsActive(true);
-        userRepository.save(mockUser);
-        courseEntity.setUser(mockUser); // Set instructor from request
-        // Generate unique course code
+        try {
+            CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
+            
 
-        CourseEntity savedCourse = courseRepository.save(courseEntity);
-        return courseConverter.toResponseDTO(savedCourse);
+            CourseEntity savedCourse = courseRepository.save(courseEntity);
+            log.info("Successfully created course with ID: {}", savedCourse.getId());
+            
+            return courseConverter.toResponseDTO(savedCourse);
+            
+        } catch (Exception e) {
+            log.error("Failed to create course: {}", e.getMessage(), e);
+            throw new CourseCreationException("Failed to create course: " + e.getMessage(), e);
+        }
     }
 
-    public String uploadThumbnail(Long courseId, MultipartFile file) throws IOException {
-        String objectKey = String.format("thumbnails/courses/%d/%s", courseId, file.getOriginalFilename());
-        String thubmnailKey = s3Service.uploadFile(objectKey, file.getContentType(), file.getBytes());
+    @Override
+    public String uploadThumbnail(Long courseId, MultipartFile file) {
+        log.info("Uploading thumbnail for course ID: {}", courseId);
+        
+        // Validate course exists
         CourseEntity course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
-        course.setThumbnail(thubmnailKey);
-        return thubmnailKey;
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        
+        // Validate file using utility
+        FileValidationUtil.validateImageFile(file);
+
+        
+        try {
+            String objectKey = String.format("public/thumbnails/courses/%d/%s", courseId, file.getOriginalFilename());
+            
+            // Upload to S3
+            String thumbnailKey = s3Service.uploadFile(objectKey, file.getContentType(), file.getBytes());
+            
+            // Update course thumbnail in database
+            course.setThumbnail(thumbnailKey);
+            courseRepository.save(course);
+            
+            log.info("Successfully uploaded thumbnail for course ID: {}", courseId);
+            return thumbnailKey;
+            
+        } catch (Exception e) {
+            log.error("Failed to upload thumbnail for course ID: {}: {}", courseId, e.getMessage(), e);
+            throw new FileUploadException("Failed to upload thumbnail: " + e.getMessage(), e);
+        }
     }
 
+    @Override
+    public CourseResponseDTO findCourseById(Long courseId) {
+        log.info("Finding course with ID: {}", courseId);
+        
+        if (courseId == null) {
+            throw new IllegalArgumentException("Course ID cannot be null");
+        }
+        
+        CourseEntity course = courseRepository.findById(courseId)
+                .orElseThrow(() -> {
+                    log.warn("Course not found with ID: {}", courseId);
+                    return new CourseNotFoundException(courseId);
+                });
+        
+        log.info("Successfully found course: {} (ID: {})", course.getTitle(), courseId);
+        return courseConverter.toResponseDTO(course);
+    }
 }

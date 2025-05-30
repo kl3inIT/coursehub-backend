@@ -1,0 +1,30 @@
+[33m97438e6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mbase-project[m[33m)[m update
+[33mb536040[m update base
+[33m7b8ad4a[m login with google
+[33m0063234[m[33m ([m[1;31morigin/base-project[m[33m, [m[1;32mtest[m[33m)[m ok
+[33mb8d62e8[m ok
+[33m53fa1b1[m ok
+[33m22a9dff[m[33m ([m[1;31morigin/test[m[33m)[m ok
+[33md02b8c7[m merge
+[33m42ef9b3[m merge
+[33m8bad2a2[m merge
+[33m82788ec[m[33m ([m[1;31morigin/nhat-nhu[m[33m, [m[1;32mnhat-nhu[m[33m)[m update
+[33m538b015[m WIP: save progress before merge
+[33m440ffa5[m config cors
+[33m86c2fbc[m update read me
+[33mc31abd2[m ignore secuity
+[33mb884b50[m unlock security
+[33mffccc70[m login register
+[33m9a47a33[m[33m ([m[1;31morigin/duc-anh[m[33m)[m update
+[33m498fa35[m config aws
+[33m64dcce3[m config aws
+[33m2f2bf37[m add aws s3 dependency
+[33mbc19361[m add course and lesson entity
+[33m7d13182[m add course and lesson entity
+[33m6a67a24[m add aws config
+[33m0a0c4cb[m ok
+[33m90474f3[m[33m ([m[1;31morigin/nhatanh-test[m[33m)[m test
+[33m07ba262[m base project
+[33m8a5c057[m add readme
+[33m7c133a4[m add readme
+[33m409ad43[m init

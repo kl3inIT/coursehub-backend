@@ -1,11 +1,13 @@
 package com.coursehub.entity;
 
 import com.coursehub.enums.CourseLevel;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,9 +19,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class CourseEntity extends BaseEntity{
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
 
     @Column
     private String title;
@@ -37,24 +36,34 @@ public class CourseEntity extends BaseEntity{
     private String thumbnail;
 
     @Column(name = "level")
-    @Enumerated(EnumType.STRING)
-    private CourseLevel level;
+    private String level;
 
     @Column(name = "is_active")
-    private Boolean isActive = true;
-
-    @Column(name = "duration")
-    private Integer duration;
-
-    // Relationship with lessons
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private Set<LessonEntity> lessons;
+    private Long isActive = 1L;
 
     // Relationship with reviews
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private Set<ReviewEntity> reviews;
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ReviewEntity> reviewEntities;
 
     // Relationship with enrollments
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private Set<EnrollmentEntity> enrollments;
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EnrollmentEntity> enrollmentEntities;
+
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ModuleEntity> moduleEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CourseProgressEntity> courseProgressEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PaymentEntity> paymentEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CertificateEntity> certificateEntities = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private CategoryEntity categoryEntity;
+
 }
+

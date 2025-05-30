@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-
+    UserEntity findByEmailAndIsActive(String email, Long status);
+    UserEntity findByGoogleAccountIdAndIsActive(String googleAccountId, Long status);
 }

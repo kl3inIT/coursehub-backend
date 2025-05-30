@@ -2,6 +2,7 @@ package com.coursehub.dto.request.course;
 
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.utils.validator.EnumValue;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -32,11 +33,5 @@ public class CourseRequestDTO {
     @EnumValue(name = "level", enumClass = CourseLevel.class)
     private String level;
 
-    @NotNull(message = "Course duration is required")
-    @Min(value = 1, message = "Course duration must be at least 1 week")
-    @Max(value = 52, message = "Course duration cannot exceed 52 weeks")
-    private Integer duration;
-
-    @Builder.Default
-    private Boolean isActive = true;
+    private Long isActive = 1L;
 }
