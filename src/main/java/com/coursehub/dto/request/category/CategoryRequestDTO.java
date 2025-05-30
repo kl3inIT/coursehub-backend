@@ -10,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class CategoryRequestDTO {
+
     @NotBlank(message = "Course category name is required")
     private String name;
     @NotBlank(message = "Course category description is required")

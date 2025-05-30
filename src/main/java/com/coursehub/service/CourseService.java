@@ -2,10 +2,12 @@ package com.coursehub.service;
 
 import com.coursehub.dto.request.course.CourseRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,9 +30,9 @@ public interface CourseService {
      */
     CourseResponseDTO findCourseById(Long courseId);
 
-    List<CourseResponseDTO> findAllCourses(Pageable pageable);
+    Page<CourseResponseDTO> findAll(Pageable pageable);
 
-    List<CourseResponseDTO> findCourseByCategory(String category);
+    List<CourseResponseDTO> findByCategoryId(Long categoryId);
 
-    List<CourseResponseDTO> findFeaturedCourses();
+    List<CourseResponseDTO> findFeaturedCourses(Pageable pageable);
 }    
