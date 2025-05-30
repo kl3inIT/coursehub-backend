@@ -2,9 +2,13 @@ package com.coursehub.converter;
 
 import com.coursehub.dto.request.course.CourseRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.ReviewEntity;
+import com.coursehub.exception.category.CategoryNotFoundExeption;
+import com.coursehub.repository.CategoryRepository;
+import com.coursehub.repository.CourseRepository;
 import com.coursehub.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,6 +26,7 @@ public class CourseConverter {
 
     private final ModelMapper modelMapper;
     private final S3Service s3Service;
+    private final CategoryRepository categoryRepository;
 
     public CourseResponseDTO toResponseDTO(CourseEntity course) {
         if (course == null) {
@@ -47,14 +52,12 @@ public class CourseConverter {
             return null;
         }
 
-        // Use ModelMapper for basic field mapping
-        CourseEntity entity = modelMapper.map(courseDTO, CourseEntity.class);
-        // User will be set in the service layer
-        // Set complex fields
-        entity.setThumbnail(null);
-        // Note: Instructor ID should be set separately in service layer
-
-        return entity;
+        CategoryEntity categoryEntity = categoryRepository.findById(courseDTO.getCategoryCode()).orElseThrow(
+                () -> new CategoryNotFoundExeption("Category not found")
+        );
+        CourseEntity courseEntity = modelMapper.map(courseDTO, CourseEntity.class);
+        courseEntity.setCategoryEntity(categoryEntity);
+        return courseEntity;
     }
 
     public List<CourseResponseDTO> toResponseDTOList(List<CourseEntity> courses) {

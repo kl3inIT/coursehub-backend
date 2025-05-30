@@ -33,5 +33,6 @@ public class CourseRequestDTO {
     @EnumValue(name = "level", enumClass = CourseLevel.class)
     private String level;
 
-    private Long isActive = 1L;
+    @NotNull(message = "Course category required")
+    private Long categoryCode;
 }

@@ -1,6 +1,7 @@
 package com.coursehub.exception;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exception.category.CategoryNotFoundExeption;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -166,5 +167,20 @@ public class GlobalExceptionHandler {
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(CategoryNotFoundExeption.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCategoryNotFoundException(CategoryNotFoundExeption ex) {
+        log.error("Category not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Category Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+
+
 
 }
