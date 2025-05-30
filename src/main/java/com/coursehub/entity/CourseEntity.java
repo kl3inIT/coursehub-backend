@@ -19,7 +19,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class CourseEntity extends BaseEntity {
 
-
     @Column
     private String title;
 

@@ -183,6 +183,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .subject(user.getEmail())
                 .issuer("coursehub.com")
                 .issueTime(new Date())
+                .claim("name", user.getName())
                 .expirationTime(new Date(System.currentTimeMillis() + expiration))
                 .claim("scope", getScope(user))
                 .claim("name", user.getName())

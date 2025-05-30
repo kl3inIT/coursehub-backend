@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.print.Pageable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,15 +28,7 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseConverter courseConverter;
-    private final UserRepository userRepository;
     private final S3Service s3Service;
-
-    // Allowed file types for thumbnails
-    private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
-        "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
-    );
-    
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     @Override
     @Transactional
@@ -44,12 +37,11 @@ public class CourseServiceImpl implements CourseService {
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
-            
 
-            CourseEntity savedCourse = courseRepository.save(courseEntity);
-            log.info("Successfully created course with ID: {}", savedCourse.getId());
+            courseRepository.save(courseEntity);
+            log.info("Successfully created course with ID: {}", courseEntity.getId());
             
-            return courseConverter.toResponseDTO(savedCourse);
+            return courseConverter.toResponseDTO(courseEntity);
             
         } catch (Exception e) {
             log.error("Failed to create course: {}", e.getMessage(), e);
@@ -77,6 +69,7 @@ public class CourseServiceImpl implements CourseService {
             
             // Update course thumbnail in database
             course.setThumbnail(thumbnailKey);
+
             courseRepository.save(course);
             
             log.info("Successfully uploaded thumbnail for course ID: {}", courseId);
@@ -105,4 +98,20 @@ public class CourseServiceImpl implements CourseService {
         log.info("Successfully found course: {} (ID: {})", course.getTitle(), courseId);
         return courseConverter.toResponseDTO(course);
     }
+
+    @Override
+    public List<CourseResponseDTO> findAllCourses(Pageable pageable) {
+        return List.of();
+    }
+
+    @Override
+    public List<CourseResponseDTO> findCourseByCategory(String category) {
+        return List.of();
+    }
+
+    @Override
+    public List<CourseResponseDTO> findFeaturedCourses() {
+        return null;
+    }
+
 }

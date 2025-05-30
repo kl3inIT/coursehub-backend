@@ -19,6 +19,7 @@ public class CourseResponseDTO {
     private BigDecimal price;
     private BigDecimal discount;
     private String thumbnailUrl;
+    private String category;
 
     private CourseLevel courseLevel;
     private Double finalPrice;
