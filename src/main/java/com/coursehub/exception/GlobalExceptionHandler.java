@@ -1,6 +1,8 @@
 package com.coursehub.exception;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exception.category.CategoryInUseException;
+import com.coursehub.exception.category.CategoryNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -165,6 +167,30 @@ public class GlobalExceptionHandler {
         response.setData(null);
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCategoryNotFoundException(CategoryNotFoundException ex) {
+        log.error("Category not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Category Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(CategoryInUseException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCategoryInUseException(CategoryInUseException ex) {
+        log.error("Category using: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Category Using");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
 }

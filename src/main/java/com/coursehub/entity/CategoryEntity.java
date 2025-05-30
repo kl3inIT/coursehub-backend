@@ -13,12 +13,12 @@ import java.util.Set;
 @Setter
 public class CategoryEntity extends BaseEntity {
 
-    @Column
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(mappedBy = "categoryEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseCategoryEntity> courseCategoryEntities = new HashSet<>();
+    private Set<CourseEntity> courseEntities = new HashSet<>();
 }

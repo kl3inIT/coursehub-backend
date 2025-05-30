@@ -185,6 +185,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + expiration))
                 .claim("scope", getScope(user))
+                .claim("name", user.getName())
                 .jwtID(UUID.randomUUID().toString())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());

@@ -17,7 +17,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseEntity extends BaseEntity{
+public class CourseEntity extends BaseEntity {
 
 
     @Column
@@ -61,8 +61,9 @@ public class CourseEntity extends BaseEntity{
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CertificateEntity> certificateEntities = new HashSet<>();
 
-    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseCategoryEntity> courseCategoryEntities = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private CategoryEntity categoryEntity;
 
 }
 
