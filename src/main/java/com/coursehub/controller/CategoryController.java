@@ -23,9 +23,9 @@ public class CategoryController {
     public ResponseEntity<ResponseGeneral<Page<CategoryResponseDTO>>> getAllOrNameCategorise(
             @RequestParam(required = false) String name,
             Pageable pageable) {
-        Page<CategoryResponseDTO> categoryResponseDTO = categoryService.findAllOrNameCategories(name, pageable);
+        Page<CategoryResponseDTO> categoryResponseDTOS = categoryService.findAllOrNameCategories(name, pageable);
         ResponseGeneral<Page<CategoryResponseDTO>> response = new ResponseGeneral<>();
-        response.setData(categoryResponseDTO);
+        response.setData(categoryResponseDTOS);
         response.setMessage("Success");
         response.setDetail("Categories retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);

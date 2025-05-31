@@ -4,8 +4,8 @@ import com.coursehub.converter.CategoryConverter;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
 import com.coursehub.entity.CategoryEntity;
-import com.coursehub.exception.category.CategoryInUseException;
 import com.coursehub.exception.category.CategoryNotFoundException;
+import com.coursehub.exception.category.CategoryUsingException;
 import com.coursehub.repository.CategoryRepository;
 import com.coursehub.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + id));
 
         if (!category.getCourseEntities().isEmpty()) {
-            throw new CategoryInUseException("Cannot delete category with id: " + id + " because it is being used by courses");
+            throw new CategoryUsingException("Cannot delete category with id: " + id + " because it is being used by courses");
         }
 
         categoryRepository.delete(category);
