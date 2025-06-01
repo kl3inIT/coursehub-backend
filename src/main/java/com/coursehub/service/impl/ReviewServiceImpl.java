@@ -39,47 +39,46 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewConverter.toResponseDTO(review);
     }
 
-//    @Override
-//    @Transactional
-//    public ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO) {
-//        // Check if user has already reviewed this course
-//        if (reviewRepository.existsByUserEntityIdAndCourseEntityIdAndIsActiveTrue(userId, requestDTO.getCourseId())) {
-//            throw new IllegalStateException("User has already reviewed this course");
-//        }
-//
-//        UserEntity user = userRepository.findById(userId)
-//                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
-//
-//        ReviewEntity review = reviewConverter.toEntity(requestDTO);
-//        review.setUserEntity(user);
-//
-//        ReviewEntity savedReview = reviewRepository.save(review);
-//        return reviewConverter.toResponseDTO(savedReview);
-//    }
-//
-//    @Override
-//    @Transactional
-//    public ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO) {
-//        ReviewEntity review = reviewRepository.findById(id)
-//                .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
-//
-//        reviewConverter.updateEntity(review, requestDTO);
-//        ReviewEntity updatedReview = reviewRepository.save(review);
-//        return reviewConverter.toResponseDTO(updatedReview);
-//    }
-//
-//    @Override
-//    @Transactional
-//    public void deleteReview(Long id) {
-//        ReviewEntity review = reviewRepository.findById(id)
-//                .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
-//
-//        review.setIsActive(false);
-//        reviewRepository.save(review);
-//    }
-//
+   @Override
+   @Transactional
+   public ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO) {
+       // Check if user has already reviewed this course
+       if (reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, requestDTO.getCourseId())) {
+           throw new IllegalStateException("User has already reviewed this course");
+       }
+
+       UserEntity user = userRepository.findById(userId)
+               .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+       ReviewEntity review = reviewConverter.toEntity(requestDTO);
+       review.setUserEntity(user);
+
+       ReviewEntity savedReview = reviewRepository.save(review);
+       return reviewConverter.toResponseDTO(savedReview);
+   }
+
+   @Override
+   @Transactional
+   public ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO) {
+       ReviewEntity review = reviewRepository.findById(id)
+               .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
+
+       reviewConverter.updateEntity(review, requestDTO);
+       ReviewEntity updatedReview = reviewRepository.save(review);
+       return reviewConverter.toResponseDTO(updatedReview);
+   }
+
+   @Override
+   @Transactional
+   public void deleteReview(Long id) {
+       ReviewEntity review = reviewRepository.findById(id)
+               .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
+
+       reviewRepository.save(review);
+   }
+
 //    @Override
 //    public boolean existsByUserAndCourse(Long userId, Long courseId) {
-//        return reviewRepository.existsByUserEntityIdAndCourseEntityIdAndIsActiveTrue(userId, courseId);
+//        return reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, courseId);
 //    }
 } 

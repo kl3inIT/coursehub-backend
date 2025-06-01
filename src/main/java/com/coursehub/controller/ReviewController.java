@@ -66,64 +66,64 @@ public class ReviewController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-//    @PostMapping
-//    public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> createReview(
-//            @RequestParam Long userId,
-//            @Valid @RequestBody ReviewRequestDTO requestDTO) {
-//
-//        ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
-//
-//        try {
-//            ReviewResponseDTO review = reviewService.createReview(userId, requestDTO);
-//            response.setData(review);
-//            response.setMessage("Success");
-//            response.setDetail("Review created successfully");
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            response.setMessage("Create review failed");
-//            response.setDetail(e.getMessage());
-//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-//        }
-//    }
-//
-//    @PutMapping("/{id}")
-//    public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> updateReview(
-//            @PathVariable Long id,
-//            @Valid @RequestBody ReviewRequestDTO requestDTO) {
-//
-//        ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
-//
-//        try {
-//            ReviewResponseDTO review = reviewService.updateReview(id, requestDTO);
-//            response.setData(review);
-//            response.setMessage("Success");
-//            response.setDetail("Review updated successfully");
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            response.setMessage("Update failed");
-//            response.setDetail(e.getMessage());
-//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-//        }
-//    }
+   @PostMapping
+   public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> createReview(
+           @RequestParam Long userId,
+           @Valid @RequestBody ReviewRequestDTO requestDTO) {
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<ResponseGeneral<Void>> deleteReview(@PathVariable Long id) {
-//        ResponseGeneral<Void> response = new ResponseGeneral<>();
-//        try {
-//            reviewService.deleteReview(id);
-//            response.setMessage("Success");
-//            response.setDetail("Review deleted successfully");
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (ReviewNotFoundException e) {
-//            response.setMessage("Delete failed");
-//            response.setDetail(e.getMessage());
-//            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//        } catch (Exception e) {
-//            response.setMessage("Delete failed");
-//            response.setDetail("An unexpected error occurred: " + e.getMessage());
-//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+       ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
+
+       try {
+           ReviewResponseDTO review = reviewService.createReview(userId, requestDTO);
+           response.setData(review);
+           response.setMessage("Success");
+           response.setDetail("Review created successfully");
+           return new ResponseEntity<>(response, HttpStatus.OK);
+       } catch (Exception e) {
+           response.setMessage("Create review failed");
+           response.setDetail(e.getMessage());
+           return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+       }
+   }
+
+   @PutMapping("/{id}")
+   public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> updateReview(
+           @PathVariable Long id,
+           @Valid @RequestBody ReviewRequestDTO requestDTO) {
+
+       ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
+
+       try {
+           ReviewResponseDTO review = reviewService.updateReview(id, requestDTO);
+           response.setData(review);
+           response.setMessage("Success");
+           response.setDetail("Review updated successfully");
+           return new ResponseEntity<>(response, HttpStatus.OK);
+       } catch (Exception e) {
+           response.setMessage("Update failed");
+           response.setDetail(e.getMessage());
+           return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+       }
+   }
+
+   @DeleteMapping("/{id}")
+   public ResponseEntity<ResponseGeneral<Void>> deleteReview(@PathVariable Long id) {
+       ResponseGeneral<Void> response = new ResponseGeneral<>();
+       try {
+           reviewService.deleteReview(id);
+           response.setMessage("Success");
+           response.setDetail("Review deleted successfully");
+           return new ResponseEntity<>(response, HttpStatus.OK);
+       } catch (ReviewNotFoundException e) {
+           response.setMessage("Delete failed");
+           response.setDetail(e.getMessage());
+           return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+       } catch (Exception e) {
+           response.setMessage("Delete failed");
+           response.setDetail("An unexpected error occurred: " + e.getMessage());
+           return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+       }
+   }
 //
 //    @GetMapping("/check")
 //    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(

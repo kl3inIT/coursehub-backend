@@ -10,11 +10,11 @@ public interface ReviewService {
     
     ReviewResponseDTO findReviewById(Long id);
     
-//    ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
-//
-//    ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
-//
-//    void deleteReview(Long id);
+   ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
+
+   ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
+
+   void deleteReview(Long id);
 //
 //    boolean existsByUserAndCourse(Long userId, Long courseId);
 } 

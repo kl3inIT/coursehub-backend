@@ -21,5 +21,4 @@ public class ReviewResponseDTO {
     private String comment;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
-    private Boolean isActive;
 } 

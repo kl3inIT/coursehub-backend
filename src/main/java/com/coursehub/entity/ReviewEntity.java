@@ -25,6 +25,4 @@ public class ReviewEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    @Column(nullable = false)
-    private Boolean isActive = true;
 } 

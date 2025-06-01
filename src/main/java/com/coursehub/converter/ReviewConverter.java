@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
 @Component
 @RequiredArgsConstructor
 public class ReviewConverter {
@@ -19,7 +23,6 @@ public class ReviewConverter {
         }
         
         ReviewEntity entity = modelMapper.map(requestDTO, ReviewEntity.class);
-        entity.setIsActive(true);
         return entity;
     }
     
@@ -36,6 +39,18 @@ public class ReviewConverter {
         responseDTO.setUserAvatar(entity.getUserEntity().getAvatar());
         responseDTO.setCourseId(entity.getCourseEntity().getId());
         responseDTO.setCourseName(entity.getCourseEntity().getTitle());
+        
+        // Map createdDate và modifiedDate
+        if (entity.getCreatedDate() != null) {
+            responseDTO.setCreatedDate(entity.getCreatedDate().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime());
+        }
+        if (entity.getModifiedDate() != null) {
+            responseDTO.setModifiedDate(entity.getModifiedDate().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime());
+        }
         
         return responseDTO;
     }
