@@ -1,6 +1,7 @@
 package com.coursehub.converter;
 
 
+import com.coursehub.dto.request.auth.AuthenticationRequestDTO;
 import com.coursehub.dto.request.user.UserRequestDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.UserEntity;
@@ -22,5 +23,15 @@ public class UserConverter {
     //Entity => ResponseDTO
     public UserResponseDTO toUserResponseDTO(UserEntity userEntity) {
         return modelMapper.map(userEntity, UserResponseDTO.class);
+    }
+
+    public UserEntity toUserEntity(AuthenticationRequestDTO authenticationRequestDTO) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setName(authenticationRequestDTO.getName());
+        userEntity.setEmail(authenticationRequestDTO.getEmail());
+        userEntity.setAvatar(authenticationRequestDTO.getAvatar());
+        userEntity.setPhone(authenticationRequestDTO.getPhone());
+        userEntity.setGoogleAccountId(authenticationRequestDTO.getGoogleAccountId());
+        return userEntity;
     }
 }

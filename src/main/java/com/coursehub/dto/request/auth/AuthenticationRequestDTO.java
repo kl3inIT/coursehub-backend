@@ -11,8 +11,20 @@ public class AuthenticationRequestDTO {
     @NotBlank(message = "username is required")
     private String email;
 
-    @NotBlank(message = "password is required")
     private String password;
+
+    // phan nay danh cho google
+    private String googleAccountId;
+
+    private String name;
+
+    private String avatar;
+
+    private String phone;
+
+    private String type;
+
+
 
 
 }

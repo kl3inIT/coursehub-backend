@@ -20,5 +20,5 @@ public class CategoryEntity extends BaseEntity {
     private String description;
 
     @OneToMany(mappedBy = "categoryEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseCategoryEntity> courseCategoryEntities = new HashSet<>();
+    private Set<CourseEntity> courseEntities = new HashSet<>();
 }

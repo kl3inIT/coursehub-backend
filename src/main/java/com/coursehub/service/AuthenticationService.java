@@ -1,11 +1,11 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.request.auth.AuthenticationRequestDTO;
-import com.coursehub.dto.request.auth.TokenRequestDTO;
-import com.coursehub.dto.request.user.OtpRequestDTO;
+import com.coursehub.dto.request.auth.*;
 import com.coursehub.dto.request.user.UserRequestDTO;
 import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
+
+import java.io.IOException;
 
 public interface AuthenticationService {
     AuthenticationResponseDTO login(AuthenticationRequestDTO authenticationRequestDTO);
@@ -14,4 +14,9 @@ public interface AuthenticationService {
     String initUser(UserRequestDTO userDTO);
     UserResponseDTO verifyUser(OtpRequestDTO otpRequestDTO);
     String reSendOtp(OtpRequestDTO otpRequestDTO);
+    String sendOtpToResetPassword(OtpRequestDTO otpRequestDTO);
+    String verifyOtpToResetPassword(OtpRequestDTO otpRequestDTO);
+    String resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO);
+    String generateGoogleUrl();
+    AuthenticationRequestDTO handleGoogleCode(GoogleCodeRequestDTO googleCodeRequestDTO) throws IOException;
 }
