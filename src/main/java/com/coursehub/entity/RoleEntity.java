@@ -21,7 +21,6 @@ public class RoleEntity extends BaseEntity{
     private String description;
 
     @OneToMany(mappedBy = "roleEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "role-userRole")
-    private Set<UserRoleEntity> userRoleEntityList = new HashSet<>();
+    private Set<UserEntity> userRoleList = new HashSet<>();
 
 }
