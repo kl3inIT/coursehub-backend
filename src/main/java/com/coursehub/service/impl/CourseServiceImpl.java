@@ -39,7 +39,6 @@ public class CourseServiceImpl implements CourseService {
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
-
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
 

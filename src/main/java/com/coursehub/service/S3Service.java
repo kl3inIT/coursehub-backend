@@ -2,7 +2,6 @@ package com.coursehub.service;
 
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 
 public interface S3Service {
 

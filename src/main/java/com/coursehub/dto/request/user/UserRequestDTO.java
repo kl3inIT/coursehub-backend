@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class UserRequestDTO {
 
-
     @NotBlank(message = "name is required")
     private String name;
 
@@ -20,6 +19,8 @@ public class UserRequestDTO {
 
     @NotBlank(message = "email is required")
     private String email;
+
+    private String role;
 
 }
 
