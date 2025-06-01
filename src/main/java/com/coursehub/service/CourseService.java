@@ -35,4 +35,17 @@ public interface CourseService {
     List<CourseResponseDTO> findByCategoryId(Long categoryId);
 
     List<CourseResponseDTO> findFeaturedCourses(Pageable pageable);
+
+    /**
+     * Search courses with filters
+     * @param search Search term for title and description
+     * @param categoryId Filter by category ID
+     * @param level Filter by course level
+     * @param minPrice Minimum price filter
+     * @param maxPrice Maximum price filter
+     * @param pageable Pagination parameters
+     * @return Page of filtered courses
+     */
+    Page<CourseResponseDTO> searchCourses(String search, Long categoryId, String level, 
+                                        Double minPrice, Double maxPrice, Pageable pageable);
 }    

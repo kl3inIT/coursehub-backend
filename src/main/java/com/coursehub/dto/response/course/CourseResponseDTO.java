@@ -20,14 +20,10 @@ public class CourseResponseDTO {
     private BigDecimal discount;
     private String thumbnailUrl;
     private String category;
-
-    private CourseLevel courseLevel;
-    private Double finalPrice;
-
-    private Boolean isActive;
-    // Instructor information
+    private String level;
+    private BigDecimal finalPrice;
+    private String status;
     private String instructorName;
-    // Statistics
     private Double averageRating;
     private Long totalReviews;
     private Long totalStudents;

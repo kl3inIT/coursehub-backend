@@ -29,8 +29,6 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    // Instructor endpoints for course management
-
     @PostMapping
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
             @Valid @RequestBody CourseRequestDTO courseRequestDTO) {
@@ -44,7 +42,7 @@ public class CourseController {
         response.setMessage("Success");
         response.setDetail("Course created successfully");
         
-        return ResponseEntity.ok(response);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/{courseId}/thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -80,7 +78,7 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/featuredCourses")
+    @GetMapping("/featured")
     public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> findFeaturedCourses(Pageable pageable) {
 
         log.info("Finding featured courses");
@@ -93,8 +91,8 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/allCourses")
-    public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> findAll(Pageable pageable) {
+    @GetMapping
+    public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> findAllCourse(Pageable pageable) {
         log.info("Finding all courses");
         Page<CourseResponseDTO> courses = courseService.findAll(pageable);
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
@@ -104,13 +102,35 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/findByCate/{categoryCode}")
+    @GetMapping("/categories/{categoryCode}")
     public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> findByCategoryId(@PathVariable Long categoryCode) {
         List<CourseResponseDTO> courses = courseService.findByCategoryId(categoryCode);
         ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage("All courses fetched successfully");
         response.setDetail("Finding courses by category successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> searchCourses(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long category,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            Pageable pageable) {
+        
+        log.info("Searching courses with filters - search: {}, category: {}, level: {}, minPrice: {}, maxPrice: {}", 
+            search, category, level, minPrice, maxPrice);
+        
+        Page<CourseResponseDTO> courses = courseService.searchCourses(search, category, level, minPrice, maxPrice, pageable);
+        
+        ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(courses);
+        response.setMessage("Search completed successfully");
+        response.setDetail("Courses found with applied filters");
+        
         return ResponseEntity.ok(response);
     }
 

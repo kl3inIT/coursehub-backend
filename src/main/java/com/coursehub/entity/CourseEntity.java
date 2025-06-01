@@ -37,8 +37,8 @@ public class CourseEntity extends BaseEntity {
     @Column(name = "level")
     private String level;
 
-    @Column(name = "is_active")
-    private Long isActive = 1L;
+    @Column(name = "status")
+    private String status = "DRAFT";
 
     // Relationship with reviews
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

@@ -103,8 +103,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Page<CourseResponseDTO> findAll(Pageable pageable) {
-        log.info("Finding featured courses with pageable: page={}, size={}",
-                pageable.getPageNumber(), pageable.getPageSize());
+
         Page<CourseEntity> courseEntities = courseRepository.findAll(pageable);
         if (courseEntities.isEmpty()) {
             log.warn("Course is empty");
@@ -137,6 +136,24 @@ public class CourseServiceImpl implements CourseService {
             log.info("Found {} featured courses", featuredCourses.size());
         }
         return courseConverter.toResponseDTOList(featuredCourses);
+    }
+
+    @Override
+    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, String level, 
+                                               Double minPrice, Double maxPrice, Pageable pageable) {
+        log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}", 
+            search, categoryId, level, minPrice, maxPrice);
+
+        Page<CourseEntity> courseEntities = courseRepository.searchCourses(
+            search, categoryId, level, minPrice, maxPrice, pageable);
+        
+        if (courseEntities.isEmpty()) {
+            log.warn("No courses found with applied filters");
+        } else {
+            log.info("Found {} courses with applied filters", courseEntities.getTotalElements());
+        }
+        
+        return courseConverter.toResponseDTOPage(courseEntities);
     }
 
 }
