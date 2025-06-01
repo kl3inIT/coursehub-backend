@@ -13,7 +13,6 @@ public class AuthenticationRequestDTO {
 
     private String password;
 
-
     // phan nay danh cho google
     private String googleAccountId;
 
@@ -22,6 +21,8 @@ public class AuthenticationRequestDTO {
     private String avatar;
 
     private String phone;
+
+    private String type;
 
 
 

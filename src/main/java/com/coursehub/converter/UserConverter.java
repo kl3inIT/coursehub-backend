@@ -26,6 +26,12 @@ public class UserConverter {
     }
 
     public UserEntity toUserEntity(AuthenticationRequestDTO authenticationRequestDTO) {
-        return modelMapper.map(authenticationRequestDTO, UserEntity.class);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setName(authenticationRequestDTO.getName());
+        userEntity.setEmail(authenticationRequestDTO.getEmail());
+        userEntity.setAvatar(authenticationRequestDTO.getAvatar());
+        userEntity.setPhone(authenticationRequestDTO.getPhone());
+        userEntity.setGoogleAccountId(authenticationRequestDTO.getGoogleAccountId());
+        return userEntity;
     }
 }

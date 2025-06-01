@@ -9,7 +9,7 @@ spring:
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}e
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: http://localhost:3000/auth/google/callback
         provider:
           google:

@@ -9,7 +9,6 @@ import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.InvalidTokenEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.entity.UserRoleEntity;
 import com.coursehub.exception.auth.*;
 import com.coursehub.repository.InvalidTokenRepository;
 import com.coursehub.repository.RoleRepository;
@@ -38,12 +37,15 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
+
 
     @Value("${jwt.expiration}")
     private long expiration;
@@ -61,40 +63,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final AuthenticationConverter authenticationConverter;
 
+  @Override
+  public AuthenticationResponseDTO login(AuthenticationRequestDTO authenticationRequestDTO) {
+      AuthenticationResponseDTO authenticationResponseDTO = new AuthenticationResponseDTO();
+      String email = authenticationRequestDTO.getEmail();
+      String googleAccountId = authenticationRequestDTO.getGoogleAccountId();
 
-    @Override
-    public AuthenticationResponseDTO login(AuthenticationRequestDTO authenticationRequestDTO) {
-        AuthenticationResponseDTO authenticationResponseDTO = new AuthenticationResponseDTO();
+      UserEntity userByEmail = userRepository.findByEmailAndIsActive(email, 1L);
+      // dang nhap local
+      if (googleAccountId == null) {
+          if (userByEmail == null) {
+              throw new DataNotFoundException("User not found");
+          }
+          if (!passwordEncoder.matches(authenticationRequestDTO.getPassword(), userByEmail.getPassword())) {
+              throw new PasswordNotMatchException("Password not match");
+          }
+          authenticationResponseDTO.setToken(generateToken(userByEmail));
+          return authenticationResponseDTO;
+      }
 
-        if(authenticationRequestDTO.getGoogleAccountId() != null ){
-            UserEntity user = userRepository.findByGoogleAccountIdAndIsActive(authenticationRequestDTO.getGoogleAccountId(), 1L);
-            if(user == null){
-                //tao moi user tu requestDTO roi tra ra token
-                user = userConverter.toUserEntity(authenticationRequestDTO);
-                UserRoleEntity userRoleEntity = new UserRoleEntity();
-                userRoleEntity.setUserEntity(user);
-                userRoleEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
-                user.setUserRoleEntities(Collections.singleton(userRoleEntity));
-                userRepository.save(user);
-            }
-            //neu co user roi thi sinh token roi tra ra thoi
-            authenticationResponseDTO.setToken(generateToken(user));
-            return authenticationResponseDTO;
+      // dang nhap bang tai khoan google
+      UserEntity userByGoogle = userRepository.findByGoogleAccountIdAndIsActive(googleAccountId, 1L);
 
-        }
-        UserEntity user = userRepository.findByEmailAndIsActive(authenticationRequestDTO.getEmail(), 1L);
-        if (user == null) {
-            throw new DataNotFoundException("User not found");
-        }
-
-        if (!passwordEncoder.matches(authenticationRequestDTO.getPassword(), user.getPassword())) {
-            throw new PasswordNotMatchException("Password not match");
-        }
-
-        String token = generateToken(user);
-        authenticationResponseDTO.setToken(token);
-        return authenticationResponseDTO;
-    }
+      if (userByGoogle == null) {
+          if (userByEmail == null) {
+              // Tạo mới user từ Google
+              userByGoogle = userConverter.toUserEntity(authenticationRequestDTO);
+              userByGoogle.setRoleEntity(roleRepository.findByCode("LEARNER"));
+              userRepository.save(userByGoogle);
+          } else {
+              // Liên kết tài khoản Google với user local
+              userByEmail.setGoogleAccountId(googleAccountId);
+              userRepository.save(userByEmail);
+              userByGoogle = userByEmail;
+          }
+      }
+      authenticationResponseDTO.setToken(generateToken(userByGoogle));
+      return authenticationResponseDTO;
+  }
 
     @Override
     public String logout(TokenRequestDTO tokenRequestDTO) {
@@ -164,10 +170,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserEntity userEntity = userConverter.toUserEntity(userRequestDTO);
         String encodedPassword = passwordEncoder.encode(userRequestDTO.getPassword());
         userEntity.setPassword(encodedPassword);
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setUserEntity(userEntity);
-        userRoleEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
-        userEntity.setUserRoleEntities(Collections.singleton(userRoleEntity));
+        userEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
         userRepository.save(userEntity);
         return userConverter.toUserResponseDTO(userEntity);
     }
@@ -181,7 +184,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new IllegalEmailException("Email is illegal");
         }
         // tao va gui otp
-        deleteFromRedis("otp:" + email);
+        redisTemplate.delete("otp:" + email);
 
         String otp = otpUtil.generateOtp();
         saveToRedis("otp:" + email, otp);
@@ -231,7 +234,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String generateGoogleUrl() {
         // Lấy thông tin client registration cho Google
         ClientRegistration googleRegistration = clientRegistrationRepository.findByRegistrationId("google");
-
         // Xây dựng URL thủ công
         return googleRegistration.getProviderDetails().getAuthorizationUri() +
                 "?client_id=" + googleRegistration.getClientId() +
@@ -243,7 +245,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public AuthenticationRequestDTO  handleGoogleCode(GoogleCodeRequestDTO googleCodeRequestDTO) throws IOException {
+    public AuthenticationRequestDTO handleGoogleCode(GoogleCodeRequestDTO googleCodeRequestDTO) throws IOException {
 
         ClientRegistration googleRegistration = clientRegistrationRepository.findByRegistrationId("google");
 
@@ -272,7 +274,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // Gửi request đến endpoint user info của Google, parse kết quả JSON thành Map
         Map<String, Object> data = new ObjectMapper().readValue(
                 restTemplate.getForEntity(googleRegistration.getProviderDetails().getUserInfoEndpoint().getUri(), String.class).getBody(),
-                new TypeReference<>() {}
+                new TypeReference<>() {
+                }
         );
 
 
@@ -299,9 +302,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .subject(user.getEmail())
                 .issuer("coursehub.com")
                 .claim("name", user.getName())
+                .claim("avatar", user.getAvatar())
                 .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + expiration))
-                .claim("scope", getScope(user))
+                .claim("scope", user.getRoleEntity().getCode())
                 .jwtID(UUID.randomUUID().toString())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -314,17 +318,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RuntimeException(e);
         }
 
-    }
-
-    public String getScope(UserEntity user) {
-        StringJoiner joiner = new StringJoiner(" ");
-        user.getUserRoleEntities().forEach(userRoleEntity -> joiner.add(userRoleEntity.getRoleEntity().getCode()));
-        return joiner.toString();
-    }
-
-    public void deleteFromRedis(String key) {
-
-        redisTemplate.delete(key);
     }
 
 
