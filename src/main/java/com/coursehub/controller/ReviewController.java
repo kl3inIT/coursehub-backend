@@ -106,42 +106,42 @@ public class ReviewController {
 //        }
 //    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseGeneral<Void>> deleteReview(@PathVariable Long id) {
-        ResponseGeneral<Void> response = new ResponseGeneral<>();
-        try {
-            reviewService.deleteReview(id);
-            response.setMessage("Success");
-            response.setDetail("Review deleted successfully");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (ReviewNotFoundException e) {
-            response.setMessage("Delete failed");
-            response.setDetail(e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            response.setMessage("Delete failed");
-            response.setDetail("An unexpected error occurred: " + e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/check")
-    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(
-            @RequestParam Long userId,
-            @RequestParam Long courseId) {
-
-        ResponseGeneral<Boolean> response = new ResponseGeneral<>();
-
-        try {
-            boolean exists = reviewService.existsByUserAndCourse(userId, courseId);
-            response.setData(exists);
-            response.setMessage(exists ? "User has already reviewed this course" : "User has not reviewed this course");
-            response.setDetail(exists ? "Review exists for user and course" : "No review found for user and course");
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            response.setMessage("Check failed");
-            response.setDetail(e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<ResponseGeneral<Void>> deleteReview(@PathVariable Long id) {
+//        ResponseGeneral<Void> response = new ResponseGeneral<>();
+//        try {
+//            reviewService.deleteReview(id);
+//            response.setMessage("Success");
+//            response.setDetail("Review deleted successfully");
+//            return new ResponseEntity<>(response, HttpStatus.OK);
+//        } catch (ReviewNotFoundException e) {
+//            response.setMessage("Delete failed");
+//            response.setDetail(e.getMessage());
+//            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+//        } catch (Exception e) {
+//            response.setMessage("Delete failed");
+//            response.setDetail("An unexpected error occurred: " + e.getMessage());
+//            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+//
+//    @GetMapping("/check")
+//    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(
+//            @RequestParam Long userId,
+//            @RequestParam Long courseId) {
+//
+//        ResponseGeneral<Boolean> response = new ResponseGeneral<>();
+//
+//        try {
+//            boolean exists = reviewService.existsByUserAndCourse(userId, courseId);
+//            response.setData(exists);
+//            response.setMessage(exists ? "User has already reviewed this course" : "User has not reviewed this course");
+//            response.setDetail(exists ? "Review exists for user and course" : "No review found for user and course");
+//            return new ResponseEntity<>(response, HttpStatus.OK);
+//        } catch (Exception e) {
+//            response.setMessage("Check failed");
+//            response.setDetail(e.getMessage());
+//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+//        }
+//    }
 } 

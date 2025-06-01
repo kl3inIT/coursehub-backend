@@ -13,8 +13,8 @@ public interface ReviewService {
 //    ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
 //
 //    ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
-    
-    void deleteReview(Long id);
-    
-    boolean existsByUserAndCourse(Long userId, Long courseId);
+//
+//    void deleteReview(Long id);
+//
+//    boolean existsByUserAndCourse(Long userId, Long courseId);
 } 
