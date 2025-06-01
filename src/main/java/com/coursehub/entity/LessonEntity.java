@@ -16,11 +16,8 @@ public class LessonEntity extends BaseEntity {
     @Column
     private String title;
 
-    @Column(name = "video_url")
-    private String videoUrl;
-
-    @Column
-    private String description;
+    @Column(name = "s3_key")
+    private String s3_key;
 
     @Column(name = "order_number")
     private Long orderNumber;

@@ -17,9 +17,6 @@ public class ModuleEntity extends BaseEntity {
     @Column
     private String title;
 
-    @Column
-    private String description;
-
     @Column(name = "order_number")
     private Long orderNumber;
 

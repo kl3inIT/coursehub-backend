@@ -63,7 +63,7 @@ public class CourseServiceImpl implements CourseService {
 
 
         try {
-            String objectKey = String.format("public/thumbnails/courses/%d/%s", courseId, file.getOriginalFilename());
+            String objectKey = String.format("public/thumbnails/%d/%s", courseId, file.getOriginalFilename());
 
             // Upload to S3
             String thumbnailKey = s3Service.uploadFile(objectKey, file.getContentType(), file.getBytes());
