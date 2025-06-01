@@ -39,9 +39,9 @@ public class UserConverter {
     public UserManagementDTO convertToUserManagementDTO(UserEntity user) {
         UserManagementDTO dto = new UserManagementDTO();
 
-        String roleCode = user.getUserRoleEntities().isEmpty() ?
+        String roleCode = user.getRoleEntity().getCode().isEmpty() ?
                 "LEARNER" :
-                user.getUserRoleEntities().iterator().next().getRoleEntity().getCode().toLowerCase(); // Trong frontend component RoleBadge đang dùng switch case chữ thường
+                user.getRoleEntity().getCode().toLowerCase(); // Trong frontend component RoleBadge đang dùng switch case chữ thường
 
         dto.setId(user.getId());
         dto.setName(user.getName());
@@ -50,23 +50,8 @@ public class UserConverter {
         dto.setRole(roleCode);
         dto.setStatus(user.getIsActive() == 1L ? "active" : "inactive");
         dto.setJoinDate(user.getCreatedDate());
-        dto.setPermissions(getPermissionsForRole(roleCode));
 
         return dto;
     }
-
-    private List<String> getPermissionsForRole(String roleCode) {
-        return switch (roleCode) {
-            case "ADMIN" -> Arrays.asList("all");
-            case "MANAGER" -> Arrays.asList(
-                    "create_courses", "edit_courses", "view_analytics"
-            );
-            case "LEARNER" -> Arrays.asList(
-                    "view_courses", "enroll_courses"
-            );
-            default -> Arrays.asList();
-        };
-    }
-
 
 }

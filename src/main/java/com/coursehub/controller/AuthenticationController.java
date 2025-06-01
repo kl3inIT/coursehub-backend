@@ -8,7 +8,6 @@ import com.coursehub.dto.request.user.UserRequestDTO;
 import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.service.AuthenticationService;
-import com.coursehub.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

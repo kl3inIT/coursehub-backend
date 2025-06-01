@@ -1,7 +1,6 @@
 package com.coursehub.exception;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,11 +22,11 @@ import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
 import com.coursehub.exception.course.InvalidFileException;
-import com.coursehub.exception.user.DuplicateUserException;
-import com.coursehub.exception.user.UserAuthenticationException;
+import com.coursehub.exception.user.AvatarUploadException;
+import com.coursehub.exception.user.IncorrectPasswordException;
+import com.coursehub.exception.user.SamePasswordException;
+import com.coursehub.exception.user.UserDeletionException;
 import com.coursehub.exception.user.UserNotFoundException;
-import com.coursehub.exception.user.UserPermissionException;
-import com.coursehub.exception.user.UserValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,76 +61,76 @@ public class GlobalExceptionHandler {
     // validate request data
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseGeneral<List<String>>> handleValidationException(MethodArgumentNotValidException mex){
-        List<String> errors = mex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage).collect(Collectors.toList());
-        ResponseGeneral<List<String>> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Validation Error");
-        ResponseGeneral.setData(errors);
-        return ResponseEntity.badRequest().body(ResponseGeneral);
+        List<String> errors = mex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
+        ResponseGeneral<List<String>> response = new ResponseGeneral<>();
+        response.setMessage("Validation Error");
+        response.setData(errors);
+        return ResponseEntity.badRequest().body(response);
     }
 
 
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<ResponseGeneral<String>> handleInvalidOtpException(InvalidOtpException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Bad request from otp");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.badRequest().body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from otp");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(IllegalEmailException.class)
     public ResponseEntity<ResponseGeneral<String>> handleEmailAlreadyExistsException(IllegalEmailException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Bad request from email");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.badRequest().body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from email");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(EmailSendingException.class)
     public ResponseEntity<ResponseGeneral<String>> handleEmailSendingException(EmailSendingException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Internal Server Error");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Internal Server Error");
+        response.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(OtpNotFoundException.class)
     public ResponseEntity<ResponseGeneral<String>> handleOtpNotFoundException(OtpNotFoundException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Not Found");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Not Found");
+        response.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(PasswordNotMatchException.class)
     public ResponseEntity<ResponseGeneral<String>> handlePasswordNotMatchException(PasswordNotMatchException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Bad request from password");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.badRequest().body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from password");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(RedisOperationException.class)
     public ResponseEntity<ResponseGeneral<String>> handleRedisOperationException(RedisOperationException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Internal Server Error");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Internal Server Error");
+        response.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(DataNotFoundException.class)
     public ResponseEntity<ResponseGeneral<String>> handleDataNotFoundException(DataNotFoundException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Data Not Found");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Data Not Found");
+        response.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ResponseGeneral<String>> handleDataNotFoundException(InvalidTokenException ex){
-        ResponseGeneral<String> ResponseGeneral = new ResponseGeneral<>();
-        ResponseGeneral.setMessage("Forbidden");
-        ResponseGeneral.setData(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ResponseGeneral);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Forbidden");
+        response.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
 
     // Course-specific exception handlers
@@ -178,26 +177,6 @@ public class GlobalExceptionHandler {
 
     // User Exception Handler
 
-    @ExceptionHandler(DuplicateUserException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleDuplicateUserException(DuplicateUserException ex) {
-        log.error("Duplicate user error: {}", ex.getMessage());
-        ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage("Duplicate User");
-        response.setDetail(ex.getMessage());
-        response.setData(null);
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-    }
-
-    @ExceptionHandler(UserAuthenticationException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleAuthenticationException(UserAuthenticationException ex) {
-        log.error("Authentication failed: {}", ex.getMessage());
-        ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage("Authentication Failed");
-        response.setDetail(ex.getMessage());
-        response.setData(null);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-    }
-
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ResponseGeneral<String>> handleUserNotFoundException(UserNotFoundException ex) {
         log.error("User not found: {}", ex.getMessage());
@@ -208,24 +187,41 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(UserPermissionException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleUserPermissionException(UserPermissionException ex) {
-        log.error("Permission denied: {}", ex.getMessage());
+    @ExceptionHandler(AvatarUploadException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleAvatarUploadException(AvatarUploadException ex) {
+        log.error("Avatar upload failed: {}", ex.getMessage());
         ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage("Permission Denied");
+        response.setMessage("Avatar Upload Failed");
         response.setDetail(ex.getMessage());
         response.setData(null);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @ExceptionHandler(UserValidationException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleUserValidationException(UserValidationException ex) {
-        log.error("Validation error: {}", ex.getMessage());
+    @ExceptionHandler(UserDeletionException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserDeletionException(UserDeletionException ex) {
+        log.error("User deletion failed: {}", ex.getMessage());
         ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage("Validation Error");
+        response.setMessage("Cannot Delete User");
         response.setDetail(ex.getMessage());
         response.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(SamePasswordException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleSamePasswordException(SamePasswordException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("New password must be different from current password");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(IncorrectPasswordException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleIncorrectPasswordException(IncorrectPasswordException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Current password is incorrect");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 }

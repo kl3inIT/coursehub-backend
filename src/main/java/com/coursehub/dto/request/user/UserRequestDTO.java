@@ -20,6 +20,8 @@ public class UserRequestDTO {
     @NotBlank(message = "email is required")
     private String email;
 
+    private String role;
+
 }
 
 

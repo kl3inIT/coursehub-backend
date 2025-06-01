@@ -10,7 +10,6 @@ import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.InvalidTokenEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.entity.UserRoleEntity;
 import com.coursehub.exception.auth.*;
 import com.coursehub.repository.InvalidTokenRepository;
 import com.coursehub.repository.RoleRepository;
@@ -29,9 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.Collections;
 import java.util.Date;
-import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -136,13 +133,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new InvalidOtpException("Invalid OTP");
         }
         UserRequestDTO userRequestDTO = (UserRequestDTO) getFromRedis("user:" + otpRequestDTO.getEmail());
-        UserEntity  userEntity = userConverter.toUserEntity(userRequestDTO);
+        UserEntity userEntity = userConverter.toUserEntity(userRequestDTO);
         String encodedPassword = passwordEncoder.encode(userRequestDTO.getPassword());
         userEntity.setPassword(encodedPassword);
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setUserEntity(userEntity);
-        userRoleEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
-        userEntity.setUserRoleEntities(Collections.singleton(userRoleEntity));
+        userEntity.setRoleEntity(roleRepository.findByCode("LEARNER"));
         userRepository.save(userEntity);
         return userConverter.toUserResponseDTO(userEntity);
     }
@@ -185,7 +179,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .issuer("coursehub.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(System.currentTimeMillis() + expiration))
-                .claim("scope", getScope(user))
+                .claim("scope", user.getRoleEntity().getCode() )
                 .jwtID(UUID.randomUUID().toString())
                 .build();
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -201,14 +195,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     }
 
-    public String getScope(UserEntity user) {
-        StringJoiner joiner = new StringJoiner(" ");
-        user.getUserRoleEntities().forEach(userRoleEntity -> joiner.add(userRoleEntity.getRoleEntity().getCode()));
-        return joiner.toString();
-    }
-
     public void deleteFromRedis(String key) {
-
         redisTemplate.delete(key);
     }
 

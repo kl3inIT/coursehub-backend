@@ -1,7 +1,6 @@
 package com.coursehub.controller;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
 import com.coursehub.dto.response.user.UserManagementDTO;
 import com.coursehub.service.UserService;
@@ -29,41 +29,61 @@ public class UserManagementController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserManagementDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<ResponseGeneral<Page<UserManagementDTO>>> getAllUsers(
+        @RequestParam(required = false, defaultValue = "10") Integer pageSize,
+        @RequestParam(required = false, defaultValue = "0") Integer pageNo,
+        @RequestParam(required = false) String role,
+        @RequestParam(required = false) String status
+    ) {
+        ResponseGeneral<Page<UserManagementDTO>> response = new ResponseGeneral<>();
+        response.setData(userService.getAllUsers(pageSize, pageNo, role, status));
+        response.setMessage("Get all users successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserManagementDTO> getUserDetails(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getUserDetails(userId));
+    public ResponseEntity<ResponseGeneral<UserManagementDTO>> getUserDetails(@PathVariable Long userId) {
+        ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
+        response.setData(userService.getUserDetails(userId));
+        response.setMessage("Get user details successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<UserManagementDTO> createUser(@RequestBody ProfileRequestDTO request) {
-        return ResponseEntity.ok(userService.createUser(request));
+    public ResponseEntity<ResponseGeneral<UserManagementDTO>> createUser(@RequestBody ProfileRequestDTO request) {
+        ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
+        response.setData(userService.createUser(request));
+        response.setMessage("Create user successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{userId}/status")
-    public ResponseEntity<Void> updateUserStatus(
+    public ResponseEntity<ResponseGeneral<Void>> updateUserStatus(
         @PathVariable Long userId,
         @RequestParam String status
     ) {
+        ResponseGeneral<Void> response = new ResponseGeneral<>();
         userService.updateUserStatus(userId, status);
-        return ResponseEntity.ok().build();
+        response.setMessage("Update user status successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{userId}/role")
-    public ResponseEntity<Void> updateUserRole(
+    public ResponseEntity<ResponseGeneral<Void>> updateUserRole(
         @PathVariable Long userId,
         @RequestParam String role
     ) {
+        ResponseGeneral<Void> response = new ResponseGeneral<>();
         userService.updateUserRole(userId, role);
-        return ResponseEntity.ok().build();
+        response.setMessage("Update user role successfully");
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<ResponseGeneral<Void>> deleteUser(@PathVariable Long userId) {
+        ResponseGeneral<Void> response = new ResponseGeneral<>();
         userService.deleteUser(userId);
-        return ResponseEntity.ok().build();
+        response.setMessage("Delete user successfully");
+        return ResponseEntity.ok(response);
     }
 } 
