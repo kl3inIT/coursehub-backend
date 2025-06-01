@@ -6,8 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
-    Page<CategoryResponseDTO> findAll(String name, Pageable pageable);
-    CategoryResponseDTO create(CategoryRequestDTO requestDTO);
-    CategoryResponseDTO update(Long id, CategoryRequestDTO requestDTO);
-    void delete(Long id);
+    Page<CategoryResponseDTO> findAllOrNameCategories(String name, Pageable pageable);
+    CategoryResponseDTO saveCategory(CategoryRequestDTO requestDTO);
+    CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO requestDTO);
+    void deleteCategory(Long id);
 }

@@ -2,13 +2,15 @@ package com.coursehub.exception;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.exception.auth.*;
-import com.coursehub.exception.category.CategoryInUseException;
 import com.coursehub.exception.category.CategoryNotFoundException;
 import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
 import com.coursehub.exception.course.InvalidFileException;
 import com.coursehub.exception.user.*;
+import com.coursehub.exception.category.CategoryUsingException;
+import com.coursehub.exception.review.ReviewNotFoundException;
+import com.coursehub.exception.user.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -175,8 +177,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(CategoryInUseException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleCategoryInUseException(CategoryInUseException ex) {
+    @ExceptionHandler(CategoryUsingException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCategoryInUseException(CategoryUsingException ex) {
         log.error("Category using: {}", ex.getMessage());
 
         ResponseGeneral<String> response = new ResponseGeneral<>();
@@ -188,10 +190,21 @@ public class GlobalExceptionHandler {
     }
 
     // User Exception Handler
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleReviewNotFoundException(ReviewNotFoundException ex) {
+        log.error("Review not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Review Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ResponseGeneral<String>> handleUserNotFoundException(UserNotFoundException ex) {
         log.error("User not found: {}", ex.getMessage());
+
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("User Not Found");
         response.setDetail(ex.getMessage());
@@ -236,4 +249,5 @@ public class GlobalExceptionHandler {
         response.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
 }

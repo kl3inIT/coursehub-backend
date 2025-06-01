@@ -20,20 +20,20 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ResponseGeneral<Page<CategoryResponseDTO>>> findAll(
+    public ResponseEntity<ResponseGeneral<Page<CategoryResponseDTO>>> getAllOrNameCategorise(
             @RequestParam(required = false) String name,
             Pageable pageable) {
-        Page<CategoryResponseDTO> categoryResponseDTO = categoryService.findAll(name, pageable);
+        Page<CategoryResponseDTO> categoryResponseDTOS = categoryService.findAllOrNameCategories(name, pageable);
         ResponseGeneral<Page<CategoryResponseDTO>> response = new ResponseGeneral<>();
-        response.setData(categoryResponseDTO);
+        response.setData(categoryResponseDTOS);
         response.setMessage("Success");
         response.setDetail("Categories retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<ResponseGeneral<CategoryResponseDTO>> create(@Valid @RequestBody CategoryRequestDTO requestDTO) {
-        CategoryResponseDTO categoryResponseDTO = categoryService.create(requestDTO);
+    public ResponseEntity<ResponseGeneral<CategoryResponseDTO>> createCategory(@Valid @RequestBody CategoryRequestDTO requestDTO) {
+        CategoryResponseDTO categoryResponseDTO = categoryService.saveCategory(requestDTO);
         ResponseGeneral<CategoryResponseDTO> response = new ResponseGeneral<>();
         response.setData(categoryResponseDTO);
         response.setMessage("Success");
@@ -42,10 +42,10 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseGeneral<CategoryResponseDTO>> update(
+    public ResponseEntity<ResponseGeneral<CategoryResponseDTO>> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody CategoryRequestDTO requestDTO) {
-        CategoryResponseDTO categoryResponseDTO = categoryService.update(id, requestDTO);
+        CategoryResponseDTO categoryResponseDTO = categoryService.updateCategory(id, requestDTO);
         ResponseGeneral<CategoryResponseDTO> response = new ResponseGeneral<>();
         response.setData(categoryResponseDTO);
         response.setMessage("Success");
@@ -55,7 +55,7 @@ public class CategoryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseGeneral<Void>> deleteCategory(@PathVariable Long id) {
-        categoryService.delete(id);
+        categoryService.deleteCategory(id);
         ResponseGeneral<Void> response = new ResponseGeneral<>();
         response.setMessage("Success");
         response.setDetail("Category deleted successfully");

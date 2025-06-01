@@ -32,10 +32,6 @@ public class CategoryConverter {
         // Map toàn bộ trường mặc định
         CategoryResponseDTO responseDTO = modelMapper.map(entity, CategoryResponseDTO.class);
         responseDTO.setCourseCount((long)entity.getCourseEntities().size());
-        // Set thêm trường không map được tự động hoặc cần xử lý riêng
-//        responseDTO.setCreateDate(entity.getCreatedDate());
-//        responseDTO.setModifiedDate(entity.getModifiedDate());
-
         return responseDTO;
     }
 
