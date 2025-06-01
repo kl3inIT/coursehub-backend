@@ -304,6 +304,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .claim("name", user.getName())
                 .claim("avatar", user.getAvatar())
                 .issueTime(new Date())
+                .claim("name", user.getName())
                 .expirationTime(new Date(System.currentTimeMillis() + expiration))
                 .claim("scope", user.getRoleEntity().getCode())
                 .jwtID(UUID.randomUUID().toString())

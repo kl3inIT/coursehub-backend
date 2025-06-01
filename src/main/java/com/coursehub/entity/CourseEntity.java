@@ -17,8 +17,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseEntity extends BaseEntity{
-
+public class CourseEntity extends BaseEntity {
 
     @Column
     private String title;

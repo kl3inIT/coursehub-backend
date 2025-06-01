@@ -2,18 +2,21 @@ package com.coursehub.converter;
 
 import com.coursehub.dto.request.course.CourseRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.ReviewEntity;
+import com.coursehub.exception.category.CategoryNotFoundException;
+import com.coursehub.exception.course.CourseNotFoundException;
+import com.coursehub.repository.CategoryRepository;
 import com.coursehub.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 @Component
@@ -22,24 +25,20 @@ public class CourseConverter {
 
     private final ModelMapper modelMapper;
     private final S3Service s3Service;
+    private final CategoryRepository categoryRepository;
 
-    public CourseResponseDTO toResponseDTO(CourseEntity course) {
-        if (course == null) {
-            return null;
+    public CourseResponseDTO toResponseDTO(CourseEntity courseEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
         }
 
         // Use ModelMapper for basic field mapping
-        CourseResponseDTO dto = modelMapper.map(course, CourseResponseDTO.class);
+        CourseResponseDTO courseResponseDTO = modelMapper.map(courseEntity, CourseResponseDTO.class);
 
-        // Apply complex transformations
-        dto.setThumbnailUrl(generateThumbnailUrl(course.getThumbnail()));
-        dto.setInstructorName("CourseHub");
-//        dto.setAverageRating(calculateAverageRating(course.getReviews()));
-//        dto.setTotalReviews(calculateTotalReviews(course.getReviews()));
-//        dto.setTotalStudents(calculateTotalStudents(course.getEnrollments()));
-        dto.setFinalPrice(calculateFinalPrice(course.getPrice(), course.getDiscount()));
+        String category = courseEntity.getCategoryEntity().getName();
+        courseResponseDTO.setCategory(category);
 
-        return dto;
+        return courseResponseDTO;
     }
 
     public CourseEntity toEntity(CourseRequestDTO courseDTO) {
@@ -47,20 +46,22 @@ public class CourseConverter {
             return null;
         }
 
-        // Use ModelMapper for basic field mapping
-        CourseEntity entity = modelMapper.map(courseDTO, CourseEntity.class);
-        // User will be set in the service layer
-        // Set complex fields
-        entity.setThumbnail(null);
-        // Note: Instructor ID should be set separately in service layer
-
-        return entity;
+        CategoryEntity categoryEntity = categoryRepository.findById(courseDTO.getCategoryCode()).orElseThrow(
+                () -> new CategoryNotFoundException("Category not found")
+        );
+        CourseEntity courseEntity = modelMapper.map(courseDTO, CourseEntity.class);
+        courseEntity.setCategoryEntity(categoryEntity);
+        return courseEntity;
     }
 
     public List<CourseResponseDTO> toResponseDTOList(List<CourseEntity> courses) {
         return courses.stream()
                 .map(this::toResponseDTO)
                 .toList();
+    }
+
+    public Page<CourseResponseDTO> toResponseDTOPage(Page<CourseEntity> courses) {
+        return courses.map(this::toResponseDTO);
     }
 
     private String generateThumbnailUrl(String thumbnailKey) {

@@ -22,5 +22,5 @@ public class UserController {
         responseDTO.setData(userService.getMyInfo());
         return ResponseEntity.ok(responseDTO);
     }
-    
+
 }
