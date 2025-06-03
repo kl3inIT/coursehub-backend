@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
@@ -21,8 +20,9 @@ public class ReviewConverter {
         if (requestDTO == null) {
             return null;
         }
-        
-        ReviewEntity entity = modelMapper.map(requestDTO, ReviewEntity.class);
+        ReviewEntity entity = new ReviewEntity();
+        entity.setStar(requestDTO.getStar());
+        entity.setComment(requestDTO.getComment());
         return entity;
     }
     
@@ -34,11 +34,16 @@ public class ReviewConverter {
         ReviewResponseDTO responseDTO = modelMapper.map(entity, ReviewResponseDTO.class);
         
         // Map các trường từ các entity liên quan
-        responseDTO.setUserId(entity.getUserEntity().getId());
-        responseDTO.setUserName(entity.getUserEntity().getName());
-        responseDTO.setUserAvatar(entity.getUserEntity().getAvatar());
-        responseDTO.setCourseId(entity.getCourseEntity().getId());
-        responseDTO.setCourseName(entity.getCourseEntity().getTitle());
+        if (entity.getUserEntity() != null) {
+            responseDTO.setUserId(entity.getUserEntity().getId());
+            responseDTO.setUserName(entity.getUserEntity().getName());
+            responseDTO.setUserAvatar(entity.getUserEntity().getAvatar());
+        }
+        
+        if (entity.getCourseEntity() != null) {
+            responseDTO.setCourseId(entity.getCourseEntity().getId());
+            responseDTO.setCourseName(entity.getCourseEntity().getTitle());
+        }
         
         // Map createdDate và modifiedDate
         if (entity.getCreatedDate() != null) {
@@ -59,7 +64,7 @@ public class ReviewConverter {
         if (entity == null || requestDTO == null) {
             return;
         }
-        
-        modelMapper.map(requestDTO, entity);
+        entity.setStar(requestDTO.getStar());
+        entity.setComment(requestDTO.getComment());
     }
 } 
