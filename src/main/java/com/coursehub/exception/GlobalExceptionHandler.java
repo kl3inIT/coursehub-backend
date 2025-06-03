@@ -7,6 +7,10 @@ import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
 import com.coursehub.exception.course.InvalidFileException;
+import com.coursehub.exception.lesson.LessonNotFoundException;
+import com.coursehub.exception.module.ModuleNotFoundException;
+import com.coursehub.exception.s3.S3DeleteObjectException;
+import com.coursehub.exception.s3.S3PresignUrlException;
 import com.coursehub.exception.user.*;
 import com.coursehub.exception.category.CategoryUsingException;
 import com.coursehub.exception.review.ReviewNotFoundException;
@@ -248,6 +252,55 @@ public class GlobalExceptionHandler {
         response.setDetail(ex.getMessage());
         response.setData(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    //module
+
+    @ExceptionHandler(ModuleNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleModuleNotFoundException(ModuleNotFoundException ex) {
+        log.error("Module not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Module Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(S3DeleteObjectException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleS3DeleteObjectException(S3DeleteObjectException ex) {
+        log.error("S3 delete object failed: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("S3 Delete Object Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(S3PresignUrlException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleS3PresignUrlException(S3PresignUrlException ex) {
+        log.error("S3 presign URL generation failed: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("S3 Presign URL Generation Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(LessonNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleLessonNotFoundException(LessonNotFoundException ex) {
+        log.error("Lesson not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Lesson Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
 }

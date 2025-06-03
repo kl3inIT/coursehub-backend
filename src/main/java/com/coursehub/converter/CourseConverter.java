@@ -1,11 +1,9 @@
 package com.coursehub.converter;
 
-import com.coursehub.dto.request.course.CourseRequestDTO;
+import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
-import com.coursehub.entity.EnrollmentEntity;
-import com.coursehub.entity.ReviewEntity;
 import com.coursehub.exception.category.CategoryNotFoundException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.repository.CategoryRepository;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -44,7 +41,7 @@ public class CourseConverter {
         return courseResponseDTO;
     }
 
-    public CourseEntity toEntity(CourseRequestDTO courseDTO) {
+    public CourseEntity toEntity(CourseCreationRequestDTO courseDTO) {
         if (courseDTO == null) {
             return null;
         }

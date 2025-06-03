@@ -1,13 +1,10 @@
 package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
-import com.coursehub.dto.request.category.CategoryRequestDTO;
-import com.coursehub.dto.request.course.CourseRequestDTO;
+import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
-import com.coursehub.entity.CategoryEntity;
-import com.coursehub.entity.CourseEntity;
 import com.coursehub.service.CourseService;
-import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+import static com.coursehub.constant.Constant.CommonConstants.*;
+
 @RestController
 @RequestMapping("/api/courses")
 @RequiredArgsConstructor
@@ -31,7 +30,7 @@ public class CourseController {
 
     @PostMapping
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
-            @Valid @RequestBody CourseRequestDTO courseRequestDTO) {
+            @Valid @RequestBody CourseCreationRequestDTO courseRequestDTO) {
         
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
         
@@ -39,7 +38,7 @@ public class CourseController {
         
         ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
         response.setData(createdCourse);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Course created successfully");
         
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -56,7 +55,7 @@ public class CourseController {
         
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setData(thumbnailKey);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Thumbnail uploaded successfully");
         
         return ResponseEntity.ok(response);
@@ -72,8 +71,26 @@ public class CourseController {
         
         ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
         response.setData(course);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Course retrieved successfully");
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{courseId}/status")
+    public ResponseEntity<ResponseGeneral<CourseResponseDTO>> updateCourseStatusAndLevel(
+            @PathVariable Long courseId,
+            @Valid @RequestBody CourseUpdateStatusAndLevelRequestDTO updateDTO) {
+        
+        log.info("Updating status and level for course ID: {} to status: {}, level: {}", 
+            courseId, updateDTO.getStatus(), updateDTO.getLevel());
+        
+        CourseResponseDTO updatedCourse = courseService.updateCourseStatusAndLevel(courseId, updateDTO);
+        
+        ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
+        response.setData(updatedCourse);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course status and level updated successfully");
         
         return ResponseEntity.ok(response);
     }
@@ -94,7 +111,7 @@ public class CourseController {
     @GetMapping
     public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> findAllCourse(Pageable pageable) {
         log.info("Finding all courses");
-        Page<CourseResponseDTO> courses = courseService.findAll(pageable);
+        Page<CourseResponseDTO> courses = courseService.findAllCourse(pageable);
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage("All courses fetched successfully");
@@ -128,10 +145,12 @@ public class CourseController {
         
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
-        response.setMessage("Search completed successfully");
+        response.setMessage(SUCCESS);
         response.setDetail("Courses found with applied filters");
         
         return ResponseEntity.ok(response);
     }
+
+
 
 } 

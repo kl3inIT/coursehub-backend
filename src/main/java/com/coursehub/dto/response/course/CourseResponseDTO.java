@@ -1,9 +1,7 @@
 package com.coursehub.dto.response.course;
 
-import com.coursehub.enums.CourseLevel;
 import lombok.*;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Getter
