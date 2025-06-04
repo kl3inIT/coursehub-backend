@@ -21,4 +21,7 @@ public class CategoryEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "categoryEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CourseEntity> courseEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "categoryEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CategoryDiscountEntity> categoryDiscountEntities = new HashSet<>();
 }

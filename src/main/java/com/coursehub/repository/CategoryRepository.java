@@ -16,4 +16,5 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
     @Query("SELECT c FROM CategoryEntity c WHERE (:name IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%')))")
     Page<CategoryEntity> findAll(@Param("name") String name, Pageable pageable);
 
+
 }

@@ -63,3 +63,11 @@ jwt:
   secret: WaVbZbGzZMYGHUjNYrh87xGyib8ivGWndlsf4bsX2mB47MbdsUTwf2Dsv1TPuBG+
   expiration: 86400000
 
+sepay:
+    secret-key: ${SEPAY_WEBHOOK_APIKEY}
+
+bank:
+  bank-number: 22226376000
+  bank-code: TPBank
+
+

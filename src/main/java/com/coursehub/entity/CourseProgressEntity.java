@@ -10,7 +10,6 @@ import lombok.Setter;
 @Setter
 public class CourseProgressEntity extends BaseEntity {
 
-
     @Column(name = "total_lesson")
     private Long totalLesson;
 
@@ -24,4 +23,6 @@ public class CourseProgressEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity courseEntity;
+
+
 }
