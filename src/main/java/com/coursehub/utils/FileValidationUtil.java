@@ -1,14 +1,20 @@
 package com.coursehub.utils;
 
-import com.coursehub.exception.course.InvalidFileException;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import com.coursehub.exception.course.InvalidFileException;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 public class FileValidationUtil {
+
+    private FileValidationUtil() {
+        // Utility class, prevent instantiation
+    }
 
     // Image validation constants
     public static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(

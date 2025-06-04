@@ -1,9 +1,7 @@
 package com.coursehub.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,18 +10,19 @@ import java.util.Set;
 @Table(name = "modules")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ModuleEntity extends BaseEntity {
 
     @Column
     private String title;
 
-    @Column
-    private String description;
-
     @Column(name = "order_number")
     private Long orderNumber;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Long isActive = 1L;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,6 +31,5 @@ public class ModuleEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "moduleEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<LessonEntity> lessonEntities = new HashSet<>();
-
 
 }

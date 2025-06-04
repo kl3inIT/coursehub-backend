@@ -1,38 +1,34 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.request.course.CourseRequestDTO;
+import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
-import com.coursehub.entity.CategoryEntity;
+
 import com.coursehub.entity.CourseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import org.springframework.data.domain.Pageable;
 import java.util.List;
-import java.util.Optional;
 
 public interface CourseService {
 
-    CourseResponseDTO createCourse(CourseRequestDTO courseRequestDTO);
+    CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO);
 
-    /**
-     * Uploads a thumbnail for a course
-     * @param courseId The ID of the course
-     * @param file The thumbnail file to upload
-     * @return The object key of the uploaded file
-     */
     String uploadThumbnail(Long courseId, MultipartFile file);
 
-    /**
-     * Find course by ID
-     * @param courseId The ID of the course to find
-     * @return CourseResponseDTO containing course information
-     */
     CourseResponseDTO findCourseById(Long courseId);
 
-    Page<CourseResponseDTO> findAll(Pageable pageable);
+    CourseResponseDTO updateCourseStatusAndLevel(Long courseId, CourseUpdateStatusAndLevelRequestDTO updateDTO);
+
+    Page<CourseResponseDTO> findAllCourse(Pageable pageable);
 
     List<CourseResponseDTO> findByCategoryId(Long categoryId);
 
     List<CourseResponseDTO> findFeaturedCourses(Pageable pageable);
+
+    Page<CourseResponseDTO> searchCourses(String search, Long categoryId, String level, 
+                                        Double minPrice, Double maxPrice, Pageable pageable);
+
+    CourseEntity findCourseEntityById(Long courseId);
 }    

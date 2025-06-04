@@ -2,7 +2,6 @@ package com.coursehub.dto.request.course;
 
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.utils.validator.EnumValue;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CourseRequestDTO {
+public class CourseCreationRequestDTO {
 
     @NotBlank(message = "Course title is required")
     @Size(min = 5, max = 100, message = "Course title must be between 5 and 100 characters")
@@ -24,7 +23,6 @@ public class CourseRequestDTO {
     private String description;
 
     @NotNull(message = "Course price is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Course price must be greater than 0")
     private BigDecimal price;
 
     @DecimalMin(value = "0.0", message = "Discount cannot be negative")

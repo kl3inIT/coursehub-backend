@@ -24,4 +24,5 @@ public class ReviewEntity extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String comment;
+
 } 
