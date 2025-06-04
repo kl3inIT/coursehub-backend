@@ -85,7 +85,6 @@ public class CourseController {
 
         log.info("Finding featured courses");
         List<CourseResponseDTO> featuredCourses = courseService.findFeaturedCourses(pageable);
-
         ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(featuredCourses);
         response.setMessage("Featured courses fetched successfully");
