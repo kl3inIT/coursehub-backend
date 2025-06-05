@@ -7,6 +7,7 @@ import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
 import com.coursehub.exception.course.InvalidFileException;
+import com.coursehub.exception.enrollment.EnrollNotFoundException;
 import com.coursehub.exception.lesson.LessonNotFoundException;
 import com.coursehub.exception.module.ModuleNotFoundException;
 import com.coursehub.exception.s3.S3DeleteObjectException;
@@ -300,6 +301,16 @@ public class GlobalExceptionHandler {
         response.setDetail(ex.getMessage());
         response.setData(null);
 
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(EnrollNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleEnrollNotFoundException(EnrollNotFoundException ex) {
+        log.error("Enrollment not found: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Enrollment Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
