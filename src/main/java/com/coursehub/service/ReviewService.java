@@ -15,6 +15,10 @@ public interface ReviewService {
     ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
 
     void deleteReview(Long id);
-//
-//    boolean existsByUserAndCourse(Long userId, Long courseId);
+
+    boolean existsByUserAndCourse(Long userId, Long courseId);
+
+    Double getAverageRating(Long courseId);
+
+    Long getTotalReviews(Long courseId);
 } 

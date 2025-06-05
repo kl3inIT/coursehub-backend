@@ -3,6 +3,8 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
+import com.coursehub.dto.response.category.CategoryChartDTO;
+import com.coursehub.dto.response.category.CategoryDetailDTO;
 import com.coursehub.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -60,5 +64,20 @@ public class CategoryController {
         response.setMessage("Success");
         response.setDetail("Category deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/chart")
+    public ResponseEntity<List<CategoryChartDTO>> getCategoryChart() {
+        return ResponseEntity.ok(categoryService.getCategoryChart());
+    }
+
+    @GetMapping("/{categoryId}/detail")
+    public ResponseEntity<CategoryDetailDTO> getCategoryDetail(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(categoryService.getCategoryDetail(categoryId));
+    }
+
+    @GetMapping("/details")
+    public ResponseEntity<List<CategoryDetailDTO>> getAllCategoryDetails() {
+        return ResponseEntity.ok(categoryService.getAllCategoryDetails());
     }
 } 
