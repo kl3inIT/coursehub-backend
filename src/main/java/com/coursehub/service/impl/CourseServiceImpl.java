@@ -9,10 +9,7 @@ import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.repository.CourseRepository;
-import com.coursehub.service.CourseService;
-import com.coursehub.service.LessonService;
-import com.coursehub.service.ModuleService;
-import com.coursehub.service.S3Service;
+import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +32,7 @@ public class CourseServiceImpl implements CourseService {
     private final ModuleService moduleService;
     private final S3Service s3Service;
     private final LessonService lessonService;
+    private final ReviewService reviewService;
 
     @Override
     @Transactional
@@ -169,6 +167,9 @@ public class CourseServiceImpl implements CourseService {
                 .finalPrice(calculateFinalPrice(courseEntity))
                 .totalDuration(lessonService.calculateTotalDurationByCourseId(courseEntity.getId()))
                 .totalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()))
+                .averageRating(reviewService.getAverageRating(courseEntity.getId()))
+                .totalReviews(reviewService.getTotalReviews(courseEntity.getId()))
+
                 .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
                 .build();
     }

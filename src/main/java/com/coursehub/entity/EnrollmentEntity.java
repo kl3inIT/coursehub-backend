@@ -21,7 +21,6 @@ public class EnrollmentEntity extends BaseEntity {
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity courseEntity;
 
-
     @Column(name = "certificate_url")
     private String certificateUrl;
 
