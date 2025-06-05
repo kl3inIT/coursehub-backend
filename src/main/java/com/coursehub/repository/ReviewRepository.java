@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
@@ -17,4 +19,8 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
     Page<ReviewEntity> findAllByFilters(Long courseId, Long userId, Integer star, Pageable pageable);
 
     boolean existsByUserEntityIdAndCourseEntityId(Long userId, Long courseId);
+
+    List<ReviewEntity> findByCourseEntityId(Long courseId);
+
+    Long countByCourseEntityId(Long courseId);
 } 

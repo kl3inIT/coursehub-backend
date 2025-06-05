@@ -185,25 +185,5 @@ public class CourseServiceImpl implements CourseService {
                 });
     }
 
-    @Override
-    public Double getAverageRating(Long courseId) {
-        CourseEntity course = findCourseEntityById(courseId);
 
-        if (course.getReviewEntities() == null || course.getReviewEntities().isEmpty()) {
-            return 0.0;
-        }
-
-        return course.getReviewEntities().stream()
-                .mapToInt(ReviewEntity::getStar)
-                .average()
-                .orElse(0.0);
-    }
-
-    @Override
-    public Long getTotalReviews(Long courseId) {
-        CourseEntity course = findCourseEntityById(courseId);
-
-        return (long) (course.getReviewEntities() != null ? 
-                course.getReviewEntities().size() : 0);
-    }
 }

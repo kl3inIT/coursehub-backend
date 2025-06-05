@@ -17,4 +17,8 @@ public interface ReviewService {
    void deleteReview(Long id);
 
     boolean existsByUserAndCourse(Long userId, Long courseId);
+
+    Double getAverageRating(Long courseId);
+    
+    Long getTotalReviews(Long courseId);
 } 

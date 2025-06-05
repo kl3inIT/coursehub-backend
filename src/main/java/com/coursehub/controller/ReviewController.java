@@ -16,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+
+import static com.coursehub.constant.Constant.CommonConstants.*;
+
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
@@ -40,14 +43,8 @@ public class ReviewController {
 
         ResponseGeneral<Page<ReviewResponseDTO>> response = new ResponseGeneral<>();
         response.setData(reviewResponseDTOS);
-
-        if (reviewResponseDTOS.isEmpty()) {
-            response.setMessage("No reviews found");
-            response.setDetail("No reviews match the given criteria");
-        } else {
-            response.setMessage("Success");
-            response.setDetail("Reviews retrieved successfully");
-        }
+        response.setMessage(SUCCESS);
+        response.setDetail("Reviews retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -56,7 +53,7 @@ public class ReviewController {
         ReviewResponseDTO review = reviewService.findReviewById(id);
         ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
         response.setData(review);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Review retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -69,7 +66,7 @@ public class ReviewController {
         ReviewResponseDTO review = reviewService.createReview(userId, requestDTO);
         ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
         response.setData(review);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Review created successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -82,7 +79,7 @@ public class ReviewController {
         ReviewResponseDTO review = reviewService.updateReview(id, requestDTO);
         ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
         response.setData(review);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Review updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -91,7 +88,7 @@ public class ReviewController {
     public ResponseEntity<ResponseGeneral<Void>> deleteReview(@PathVariable Long id) {
         reviewService.deleteReview(id);
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail("Review deleted successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -104,8 +101,32 @@ public class ReviewController {
         boolean exists = reviewService.existsByUserAndCourse(userId, courseId);
         ResponseGeneral<Boolean> response = new ResponseGeneral<>();
         response.setData(exists);
-        response.setMessage("Success");
+        response.setMessage(SUCCESS);
         response.setDetail(exists ? "Review exists for user and course" : "No review found for user and course");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/average-rating")
+    public ResponseEntity<ResponseGeneral<Double>> getAverageRating(
+            @RequestParam Long courseId) {
+
+        Double averageRating = reviewService.getAverageRating(courseId);
+        ResponseGeneral<Double> response = new ResponseGeneral<>();
+        response.setData(averageRating);
+        response.setMessage(SUCCESS);
+        response.setDetail("Average rating retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/total-reviews")
+    public ResponseEntity<ResponseGeneral<Long>> getTotalReviews(
+            @RequestParam Long courseId) {
+
+        Long totalReviews = reviewService.getTotalReviews(courseId);
+        ResponseGeneral<Long> response = new ResponseGeneral<>();
+        response.setData(totalReviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Total reviews retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 } 

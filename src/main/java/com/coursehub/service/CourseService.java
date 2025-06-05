@@ -32,7 +32,4 @@ public interface CourseService {
 
     CourseEntity findCourseEntityById(Long courseId);
 
-    Double getAverageRating(Long courseId);
-    
-    Long getTotalReviews(Long courseId);
 }    

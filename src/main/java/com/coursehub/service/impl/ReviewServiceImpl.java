@@ -109,4 +109,28 @@ public class ReviewServiceImpl implements ReviewService {
     public boolean existsByUserAndCourse(Long userId, Long courseId) {
         return reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, courseId);
     }
+
+    @Override
+    public Double getAverageRating(Long courseId) {
+        // Check if course exists
+        if (!courseRepository.existsById(courseId)) {
+            throw new CourseNotFoundException(courseId);
+        }
+
+        return reviewRepository.findByCourseEntityId(courseId)
+                .stream()
+                .mapToInt(ReviewEntity::getStar)
+                .average()
+                .orElse(0.0);
+    }
+
+    @Override
+    public Long getTotalReviews(Long courseId) {
+        // Check if course exists
+        if (!courseRepository.existsById(courseId)) {
+            throw new CourseNotFoundException(courseId);
+        }
+
+        return reviewRepository.countByCourseEntityId(courseId);
+    }
 } 
