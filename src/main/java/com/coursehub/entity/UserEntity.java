@@ -1,19 +1,17 @@
 package com.coursehub.entity;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
-public class UserEntity extends BaseEntity{
+public class UserEntity extends BaseEntity {
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -21,7 +19,7 @@ public class UserEntity extends BaseEntity{
     @Column
     private String password;
 
-    @Column
+    @Column(nullable = false)
     private String name;
 
     @Column
@@ -33,8 +31,24 @@ public class UserEntity extends BaseEntity{
     @Column
     private String avatar;
 
+    @Column
+    private String address;
+
+    @Column
+    private String gender;
+
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
+
+    @Column
+    private String bio;
+
     @Column(name = "is_active")
     private Long isActive = 1L;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id")
+    private RoleEntity roleEntity;
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CommentEntity> commentEntities = new HashSet<>();
@@ -43,19 +57,15 @@ public class UserEntity extends BaseEntity{
     private Set<UserLessonEntity> userLessonEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<EnrollmentEntity>  enrollmentEntities = new HashSet<>();
+    private Set<EnrollmentEntity> enrollmentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseProgressEntity>  courseProgressEntities = new HashSet<>();
+    private Set<CourseProgressEntity> courseProgressEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<PaymentEntity>  paymentEntities = new HashSet<>();
+    private Set<PaymentEntity> paymentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CertificateEntity>  certificateEntities = new HashSet<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    private RoleEntity roleEntity;
 
 }

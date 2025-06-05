@@ -300,6 +300,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())
+                .claim("name", user.getName())
                 .issuer("coursehub.com")
                 .claim("name", user.getName())
                 .claim("avatar", user.getAvatar())
@@ -319,6 +320,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public void deleteFromRedis(String key) {
+        redisTemplate.delete(key);
     }
 
 

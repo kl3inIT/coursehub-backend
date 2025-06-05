@@ -1,9 +1,12 @@
 package com.coursehub.enums;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Getter
 public enum CourseLevel {
 
     BEGINNER("Beginner"),
@@ -18,13 +21,9 @@ public enum CourseLevel {
         this.levelName = levelName;
     }
 
-
     public static Map<String, String> getCourseLevels(){
-       return Arrays.stream(CourseLevel.values()).collect(Collectors.toMap(CourseLevel::toString, CourseLevel::getLevelName ));
+       return Arrays.stream(CourseLevel.values()).collect(Collectors.toMap(CourseLevel::toString, CourseLevel::getLevelName));
     }
 
-    public String getLevelName() {
-        return levelName;
-    }
 
 }

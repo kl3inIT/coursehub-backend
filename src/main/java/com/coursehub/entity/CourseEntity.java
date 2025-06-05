@@ -1,14 +1,10 @@
 package com.coursehub.entity;
 
-import com.coursehub.enums.CourseLevel;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -37,8 +33,8 @@ public class CourseEntity extends BaseEntity {
     @Column(name = "level")
     private String level;
 
-    @Column(name = "is_active")
-    private Long isActive = 1L;
+    @Column(name = "status")
+    private String status = "DRAFT";
 
     // Relationship with reviews
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

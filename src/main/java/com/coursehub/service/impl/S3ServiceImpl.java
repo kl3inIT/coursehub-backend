@@ -1,18 +1,29 @@
 package com.coursehub.service.impl;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.Duration;
+import java.util.Map;
+
+import com.coursehub.exception.s3.S3DeleteObjectException;
+import com.coursehub.exception.s3.S3PresignUrlException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.coursehub.service.S3Service;
+
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import com.coursehub.service.S3Service;
-import java.time.Duration;
-import java.util.Map;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 @Service
 @Slf4j
@@ -33,13 +44,10 @@ public class S3ServiceImpl implements S3Service {
     }
 
     /**
-     * Generates a pre-signed URL for the specified S3 object
-     * @param objectKey The key of the object in S3
-     * @return A pre-signed URL that can be used to access the object temporarily
+     * Generates a presigned URL for downloading (GET) an object.
      */
-    @Override
-    public String generatePresignedUrl(String objectKey) {
-        log.debug("Generating presigned URL for object: {}", objectKey);
+    public String generatePresignedGetUrl(String objectKey) {
+        log.debug("Generating presigned GET URL for object: {}", objectKey);
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
@@ -53,6 +61,34 @@ public class S3ServiceImpl implements S3Service {
 
         PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
         return presignedRequest.url().toString();
+    }
+
+    /**
+     * Generates a presigned URL for uploading (PUT) an object.
+     */
+    public String generatePresignedPutUrl(String objectKey, String contentType) {
+        log.debug("Generating presigned PUT URL for object: {}", objectKey);
+
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType(contentType)
+                    .build();
+
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .putObjectRequest(putObjectRequest)
+                    .build();
+
+            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+            log.info("Successfully generated presigned URL for: {}", objectKey);
+            return presignedRequest.url().toString();
+            
+        } catch (S3Exception e) {
+            log.error("Failed to generate presigned URL for: {}", objectKey, e);
+            throw new S3PresignUrlException("Failed to generate presigned URL" + e.getMessage());
+        }
     }
 
     /**
@@ -124,7 +160,7 @@ public class S3ServiceImpl implements S3Service {
             
         } catch (S3Exception e) {
             log.error("Failed to delete object from S3: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to delete object from S3: " + e.getMessage(), e);
+            throw new S3DeleteObjectException(e.getMessage());
         }
     }
 

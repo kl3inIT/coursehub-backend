@@ -1,8 +1,9 @@
 package com.coursehub.converter;
 
-
 import com.coursehub.dto.request.auth.AuthenticationRequestDTO;
+import com.coursehub.dto.request.user.ProfileRequestDTO;
 import com.coursehub.dto.request.user.UserRequestDTO;
+import com.coursehub.dto.response.user.UserManagementDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
@@ -34,4 +35,28 @@ public class UserConverter {
         userEntity.setGoogleAccountId(authenticationRequestDTO.getGoogleAccountId());
         return userEntity;
     }
+    //Entity => ProfileRequestDTO
+    public ProfileRequestDTO toProfileRequestDTO(UserEntity userEntity) {
+        return modelMapper.map(userEntity, ProfileRequestDTO.class);
+    }
+
+    //Entity => UserManagementDTO
+    public UserManagementDTO convertToUserManagementDTO(UserEntity user) {
+        UserManagementDTO dto = new UserManagementDTO();
+
+        String roleCode = user.getRoleEntity().getCode().isEmpty() ?
+                "LEARNER" :
+                user.getRoleEntity().getCode().toLowerCase(); // Trong frontend component RoleBadge đang dùng switch case chữ thường
+
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setAvatar(user.getAvatar());
+        dto.setRole(roleCode);
+        dto.setStatus(user.getIsActive() == 1L ? "active" : "inactive");
+        dto.setJoinDate(user.getCreatedDate());
+
+        return dto;
+    }
+
 }

@@ -15,6 +15,7 @@ public class CategoryResponseDTO {
     private Long id;
     private String name;
     private String description;
+    private Boolean isActive;
     private Long courseCount;
     private Date createdDate;
     private Date modifiedDate;

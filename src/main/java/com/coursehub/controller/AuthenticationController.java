@@ -72,7 +72,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgot-password/verify-otp")
-    public ResponseEntity<ResponseGeneral<String>> verifyOtpToResetPassword( @Valid @RequestBody OtpRequestDTO otpRequest) {
+    public ResponseEntity<ResponseGeneral<String>> verifyOtpToResetPassword(@Valid @RequestBody OtpRequestDTO otpRequest) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
         responseDTO.setMessage("Success");
         responseDTO.setData(authenticationService.verifyOtpToResetPassword(otpRequest));
@@ -100,22 +100,6 @@ public class AuthenticationController {
         AuthenticationRequestDTO data = authenticationService.handleGoogleCode(googleCodeRequestDTO);
         return this.login(data);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
