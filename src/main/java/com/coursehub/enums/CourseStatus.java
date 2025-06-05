@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Getter
 public enum CourseStatus {
 
     DRAFT("Draft"),
@@ -21,9 +20,13 @@ public enum CourseStatus {
         this.status = status;
     }
 
+    public String getStatusName() {
+        return status;
+    }
+
     public static Map<String, String> getCourseStatuses() {
         return Arrays.stream(CourseStatus.values())
-                .collect(Collectors.toMap(CourseStatus::toString, CourseStatus::getStatus));
+                .collect(Collectors.toMap(CourseStatus::toString, CourseStatus::getStatusName));
     }
 
 }

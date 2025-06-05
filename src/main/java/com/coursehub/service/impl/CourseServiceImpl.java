@@ -5,6 +5,8 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
@@ -83,45 +85,6 @@ public class CourseServiceImpl implements CourseService {
 
         log.info("Successfully found course: {} (ID: {})", courseEntity.getTitle(), courseId);
         return courseConverter.toResponseDTO(courseEntity);
-    }
-
-    @Override
-    @Transactional
-    public CourseResponseDTO updateCourseStatusAndLevel(Long courseId, CourseUpdateStatusAndLevelRequestDTO updateDTO) {
-        log.info("Updating status and level for course ID: {} to status: {}, level: {}", 
-            courseId, updateDTO.getStatus(), updateDTO.getLevel());
-
-        if (courseId == null) {
-            throw new IllegalArgumentException("Course ID cannot be null");
-        }
-
-        if (updateDTO.getStatus() == null || updateDTO.getLevel() == null) {
-            throw new IllegalArgumentException("Update request, status, and level cannot be null");
-        }
-
-        try {
-            CourseEntity courseEntity = findCourseEntityById(courseId);
-
-            String oldStatus = courseEntity.getStatus();
-            String oldLevel = courseEntity.getLevel();
-            String newStatus = updateDTO.getStatus();
-            String newLevel = updateDTO.getLevel();
-            
-            courseEntity.setStatus(newStatus);
-            courseEntity.setLevel(newLevel);
-            courseRepository.save(courseEntity);
-
-            log.info("Successfully updated course ID: {} status from {} to {} and level from {} to {}", 
-                courseId, oldStatus, newStatus, oldLevel, newLevel);
-            return courseConverter.toResponseDTO(courseEntity);
-            
-        } catch (CourseNotFoundException e) {
-            log.error("Course not found with ID: {}", courseId);
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to update course status and level for ID: {}: {}", courseId, e.getMessage(), e);
-            throw new CourseCreationException("Failed to update course status and level: " + e.getMessage(), e);
-        }
     }
 
     @Override

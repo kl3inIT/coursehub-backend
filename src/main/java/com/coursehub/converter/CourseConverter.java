@@ -4,6 +4,7 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.enums.CourseLevel;
 import com.coursehub.exception.category.CategoryNotFoundException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.repository.CategoryRepository;
@@ -33,7 +34,8 @@ public class CourseConverter {
         CourseResponseDTO courseResponseDTO = modelMapper.map(courseEntity, CourseResponseDTO.class);
 
         String category = courseEntity.getCategoryEntity().getName();
-
+        courseResponseDTO.setStatus(courseEntity.getStatus().getStatusName());
+        courseResponseDTO.setLevel(courseEntity.getLevel().getLevelName());
         courseResponseDTO.setCategory(category);
         courseResponseDTO.setThumbnailUrl(generateThumbnailUrl(courseEntity.getThumbnail()));
         courseResponseDTO.setInstructorName("CourseHub Team"); // Assuming instructor is always "CourseHub Team"
@@ -50,6 +52,9 @@ public class CourseConverter {
                 () -> new CategoryNotFoundException("Category not found")
         );
         CourseEntity courseEntity = modelMapper.map(courseDTO, CourseEntity.class);
+        if (courseDTO.getLevel() != null) {
+            courseEntity.setLevel(CourseLevel.valueOf(courseDTO.getLevel().toUpperCase()));
+        }
         courseEntity.setCategoryEntity(categoryEntity);
         return courseEntity;
     }

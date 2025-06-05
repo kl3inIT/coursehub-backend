@@ -19,8 +19,6 @@ public interface CourseService {
 
     CourseResponseDTO findCourseById(Long courseId);
 
-    CourseResponseDTO updateCourseStatusAndLevel(Long courseId, CourseUpdateStatusAndLevelRequestDTO updateDTO);
-
     Page<CourseResponseDTO> findAllCourse(Pageable pageable);
 
     List<CourseResponseDTO> findByCategoryId(Long categoryId);

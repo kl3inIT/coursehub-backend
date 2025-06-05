@@ -77,24 +77,6 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{courseId}/status")
-    public ResponseEntity<ResponseGeneral<CourseResponseDTO>> updateCourseStatusAndLevel(
-            @PathVariable Long courseId,
-            @Valid @RequestBody CourseUpdateStatusAndLevelRequestDTO updateDTO) {
-        
-        log.info("Updating status and level for course ID: {} to status: {}, level: {}", 
-            courseId, updateDTO.getStatus(), updateDTO.getLevel());
-        
-        CourseResponseDTO updatedCourse = courseService.updateCourseStatusAndLevel(courseId, updateDTO);
-        
-        ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
-        response.setData(updatedCourse);
-        response.setMessage(SUCCESS);
-        response.setDetail("Course status and level updated successfully");
-        
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/featured")
     public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> findFeaturedCourses(Pageable pageable) {
 
