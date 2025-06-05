@@ -31,4 +31,8 @@ public interface CourseService {
                                         Double minPrice, Double maxPrice, Pageable pageable);
 
     CourseEntity findCourseEntityById(Long courseId);
+
+    Double getAverageRating(Long courseId);
+    
+    Long getTotalReviews(Long courseId);
 }    

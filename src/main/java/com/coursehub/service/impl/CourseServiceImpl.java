@@ -5,6 +5,7 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.ReviewEntity;
 import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
@@ -182,5 +183,27 @@ public class CourseServiceImpl implements CourseService {
                     log.warn("Course not found with ID: {}", courseId);
                     return new CourseNotFoundException(courseId);
                 });
+    }
+
+    @Override
+    public Double getAverageRating(Long courseId) {
+        CourseEntity course = findCourseEntityById(courseId);
+
+        if (course.getReviewEntities() == null || course.getReviewEntities().isEmpty()) {
+            return 0.0;
+        }
+
+        return course.getReviewEntities().stream()
+                .mapToInt(ReviewEntity::getStar)
+                .average()
+                .orElse(0.0);
+    }
+
+    @Override
+    public Long getTotalReviews(Long courseId) {
+        CourseEntity course = findCourseEntityById(courseId);
+
+        return (long) (course.getReviewEntities() != null ? 
+                course.getReviewEntities().size() : 0);
     }
 }

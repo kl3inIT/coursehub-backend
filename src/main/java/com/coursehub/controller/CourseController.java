@@ -77,6 +77,34 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{courseId}/rating")
+    public ResponseEntity<ResponseGeneral<Double>> getCourseRating(
+            @PathVariable Long courseId) {
+        
+        Double averageRating = courseService.getAverageRating(courseId);
+        
+        ResponseGeneral<Double> response = new ResponseGeneral<>();
+        response.setData(averageRating);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course rating retrieved successfully");
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{courseId}/reviews/count")
+    public ResponseEntity<ResponseGeneral<Long>> getCourseTotalReviews(
+            @PathVariable Long courseId) {
+        
+        Long totalReviews = courseService.getTotalReviews(courseId);
+        
+        ResponseGeneral<Long> response = new ResponseGeneral<>();
+        response.setData(totalReviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course total reviews retrieved successfully");
+        
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/{courseId}/status")
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> updateCourseStatusAndLevel(
             @PathVariable Long courseId,
