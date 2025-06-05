@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.coursehub.exception.course.InvalidFileException;
+import com.coursehub.exceptions.course.InvalidFileException;
 
 import lombok.extern.slf4j.Slf4j;
 

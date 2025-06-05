@@ -9,7 +9,7 @@ import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.InvalidTokenEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.exception.auth.*;
+import com.coursehub.exceptions.auth.*;
 import com.coursehub.repository.InvalidTokenRepository;
 import com.coursehub.repository.RoleRepository;
 import com.coursehub.repository.UserRepository;

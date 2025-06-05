@@ -1,13 +1,16 @@
 package com.coursehub.converter;
 
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseLevel;
-import com.coursehub.exception.category.CategoryNotFoundException;
-import com.coursehub.exception.course.CourseNotFoundException;
+import com.coursehub.exceptions.category.CategoryNotFoundException;
+import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.repository.CategoryRepository;
+import com.coursehub.service.LessonService;
+import com.coursehub.service.ModuleService;
 import com.coursehub.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

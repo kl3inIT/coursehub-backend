@@ -40,6 +40,10 @@ public class CourseEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private CourseStatus status = CourseStatus.DRAFT;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity userEntity;
+
     // Relationship with reviews
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ReviewEntity> reviewEntities;

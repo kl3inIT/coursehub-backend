@@ -2,16 +2,16 @@ package com.coursehub.service.impl;
 
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
-import com.coursehub.enums.CourseLevel;
-import com.coursehub.enums.CourseStatus;
-import com.coursehub.exception.course.CourseCreationException;
-import com.coursehub.exception.course.CourseNotFoundException;
-import com.coursehub.exception.course.FileUploadException;
+import com.coursehub.exceptions.course.CourseCreationException;
+import com.coursehub.exceptions.course.CourseNotFoundException;
+import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.service.CourseService;
+import com.coursehub.service.LessonService;
+import com.coursehub.service.ModuleService;
 import com.coursehub.service.S3Service;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -31,7 +32,9 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseConverter courseConverter;
+    private final ModuleService moduleService;
     private final S3Service s3Service;
+    private final LessonService lessonService;
 
     @Override
     @Transactional
@@ -146,4 +149,38 @@ public class CourseServiceImpl implements CourseService {
                     return new CourseNotFoundException(courseId);
                 });
     }
+
+    private CourseDetailsResponseDTO toDetailsResponseDTO(CourseEntity courseEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
+        }
+
+        return CourseDetailsResponseDTO.builder()
+                .id(courseEntity.getId())
+                .title(courseEntity.getTitle())
+                .description(courseEntity.getDescription())
+                .price(courseEntity.getPrice())
+                .discount(courseEntity.getDiscount())
+                .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
+                .category(courseEntity.getCategoryEntity().getName())
+                .level(courseEntity.getLevel().getLevelName())
+                .status(courseEntity.getStatus().getStatusName())
+                .instructorName("CourseHub Team")
+                .finalPrice(calculateFinalPrice(courseEntity))
+                .totalDuration(lessonService.calculateTotalDurationByCourseId(courseEntity.getId()))
+                .totalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()))
+                .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
+                .build();
+    }
+
+    private BigDecimal calculateFinalPrice(CourseEntity courseEntity) {
+        BigDecimal price = courseEntity.getPrice();
+        BigDecimal discount = courseEntity.getDiscount();
+        if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal discountAmount = price.multiply(discount).divide(BigDecimal.valueOf(100));
+            return price.subtract(discountAmount);
+        }
+        return price; // No discounts applied
+    }
+
 }
