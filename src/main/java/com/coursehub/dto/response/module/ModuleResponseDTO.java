@@ -14,5 +14,4 @@ public class ModuleResponseDTO {
     private Long totalLessons;
     private Long totalDuration;
     private Long courseId;
-
 }

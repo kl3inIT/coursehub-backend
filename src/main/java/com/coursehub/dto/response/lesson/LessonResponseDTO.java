@@ -15,5 +15,4 @@ public class LessonResponseDTO {
     private Long orderNumber;
     private Long isPreview;
 
-
 }

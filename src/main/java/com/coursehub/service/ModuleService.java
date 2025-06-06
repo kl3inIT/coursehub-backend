@@ -20,4 +20,6 @@ public interface ModuleService {
     void deleteModule(Long moduleId);
 //    void reorderModules(Long courseId, List<Long> orderedModuleIds);
     ModuleEntity findModuleEntityById(Long moduleId);
+
+    Long countByCourseEntityId(Long courseId);
 }

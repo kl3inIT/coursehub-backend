@@ -15,4 +15,6 @@ public interface ModuleRepository extends JpaRepository<ModuleEntity,Long> {
     Long findMaxOrderNumberByCourseId(@Param("courseId") Long courseId);
 
     List<ModuleEntity> findByCourseEntityId(Long courseId);
+
+    Long countModuleEntitiesByCourseEntityId(Long courseId);
 }

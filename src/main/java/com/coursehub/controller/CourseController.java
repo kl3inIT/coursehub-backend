@@ -3,6 +3,7 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.service.CourseService;
 import jakarta.validation.Valid;
@@ -28,13 +29,14 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    @PostMapping
+    @PostMapping(value = "/{userId}")
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
+            @PathVariable Long userId,
             @Valid @RequestBody CourseCreationRequestDTO courseRequestDTO) {
         
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
         
-        CourseResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);
+        CourseResponseDTO createdCourse = courseService.createCourse(userId, courseRequestDTO);
         
         ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
         response.setData(createdCourse);
@@ -82,7 +84,6 @@ public class CourseController {
 
         log.info("Finding featured courses");
         List<CourseResponseDTO> featuredCourses = courseService.findFeaturedCourses(pageable);
-
         ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(featuredCourses);
         response.setMessage("Featured courses fetched successfully");
@@ -128,8 +129,22 @@ public class CourseController {
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage(SUCCESS);
-        response.setDetail("Courses found with applied filters");
-        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{courseId}/details")
+    public ResponseEntity<ResponseGeneral<CourseDetailsResponseDTO>> getCourseDetails(
+            @PathVariable Long courseId) {
+
+        log.info("Getting course details for ID: {}", courseId);
+
+        CourseDetailsResponseDTO courseDetails = courseService.findCourseDetailsById(courseId);
+
+        ResponseGeneral<CourseDetailsResponseDTO> response = new ResponseGeneral<>();
+        response.setData(courseDetails);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course details retrieved successfully");
+
         return ResponseEntity.ok(response);
     }
 

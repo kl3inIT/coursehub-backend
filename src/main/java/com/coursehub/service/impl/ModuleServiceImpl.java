@@ -100,4 +100,9 @@ public class ModuleServiceImpl implements ModuleService {
                 .build();
     }
 
+    @Override
+    public Long countByCourseEntityId(Long courseId) {
+        return moduleRepository.countModuleEntitiesByCourseEntityId(courseId);
+    }
+
 }

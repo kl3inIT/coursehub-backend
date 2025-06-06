@@ -9,6 +9,7 @@ import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.repository.CourseRepository;
+import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +34,18 @@ public class CourseServiceImpl implements CourseService {
     private final S3Service s3Service;
     private final LessonService lessonService;
     private final ReviewService reviewService;
+    private final EnrollmentService enrollmentService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO) {
+    public CourseResponseDTO createCourse(Long managerId, CourseCreationRequestDTO courseRequestDTO) {
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
+            courseEntity.setUserEntity(userRepository.findById(managerId).
+                    orElseThrow(() -> new CourseCreationException("Manager not found with ID: " + managerId)));
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
 
@@ -148,6 +153,17 @@ public class CourseServiceImpl implements CourseService {
                 });
     }
 
+    @Override
+    public CourseDetailsResponseDTO findCourseDetailsById(Long courseId) {
+        log.info("Finding course details for ID: {}", courseId);
+
+        CourseEntity courseEntity = findCourseEntityById(courseId);
+        CourseDetailsResponseDTO responseDTO = toDetailsResponseDTO(courseEntity);
+
+        log.info("Successfully found course details for ID: {}", courseId);
+        return responseDTO;
+    }
+
     private CourseDetailsResponseDTO toDetailsResponseDTO(CourseEntity courseEntity) {
         if (courseEntity == null) {
             throw new CourseNotFoundException("Course not found");
@@ -164,24 +180,17 @@ public class CourseServiceImpl implements CourseService {
                 .level(courseEntity.getLevel().getLevelName())
                 .status(courseEntity.getStatus().getStatusName())
                 .instructorName("CourseHub Team")
-                .finalPrice(calculateFinalPrice(courseEntity))
+                .updatedAt(String.valueOf(courseEntity.getModifiedDate()))
+                .finalPrice(courseConverter.calculateFinalPrice(courseEntity))
                 .totalDuration(lessonService.calculateTotalDurationByCourseId(courseEntity.getId()))
                 .totalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()))
                 .averageRating(reviewService.getAverageRating(courseEntity.getId()))
                 .totalReviews(reviewService.getTotalReviews(courseEntity.getId()))
-
+                .totalStudents(enrollmentService.countByCourseEntityId(courseEntity.getId()))
+                .totalModules(moduleService.countByCourseEntityId(courseEntity.getId()))
                 .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
                 .build();
     }
 
-    private BigDecimal calculateFinalPrice(CourseEntity courseEntity) {
-        BigDecimal price = courseEntity.getPrice();
-        BigDecimal discount = courseEntity.getDiscount();
-        if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal discountAmount = price.multiply(discount).divide(BigDecimal.valueOf(100));
-            return price.subtract(discountAmount);
-        }
-        return price; // No discounts applied
-    }
 
 }

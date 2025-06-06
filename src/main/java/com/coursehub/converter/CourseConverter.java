@@ -9,9 +9,7 @@ import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.repository.CategoryRepository;
-import com.coursehub.service.LessonService;
-import com.coursehub.service.ModuleService;
-import com.coursehub.service.S3Service;
+import com.coursehub.service.*;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -27,6 +25,9 @@ public class CourseConverter {
     private final ModelMapper modelMapper;
     private final S3Service s3Service;
     private final CategoryRepository categoryRepository;
+    private final EnrollmentService enrollmentService;
+    private final LessonService lessonService;
+    private final ReviewService reviewService;
 
     public CourseResponseDTO toResponseDTO(CourseEntity courseEntity) {
         if (courseEntity == null) {
@@ -43,6 +44,11 @@ public class CourseConverter {
         courseResponseDTO.setThumbnailUrl(generateThumbnailUrl(courseEntity.getThumbnail()));
         courseResponseDTO.setInstructorName("CourseHub Team"); // Assuming instructor is always "CourseHub Team"
         courseResponseDTO.setFinalPrice(calculateFinalPrice(courseEntity));
+        courseResponseDTO.setTotalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()));
+        courseResponseDTO.setAverageRating(reviewService.getAverageRating(courseEntity.getId()));
+        courseResponseDTO.setTotalReviews(reviewService.getTotalReviews(courseEntity.getId()));
+        courseResponseDTO.setTotalStudents(enrollmentService.countByCourseEntityId(courseEntity.getId()));
+        courseResponseDTO.setManagerId(courseEntity.getUserEntity().getId());
         return courseResponseDTO;
     }
 
@@ -72,7 +78,7 @@ public class CourseConverter {
         return courses.map(this::toResponseDTO);
     }
 
-    private BigDecimal calculateFinalPrice(CourseEntity courseEntity) {
+    public BigDecimal calculateFinalPrice(CourseEntity courseEntity) {
         BigDecimal price = courseEntity.getPrice();
         BigDecimal discount = courseEntity.getDiscount();
         if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {

@@ -1,6 +1,7 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exception.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
 import com.coursehub.exceptions.course.CourseCreationException;
@@ -300,6 +301,16 @@ public class GlobalExceptionHandler {
         response.setDetail(ex.getMessage());
         response.setData(null);
 
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(EnrollNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleEnrollNotFoundException(EnrollNotFoundException ex) {
+        log.error("Enrollment not found: {}", ex.getMessage());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Enrollment Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 

@@ -1,5 +1,7 @@
 package com.coursehub.service;
 
+import com.coursehub.entity.UserEntity;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
