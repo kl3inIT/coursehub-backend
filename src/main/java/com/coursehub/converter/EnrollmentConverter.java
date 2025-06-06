@@ -3,8 +3,7 @@ package com.coursehub.converter;
 
 import com.coursehub.dto.response.enrollment.EnrollmentResponseDTO;
 import com.coursehub.entity.EnrollmentEntity;
-import com.coursehub.exception.enrollment.EnrollNotFoundException;
-import com.coursehub.service.EnrollmentService;
+import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;

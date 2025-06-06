@@ -1,4 +1,4 @@
-package com.coursehub.exception.enrollment;
+package com.coursehub.exceptions.enrollment;
 
 public class EnrollNotFoundException extends RuntimeException {
     public EnrollNotFoundException(String message) {
