@@ -22,7 +22,4 @@ public class EnrollmentEntity extends BaseEntity {
     private CourseEntity courseEntity;
 
 
-    @Column(name = "certificate_url")
-    private String certificateUrl;
-
 } 

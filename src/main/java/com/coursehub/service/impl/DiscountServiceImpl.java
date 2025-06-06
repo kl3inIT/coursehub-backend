@@ -35,7 +35,6 @@ public class DiscountServiceImpl implements DiscountService {
         UserDiscountEntity userDiscountEntity = userDiscountRepository.findByDiscountEntity_IdAndIsActive(discountEntity.getId(), 1L);
         if ((discountEntity.getIsActive() == 0 && discountEntity.getIsGlobal() == 0)
                 || discountEntity.getExpiryDate().before(new Date())
-                || discountEntity.getQuantity() <= 0
                 || (courseDiscountEntity == null && categoryDiscountEntity == null)
                 || userDiscountEntity == null
         ) {

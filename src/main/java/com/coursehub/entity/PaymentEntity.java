@@ -19,7 +19,7 @@ public class PaymentEntity extends BaseEntity {
     private CourseEntity courseEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discount_id", nullable = false)
+    @JoinColumn(name = "discount_id", nullable = true)
     private DiscountEntity discountEntity;
 
     @Column

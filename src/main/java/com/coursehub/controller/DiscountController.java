@@ -22,7 +22,7 @@ public class DiscountController {
     private final DiscountService discountService;
 
     @PostMapping("/verify")
-    public ResponseEntity<ResponseGeneral<DiscountResponseDTO>> login(@RequestBody DiscountRequestDTO discountRequestDTO) {
+    public ResponseEntity<ResponseGeneral<DiscountResponseDTO>> verifyDiscount(@RequestBody DiscountRequestDTO discountRequestDTO) {
         ResponseGeneral<DiscountResponseDTO> responseDTO = new ResponseGeneral<>();
         responseDTO.setMessage("Success");
         responseDTO.setData(discountService.verifyDiscountCode(discountRequestDTO));
