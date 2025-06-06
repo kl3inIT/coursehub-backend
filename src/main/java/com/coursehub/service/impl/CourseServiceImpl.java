@@ -5,6 +5,7 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
@@ -127,7 +128,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, String level,
+    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
                                                  Double minPrice, Double maxPrice, Pageable pageable) {
         log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}",
                 search, categoryId, level, minPrice, maxPrice);
@@ -143,6 +144,7 @@ public class CourseServiceImpl implements CourseService {
 
         return courseConverter.toResponseDTOPage(courseEntities);
     }
+
 
     @Override
     public CourseEntity findCourseEntityById(Long courseId) {

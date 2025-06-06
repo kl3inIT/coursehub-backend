@@ -5,6 +5,7 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.enums.CourseLevel;
 import com.coursehub.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -116,7 +117,7 @@ public class CourseController {
     public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> searchCourses(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long category,
-            @RequestParam(required = false) String level,
+            @RequestParam(required = false) CourseLevel level,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             Pageable pageable) {

@@ -25,5 +25,9 @@ public enum CourseLevel {
        return Arrays.stream(CourseLevel.values()).collect(Collectors.toMap(CourseLevel::toString, CourseLevel::getLevelName));
     }
 
+    public static CourseLevel fromString(String level) {
+        return valueOf(level.toUpperCase());
+    }
+
 
 }

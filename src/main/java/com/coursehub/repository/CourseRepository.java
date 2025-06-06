@@ -1,6 +1,7 @@
 package com.coursehub.repository;
 
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.enums.CourseLevel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,10 +29,11 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
             "(:minPrice IS NULL OR COALESCE(c.price - c.discount, c.price) >= :minPrice) AND " +
             "(:maxPrice IS NULL OR COALESCE(c.price - c.discount, c.price) <= :maxPrice)")
     Page<CourseEntity> searchCourses(@Param("search") String search,
-                                   @Param("categoryId") Long categoryId,
-                                   @Param("level") String level,
-                                   @Param("minPrice") Double minPrice,
-                                   @Param("maxPrice") Double maxPrice,
-                                   Pageable pageable);
+                                     @Param("categoryId") Long categoryId,
+                                     @Param("level") CourseLevel level,
+                                     @Param("minPrice") Double minPrice,
+                                     @Param("maxPrice") Double maxPrice,
+                                     Pageable pageable);
+
 
 }

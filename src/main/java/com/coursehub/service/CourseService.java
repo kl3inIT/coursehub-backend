@@ -6,6 +6,7 @@ import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.enums.CourseLevel;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +27,7 @@ public interface CourseService {
 
     List<CourseResponseDTO> findFeaturedCourses(Pageable pageable);
 
-    Page<CourseResponseDTO> searchCourses(String search, Long categoryId, String level, 
+    Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
                                         Double minPrice, Double maxPrice, Pageable pageable);
 
     CourseEntity findCourseEntityById(Long courseId);

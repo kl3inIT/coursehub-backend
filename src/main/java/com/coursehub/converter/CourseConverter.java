@@ -62,7 +62,7 @@ public class CourseConverter {
         );
         CourseEntity courseEntity = modelMapper.map(courseDTO, CourseEntity.class);
         if (courseDTO.getLevel() != null) {
-            courseEntity.setLevel(CourseLevel.valueOf(courseDTO.getLevel().toUpperCase()));
+            courseEntity.setLevel(CourseLevel.fromString(courseDTO.getLevel()));
         }
         courseEntity.setCategoryEntity(categoryEntity);
         return courseEntity;
