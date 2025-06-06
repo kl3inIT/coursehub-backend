@@ -10,8 +10,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Áp dụng cho tất cả endpoint
-                .allowedOrigins("http://localhost:3000") // Domain frontend
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Các phương thức HTTP cho phép
+                .allowedOrigins("http://localhost:3000", "https://coursehub.space") // Domain frontend
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH") // Các phương thức HTTP cho phép
                 .allowedHeaders("*") // Cho phép tất cả header
                 .allowCredentials(true) // Cho phép gửi cookie hoặc thông tin xác thực
                 .maxAge(3600); // Thời gian cache CORS preflight request (giây)

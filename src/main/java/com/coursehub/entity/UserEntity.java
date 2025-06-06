@@ -74,4 +74,9 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CourseEntity>  courseEntities = new HashSet<>();
 
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserDiscountEntity>  userDiscountEntities = new HashSet<>();
+
+
+
 }
