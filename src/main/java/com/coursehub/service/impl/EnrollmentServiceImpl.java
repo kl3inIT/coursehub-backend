@@ -6,6 +6,7 @@ import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.dto.response.enrollment.EnrollmentResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
+import com.coursehub.exception.enrollment.EnrollNotFoundException;
 import com.coursehub.repository.EnrollmentRepository;
 import com.coursehub.service.EnrollmentService;
 import io.lettuce.core.dynamic.annotation.Param;
@@ -33,8 +34,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public Page<EnrollmentResponseDTO> findByUserEntityId(Long userId, Pageable pageable) {
         log.info("Find Enrollment by UserEntity");
         Page<EnrollmentEntity> enrollmentEntities = enrollmentRepository.findEnrollmentsByUserId(userId, pageable);
-        if (enrollmentEntities.isEmpty()) {
-            throw new NullPointerException("No Enrollment found for UserEntity");
+        if (enrollmentEntities == null || enrollmentEntities.isEmpty()) {
+            throw new EnrollNotFoundException("No Enrollment found for UserEntity");
         }
         return enrollmentConverter.toResponseDTOPage(enrollmentEntities);
     }
