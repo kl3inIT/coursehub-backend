@@ -16,7 +16,7 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
   datasource:
-    url: jdbc:mysql://localhost:3307/CourseHub
+    url: jdbc:mysql://mysql:3307/CourseHub
     username: root
     password: 123456
 

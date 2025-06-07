@@ -23,6 +23,8 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     networks:
       - default
     depends_on:
