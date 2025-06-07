@@ -1,6 +1,8 @@
 # Bỏ qua file env
 .env
 
+HELP.md
+
 # Các thư mục target
 target/
 !.mvn/wrapper/maven-wrapper.jar
