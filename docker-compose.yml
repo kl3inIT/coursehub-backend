@@ -17,7 +17,7 @@ services:
 
   coursehub-backend:
     container_name: coursehub-backend
-    image: your-username/coursehub:latest
+    image: kl3init/coursehub-backend:latest
     expose:
       - "8080"
     env_file:
