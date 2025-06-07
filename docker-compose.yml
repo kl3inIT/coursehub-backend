@@ -17,11 +17,13 @@ services:
 
   coursehub-backend:
     container_name: coursehub-backend
-    image: kl3init/coursehub-backend:latest
+    image: kl3init/coursehub:latest
     expose:
       - "8080"
     env_file:
       - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     networks:
       - coursehub-network
     depends_on:

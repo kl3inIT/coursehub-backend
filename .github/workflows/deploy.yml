@@ -32,8 +32,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push Docker image
         run: |
-          docker build -t kl3init/coursehub-backend:latest .
-          docker push kl3init/coursehub-backend:latest
+          docker build -t kl3init/coursehub:latest .
+          docker push kl3init/coursehub:latest
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       - name: Copy files to EC2
