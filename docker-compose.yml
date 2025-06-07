@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   mysql:
     image: mysql:8.0
@@ -17,13 +18,16 @@ services:
 
   coursehub-backend:
     container_name: coursehub-backend
-    build:
-      context: ./
-      dockerfile: Dockerfile
+    image: kl3init/coursehub:latest  # Thay your-username bằng tên Docker Hub của bạn
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     networks:
       - default
+    depends_on:
+      - mysql
+      - redis
 
   redis:
     image: redis:latest
