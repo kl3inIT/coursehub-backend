@@ -24,7 +24,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -61,5 +61,5 @@ spring:
 
 jwt:
   secret: WaVbZbGzZMYGHUjNYrh87xGyib8ivGWndlsf4bsX2mB47MbdsUTwf2Dsv1TPuBG+
-  expiration: 86400000
+  expiration: 2592000000
 

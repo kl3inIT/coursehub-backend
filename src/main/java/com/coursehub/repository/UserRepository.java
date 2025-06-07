@@ -17,16 +17,15 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     UserEntity findByEmailAndIsActive(String email, Long status);
     UserEntity findByGoogleAccountIdAndIsActive(String googleAccountId, Long status);
     boolean existsByEmailAndIsActive(String email, Long status);
-    
-    @Query("SELECT u FROM UserEntity u WHERE u.roleEntity.code IN :roles")
-    Page<UserEntity> findByRoleCode(@Param("roles") List<String> roles, Pageable pageable);
 
-    @Query("SELECT u FROM UserEntity u WHERE u.roleEntity.code IN :roles AND u.isActive = :status")
-    Page<UserEntity> findByRoleCodeAndIsActive(
-        @Param("roles") List<String> roles, 
-        @Param("status") Long status, 
-        Pageable pageable
-    );
+    Page<UserEntity> findByRoleEntity_CodeIn(List<String> roles, Pageable pageable);
+
+    Page<UserEntity> findByRoleEntity_CodeInAndIsActive(List<String> roles, Long status, Pageable pageable);
+//    Page<UserEntity> findByRoleCodeAndIsActive(
+//        @Param("roles") List<String> roles,
+//        @Param("status") Long status,
+//        Pageable pageable
+//    );
 
     Optional<UserEntity> findByEmail(String email);
 }

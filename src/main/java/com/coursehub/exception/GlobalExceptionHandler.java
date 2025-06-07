@@ -3,6 +3,9 @@ package com.coursehub.exception;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.exception.auth.*;
 import com.coursehub.exception.category.CategoryNotFoundException;
+import com.coursehub.exception.comment.CommentNotFoundException;
+import com.coursehub.exception.comment.CommentTooLongException;
+import com.coursehub.exception.comment.ParentCommentNotFoundException;
 import com.coursehub.exception.course.CourseCreationException;
 import com.coursehub.exception.course.CourseNotFoundException;
 import com.coursehub.exception.course.FileUploadException;
@@ -297,6 +300,44 @@ public class GlobalExceptionHandler {
 
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Lesson Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // Comment Exception Handlers
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCommentNotFoundException(CommentNotFoundException ex) {
+        log.error("Comment not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Comment Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(CommentTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCommentToLongException(CommentTooLongException ex) {
+        log.error("Comment too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Comment Too Long");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ParentCommentNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleParentCommentNotFoundException(ParentCommentNotFoundException ex) {
+        log.error("Parent comment not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Parent Comment Not Found");
         response.setDetail(ex.getMessage());
         response.setData(null);
 

@@ -1,5 +1,6 @@
 package com.coursehub.controller;
 
+import com.coursehub.constant.Constant;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-
 
     @GetMapping("/myInfo")
     public ResponseEntity<ResponseGeneral<UserResponseDTO>> getMyInfo() {

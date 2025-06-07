@@ -178,16 +178,16 @@ public class UserServiceImpl implements UserService {
 
         Page<UserEntity> userPage;
         if (status != null && !status.isEmpty() && !status.equals("all")) {
-            // Nếu có chọn status cụ thể
+            // Map status to isActive
             Long isActive = status.equals(ACTIVE) ? 1L : 0L;
-            userPage = userRepository.findByRoleCodeAndIsActive(
+            userPage = userRepository.findByRoleEntity_CodeInAndIsActive(
                 roles,
                 isActive,
                 Pageable.ofSize(pageSize).withPage(pageNo)
             );
         } else {
-            // Mặc định lấy tất cả status
-            userPage = userRepository.findByRoleCode(
+            // Get all users regardless of status
+            userPage = userRepository.findByRoleEntity_CodeIn(
                 roles,
                 Pageable.ofSize(pageSize).withPage(pageNo)
             );
@@ -207,13 +207,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateUserStatus(Long userId, String status) {
         UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-
-        if (!Arrays.asList(ACTIVE, "inactive").contains(status)) {
-            throw new IllegalArgumentException("Invalid status");
-        }
-
-        user.setIsActive(status.equals(ACTIVE) ? 1L : 0L);
+            .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
+        
+        // Map status string to isActive
+        Long isActive = status.equals(ACTIVE) ? 1L : 0L;
+        user.setIsActive(isActive);
         userRepository.save(user);
     }
 
@@ -265,7 +263,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        RoleEntity learnerRole = roleRepository.findByCode("LEARNER");
+        RoleEntity learnerRole = roleRepository.findByCode("MANAGER");
         if (learnerRole == null) {
             throw new DataNotFoundException("Default role not found");
         }
