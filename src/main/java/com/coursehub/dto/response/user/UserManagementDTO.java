@@ -16,5 +16,6 @@ public class UserManagementDTO {
     private String role;
     private String status;
     private Date joinDate;
-    private Date lastActive;
-} 
+    private String bio;
+    private List<UserActivityDTO> activities;
+}

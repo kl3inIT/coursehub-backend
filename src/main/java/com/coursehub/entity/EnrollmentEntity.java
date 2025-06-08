@@ -9,7 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnrollmentEntity<R> extends BaseEntity {
+public class EnrollmentEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -18,8 +18,5 @@ public class EnrollmentEntity<R> extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity courseEntity;
-
-    @Column(name = "certificate_url")
-    private String certificateUrl;
 
 } 
