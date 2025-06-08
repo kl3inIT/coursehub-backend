@@ -112,7 +112,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             invalidTokenRepository.save(invalidTokenEntity);
             return "Successfully logged out";
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new InvalidTokenException("Token is not valid");
         }
     }
 
@@ -131,7 +131,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return true;
 
         } catch (JOSEException | ParseException e) {
-            throw new RuntimeException(e);
+            throw new InvalidTokenException("Token is not valid");
         }
     }
 
@@ -317,7 +317,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             jwsObject.sign(new MACSigner(secret.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
-            throw new RuntimeException(e);
+            throw new GenerateTokenException("Failed to generate token");
         }
 
     }

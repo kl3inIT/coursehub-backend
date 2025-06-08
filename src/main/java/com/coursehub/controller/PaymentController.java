@@ -48,7 +48,6 @@ public class PaymentController {
     }
 
 
-
     @PostMapping("/init")
     public ResponseEntity<ResponseGeneral<PaymentResponseDTO>> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
         ResponseGeneral<PaymentResponseDTO> responseDTO = new ResponseGeneral<>();

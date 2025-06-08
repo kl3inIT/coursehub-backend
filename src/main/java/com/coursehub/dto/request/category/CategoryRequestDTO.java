@@ -1,7 +1,6 @@
 package com.coursehub.dto.request.category;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
