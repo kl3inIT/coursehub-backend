@@ -151,4 +151,47 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
+    // @GetMapping("/{courseId}/analytics")
+    // public ResponseEntity<ResponseGeneral<CourseAnalyticsDetailResponseDTO>> getCourseAnalyticsDetail(
+    //         @PathVariable Long courseId) {
+    //     CourseAnalyticsDetailResponseDTO detailDTO = courseService.getCourseAnalyticsDetail(courseId);
+    //     ResponseGeneral<CourseAnalyticsDetailResponseDTO> response = new ResponseGeneral<>();
+    //     response.setData(detailDTO);
+    //     response.setMessage(SUCCESS);
+    //     response.setDetail("Course analytics retrieved successfully");
+    //     return new ResponseEntity<>(response, HttpStatus.OK);
+    // }
+
+    // @GetMapping("/analytics/chart")
+    // public ResponseEntity<ResponseGeneral<List<CourseAnalyticsChartResponseDTO>>> getCourseAnalyticsChart() {
+    //     List<CourseAnalyticsChartResponseDTO> chartData = courseService.getCourseAnalyticsChart();
+    //     ResponseGeneral<List<CourseAnalyticsChartResponseDTO>> response = new ResponseGeneral<>();
+    //     response.setData(chartData);
+    //     response.setMessage(SUCCESS);
+    //     response.setDetail("Course analytics chart data retrieved successfully");
+    //     return new ResponseEntity<>(response, HttpStatus.OK);
+    // }
+
+    // @GetMapping("/analytics/top/enrollment")
+    // public ResponseEntity<ResponseGeneral<List<CourseAnalyticsChartResponseDTO>>> getTopCoursesByEnrollment(
+    //         @RequestParam(defaultValue = "10") int limit) {
+    //     List<CourseAnalyticsChartResponseDTO> topCourses = courseService.getTopCoursesByEnrollment(limit);
+    //     ResponseGeneral<List<CourseAnalyticsChartResponseDTO>> response = new ResponseGeneral<>();
+    //     response.setData(topCourses);
+    //     response.setMessage(SUCCESS);
+    //     response.setDetail("Top courses by enrollment retrieved successfully");
+    //     return new ResponseEntity<>(response, HttpStatus.OK);
+    // }
+
+    // @GetMapping("/analytics/top/revenue") chua có revenue
+    // public ResponseEntity<ResponseGeneral<List<CourseAnalyticsChartResponseDTO>>> getTopCoursesByRevenue(
+    //         @RequestParam(defaultValue = "10") int limit) {
+    //     List<CourseAnalyticsChartResponseDTO> topCourses = courseService.getTopCoursesByRevenue(limit);
+    //     ResponseGeneral<List<CourseAnalyticsChartResponseDTO>> response = new ResponseGeneral<>();
+    //     response.setData(topCourses);
+    //     response.setMessage(SUCCESS);
+    //     response.setDetail("Top courses by revenue retrieved successfully");
+    //     return new ResponseEntity<>(response, HttpStatus.OK);
+    // }
+
 } 

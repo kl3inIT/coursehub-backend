@@ -3,8 +3,8 @@ package com.coursehub.service.impl;
 import java.time.Duration;
 import java.util.Map;
 
-import com.coursehub.exception.s3.S3DeleteObjectException;
-import com.coursehub.exception.s3.S3PresignUrlException;
+import com.coursehub.exceptions.s3.S3DeleteObjectException;
+import com.coursehub.exceptions.s3.S3PresignUrlException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

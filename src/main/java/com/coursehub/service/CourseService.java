@@ -3,7 +3,6 @@ package com.coursehub.service;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
-
 import com.coursehub.entity.CourseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;

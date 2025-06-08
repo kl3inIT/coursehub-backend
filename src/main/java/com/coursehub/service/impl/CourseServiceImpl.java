@@ -5,12 +5,13 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
-import com.coursehub.entity.ReviewEntity;
-import com.coursehub.exception.course.CourseCreationException;
-import com.coursehub.exception.course.CourseNotFoundException;
-import com.coursehub.exception.course.FileUploadException;
+import com.coursehub.exceptions.course.CourseCreationException;
+import com.coursehub.exceptions.course.CourseNotFoundException;
+import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.service.CourseService;
+import com.coursehub.service.PaymentService;
+import com.coursehub.service.ReviewService;
 import com.coursehub.service.S3Service;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,8 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final CourseConverter courseConverter;
     private final S3Service s3Service;
+    private final ReviewService reviewService;
+    private final PaymentService paymentService;
 
     @Override
     @Transactional

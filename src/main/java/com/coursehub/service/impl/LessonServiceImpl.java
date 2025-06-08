@@ -5,7 +5,7 @@ import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.ModuleEntity;
-import com.coursehub.exception.lesson.LessonNotFoundException;
+import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.repository.LessonRepository;
 import com.coursehub.service.LessonService;
 import com.coursehub.service.ModuleService;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service

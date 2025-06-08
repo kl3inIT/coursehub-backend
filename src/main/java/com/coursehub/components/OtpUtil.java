@@ -1,6 +1,6 @@
 package com.coursehub.components;
 
-import com.coursehub.exception.auth.EmailSendingException;
+import com.coursehub.exceptions.auth.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

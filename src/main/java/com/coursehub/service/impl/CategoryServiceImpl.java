@@ -4,8 +4,8 @@ import com.coursehub.converter.CategoryConverter;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
 import com.coursehub.entity.CategoryEntity;
-import com.coursehub.exception.category.CategoryNotFoundException;
-import com.coursehub.exception.category.CategoryUsingException;
+import com.coursehub.exceptions.category.CategoryNotFoundException;
+import com.coursehub.exceptions.category.CategoryUsingException;
 import com.coursehub.repository.CategoryRepository;
 import com.coursehub.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +17,7 @@ import com.coursehub.dto.response.category.CategoryChartDTO;
 import com.coursehub.dto.response.category.CategoryDetailDTO;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
-import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,9 +115,9 @@ public class CategoryServiceImpl implements CategoryService {
                     totalReviews += course.getReviewEntities().size();
                 }
                 // Tính tổng học viên
-                if (course.getEnrollmentEntities() != null) {
-                    totalStudents += course.getEnrollmentEntities().size();
-                }
+                // if (course.getEnrollmentEntities() != null) {
+                //     totalStudents += course.getEnrollmentEntities().size();
+                // }
                 // Tính tổng doanh thu
                 // if (course.getPaymentEntities() != null) {
                 //     for (var payment : course.getPaymentEntities()) {
@@ -128,7 +127,8 @@ public class CategoryServiceImpl implements CategoryService {
                 //     }
                 // }
             }
-            double averageRating = totalReviews > 0 ? totalRating / totalReviews : 0.0;
+            double averageRating = totalReviews > 0 ? (double) totalRating / totalReviews : 0.0;
+            averageRating = Math.round(averageRating * 100.0) / 100.0;
             return new CategoryDetailDTO(
                 category.getId(),
                 category.getName(),

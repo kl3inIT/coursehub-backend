@@ -2,9 +2,7 @@ package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.review.ReviewRequestDTO;
-import com.coursehub.dto.response.category.CategoryResponseDTO;
 import com.coursehub.dto.response.review.ReviewResponseDTO;
-import com.coursehub.exception.review.ReviewNotFoundException;
 import com.coursehub.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 

@@ -4,7 +4,7 @@ import com.coursehub.dto.request.module.ModuleRequestDTO;
 import com.coursehub.dto.response.module.ModuleResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.ModuleEntity;
-import com.coursehub.exception.module.ModuleNotFoundException;
+import com.coursehub.exceptions.module.ModuleNotFoundException;
 import com.coursehub.repository.ModuleRepository;
 import com.coursehub.service.CourseService;
 import com.coursehub.service.ModuleService;
