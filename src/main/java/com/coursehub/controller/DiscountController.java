@@ -1,12 +1,9 @@
 package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
-import com.coursehub.dto.request.auth.AuthenticationRequestDTO;
 import com.coursehub.dto.request.discount.DiscountRequestDTO;
-import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.discount.DiscountResponseDTO;
 import com.coursehub.service.DiscountService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

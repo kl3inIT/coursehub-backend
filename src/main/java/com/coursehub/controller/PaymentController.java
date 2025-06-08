@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import static com.coursehub.constant.Constant.CommonConstants.*;
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
@@ -48,11 +48,10 @@ public class PaymentController {
     }
 
 
-
     @PostMapping("/init")
     public ResponseEntity<ResponseGeneral<PaymentResponseDTO>> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
         ResponseGeneral<PaymentResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(paymentService.createPayment(paymentRequestDTO));
         return ResponseEntity.ok(responseDTO);
     }
@@ -60,7 +59,7 @@ public class PaymentController {
     @GetMapping("/{transactionCode}/payment-status")
     public ResponseEntity<ResponseGeneral<PaymentStatusResponseDTO>> getPaymentStatus(@PathVariable String transactionCode) {
         ResponseGeneral<PaymentStatusResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(paymentService.getPaymentStatus(transactionCode));
         return ResponseEntity.ok(responseDTO);
     }
@@ -69,7 +68,7 @@ public class PaymentController {
     public ResponseEntity<ResponseGeneral<String>> failedOrder(@PathVariable String transactionCode) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
         paymentService.setPaymentFailed(transactionCode);
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData("Payment status updated to failed for transaction: " + transactionCode);
         return ResponseEntity.ok(responseDTO);
     }

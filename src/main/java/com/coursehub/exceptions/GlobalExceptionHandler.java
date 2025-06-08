@@ -358,5 +358,17 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+    @ExceptionHandler(GenerateTokenException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleGenerateTokenException(GenerateTokenException ex) {
+        log.error("Token generation failed: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Token Generation Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
 
 }

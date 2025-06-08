@@ -3,7 +3,6 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.review.ReviewRequestDTO;
 import com.coursehub.dto.response.review.ReviewResponseDTO;
-import com.coursehub.exceptions.review.ReviewNotFoundException;
 import com.coursehub.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

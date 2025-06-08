@@ -1,7 +1,5 @@
 package com.coursehub.enums;
 
-import lombok.Getter;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;

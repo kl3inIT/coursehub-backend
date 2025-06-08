@@ -1,7 +1,6 @@
 package com.coursehub.service;
 
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 

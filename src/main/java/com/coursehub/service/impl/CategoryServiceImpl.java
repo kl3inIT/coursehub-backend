@@ -17,8 +17,6 @@ import com.coursehub.dto.response.category.CategoryChartDTO;
 import com.coursehub.dto.response.category.CategoryDetailDTO;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +74,7 @@ public class CategoryServiceImpl implements CategoryService {
                 (Long) r[1],
                 total == 0 ? 0.0 : ((double) (Long) r[1] / total) * 100
             ))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -140,6 +138,6 @@ public class CategoryServiceImpl implements CategoryService {
                 category.getCreatedDate(),
                 category.getModifiedDate()
             );
-        }).collect(java.util.stream.Collectors.toList());
+        }).toList();
     }
 }

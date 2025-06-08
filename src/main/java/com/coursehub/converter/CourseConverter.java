@@ -1,7 +1,6 @@
 package com.coursehub.converter;
 
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
