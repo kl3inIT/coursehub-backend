@@ -6,4 +6,5 @@ import com.coursehub.dto.response.discount.DiscountResponseDTO;
 public interface DiscountService {
 
     DiscountResponseDTO verifyDiscountCode(DiscountRequestDTO discountRequestDTO);
+
 }

@@ -47,6 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
         EnrollmentEntity enrollmentEntity = new EnrollmentEntity();
         enrollmentEntity.setUserEntity(paymentEntity.getUserEntity());
         enrollmentEntity.setCourseEntity(paymentEntity.getCourseEntity());
+        enrollmentEntity.setIsCompleted(0L);
         enrollmentRepository.save(enrollmentEntity);
 
 

@@ -19,4 +19,7 @@ public class EnrollmentEntity extends BaseEntity {
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity courseEntity;
 
+    @Column(name = "is_completed", nullable = false)
+    private Long isCompleted;
+
 } 

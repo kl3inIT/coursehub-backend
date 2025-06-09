@@ -21,6 +21,9 @@ public class DiscountEntity extends BaseEntity {
 
     @Column(name = "expiry_date")
     private Date expiryDate;
+    
+    @Column(name = "description")
+    private String description;
 
     @Column(name = "quantity", nullable = false)
     private Long quantity;
@@ -42,6 +45,8 @@ public class DiscountEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "discountEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PaymentEntity> paymentEntities = new HashSet<>();
+
+
 
     // Additional fields and methods can be added as needed
 }
