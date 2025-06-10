@@ -4,6 +4,7 @@ import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
+import com.coursehub.service.CourseService;
 import com.coursehub.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -97,5 +98,16 @@ public class LessonController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{lessonId}/preview-url")
+    public ResponseEntity<String> getLessonPreviewUrl(@PathVariable Long lessonId) {
+        String url = lessonService.getLessonPreviewUrl(lessonId);
+        return ResponseEntity.ok(url);
+    }
 
+    @GetMapping("/{lessonId}/video-url")
+    public ResponseEntity<String> getLessonVideoUrl(@PathVariable Long lessonId) {
+        log.info("Getting video URL for lesson ID: {}", lessonId);
+        String videoUrl = lessonService.getLessonVideoUrl(lessonId);
+        return ResponseEntity.ok(videoUrl);
+    }
 }

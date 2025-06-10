@@ -14,7 +14,7 @@ import java.util.List;
 
 public interface CourseService {
 
-    CourseResponseDTO createCourse(Long managerId, CourseCreationRequestDTO courseRequestDTO);
+    CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO);
 
     String uploadThumbnail(Long courseId, MultipartFile file);
 
@@ -32,5 +32,7 @@ public interface CourseService {
     CourseEntity findCourseEntityById(Long courseId);
 
     CourseDetailsResponseDTO findCourseDetailsById(Long courseId);
+
+
 
 }    

@@ -30,4 +30,8 @@ public interface LessonService {
     Long countLessonsByCourseId(Long courseId);
 
     Long countLessonsByModuleId(Long moduleId);
+
+    String getLessonPreviewUrl(Long lessonId);
+
+    String getLessonVideoUrl(Long lessonId);
 }
