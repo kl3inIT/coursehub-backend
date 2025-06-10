@@ -30,14 +30,14 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    @PostMapping(value = "/{userId}")
+    @PostMapping
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
-            @PathVariable Long userId,
             @Valid @RequestBody CourseCreationRequestDTO courseRequestDTO) {
-        
+
+
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
         
-        CourseResponseDTO createdCourse = courseService.createCourse(userId, courseRequestDTO);
+        CourseResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);
         
         ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
         response.setData(createdCourse);

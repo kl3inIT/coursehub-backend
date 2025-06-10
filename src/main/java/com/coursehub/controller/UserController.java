@@ -18,11 +18,10 @@ public class UserController {
 
     private final UserService userService;
 
-
     @GetMapping("/myInfo")
     public ResponseEntity<ResponseGeneral<UserResponseDTO>> getMyInfo() {
         ResponseGeneral<UserResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage("Get My Info Successfully");
         responseDTO.setData(userService.getMyInfo());
         return ResponseEntity.ok(responseDTO);
     }

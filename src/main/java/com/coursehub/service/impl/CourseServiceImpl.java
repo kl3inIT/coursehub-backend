@@ -5,11 +5,16 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.LessonEntity;
+import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
+import com.coursehub.exceptions.lesson.AccessDeniedException;
+import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.repository.CourseRepository;
+import com.coursehub.repository.LessonRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
@@ -17,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,13 +47,15 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public CourseResponseDTO createCourse(Long managerId, CourseCreationRequestDTO courseRequestDTO) {
+    public CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO) {
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
-            courseEntity.setUserEntity(userRepository.findById(managerId).
-                    orElseThrow(() -> new CourseCreationException("Manager not found with ID: " + managerId)));
+            SecurityContext context = SecurityContextHolder.getContext();
+            String email = context.getAuthentication().getName();
+            UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+            courseEntity.setUserEntity(user);
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
 
@@ -166,6 +175,8 @@ public class CourseServiceImpl implements CourseService {
         return responseDTO;
     }
 
+
+
     private CourseDetailsResponseDTO toDetailsResponseDTO(CourseEntity courseEntity) {
         if (courseEntity == null) {
             throw new CourseNotFoundException("Course not found");
@@ -193,6 +204,8 @@ public class CourseServiceImpl implements CourseService {
                 .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
                 .build();
     }
+
+
 
 
 }

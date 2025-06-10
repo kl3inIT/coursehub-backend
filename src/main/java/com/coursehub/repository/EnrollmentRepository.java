@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity<?>, Long> {
+public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Long> {
 
     Long countByUserEntity_Id(Long userId);
 

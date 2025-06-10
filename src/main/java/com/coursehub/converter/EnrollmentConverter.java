@@ -15,17 +15,16 @@ import org.springframework.stereotype.Component;
 public class EnrollmentConverter {
 
     private final ModelMapper modelMapper;
-    private final S3Service s3Service;
 
     public EnrollmentResponseDTO toResponseDTO(EnrollmentEntity enrollmentEntity){
         if (enrollmentEntity == null) {
             throw new EnrollNotFoundException("Enrollment not found");
         }
-        EnrollmentResponseDTO enrollmentResponseDTO = modelMapper.map(enrollmentEntity, EnrollmentResponseDTO.class);
-        return enrollmentResponseDTO;
+        return modelMapper.map(enrollmentEntity, EnrollmentResponseDTO.class);
+
     }
 
     public Page<EnrollmentResponseDTO> toResponseDTOPage(Page<EnrollmentEntity> enrollmentEntityPage){
-        return enrollmentEntityPage.map(enrollmentEntity -> toResponseDTO(enrollmentEntity));
+        return enrollmentEntityPage.map(this::toResponseDTO);
     }
 }

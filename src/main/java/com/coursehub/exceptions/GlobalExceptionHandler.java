@@ -8,6 +8,7 @@ import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.exceptions.course.InvalidFileException;
+import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
@@ -16,6 +17,9 @@ import com.coursehub.exceptions.user.*;
 import com.coursehub.exceptions.category.CategoryUsingException;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
+import com.coursehub.exceptions.comment.CommentNotFoundException;
+import com.coursehub.exceptions.comment.CommentTooLongException;
+import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -319,5 +323,65 @@ public class GlobalExceptionHandler {
         response.setData(null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCommentNotFoundException(CommentNotFoundException ex) {
+        log.error("Comment not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Comment Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(CommentTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCommentToLongException(CommentTooLongException ex) {
+        log.error("Comment too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Comment Too Long");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ParentCommentNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleParentCommentNotFoundException(ParentCommentNotFoundException ex) {
+        log.error("Parent comment not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Parent Comment Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+    @ExceptionHandler(GenerateTokenException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleGenerateTokenException(GenerateTokenException ex) {
+        log.error("Token generation failed: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Token Generation Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleAccessDeniedException(AccessDeniedException ex) {
+        log.error("Access denied: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Access Denied");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
 
 }

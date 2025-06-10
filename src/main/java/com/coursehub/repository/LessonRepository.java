@@ -1,7 +1,6 @@
 package com.coursehub.repository;
 
 import com.coursehub.entity.LessonEntity;
-import com.coursehub.entity.ModuleEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

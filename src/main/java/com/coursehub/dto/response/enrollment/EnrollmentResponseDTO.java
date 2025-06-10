@@ -3,9 +3,6 @@ package com.coursehub.dto.response.enrollment;
 import lombok.*;
 
 
-import java.util.Date;
-
-
 @Getter
 @Builder
 @NoArgsConstructor

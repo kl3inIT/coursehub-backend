@@ -1,7 +1,6 @@
 package com.coursehub.service;
 
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 
@@ -15,7 +14,7 @@ import java.util.List;
 
 public interface CourseService {
 
-    CourseResponseDTO createCourse(Long managerId, CourseCreationRequestDTO courseRequestDTO);
+    CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO);
 
     String uploadThumbnail(Long courseId, MultipartFile file);
 
@@ -33,5 +32,7 @@ public interface CourseService {
     CourseEntity findCourseEntityById(Long courseId);
 
     CourseDetailsResponseDTO findCourseDetailsById(Long courseId);
+
+
 
 }    

@@ -4,9 +4,7 @@ package com.coursehub.service;
 import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
-import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.LessonEntity;
-import com.coursehub.entity.ModuleEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -32,4 +30,8 @@ public interface LessonService {
     Long countLessonsByCourseId(Long courseId);
 
     Long countLessonsByModuleId(Long moduleId);
+
+    String getLessonPreviewUrl(Long lessonId);
+
+    String getLessonVideoUrl(Long lessonId);
 }
