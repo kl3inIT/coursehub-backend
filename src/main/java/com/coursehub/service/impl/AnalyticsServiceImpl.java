@@ -31,7 +31,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         CourseEntity course = courseAnalyticsRepository.findCourseById(courseId);
         Map<String, Long> enrollmentStats = courseAnalyticsRepository.getEnrollmentStats(courseId);
         Long totalEnrollments = enrollmentStats.getOrDefault("enrollmentCount", 0L);
-        Long activeStudents = 0L; // TODO: Implement after adding status field to EnrollmentEntity
         Long completedStudents = 0L; // TODO: Implement after adding status field to EnrollmentEntity
         Double completionRate = 0.0;
 
@@ -55,7 +54,6 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .price(course.getPrice())
                 .thumbnail(course.getThumbnail())
                 .totalEnrollments(totalEnrollments)
-                .activeStudents(activeStudents)
                 .completedStudents(completedStudents)
                 .completionRate(completionRate)
                 .averageRating(averageRating)

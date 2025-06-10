@@ -68,12 +68,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setUserEntity(user);
         review.setCourseEntity(course);
 
-        try {
-            ReviewEntity savedReview = reviewRepository.saveAndFlush(review);
-            return reviewConverter.toResponseDTO(savedReview);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create review: " + e.getMessage());
-        }
+        ReviewEntity savedReview = reviewRepository.saveAndFlush(review);
+        return reviewConverter.toResponseDTO(savedReview);
     }
 
     @Override
@@ -83,12 +79,8 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
 
         reviewConverter.updateEntity(review, requestDTO);
-        try {
-            ReviewEntity updatedReview = reviewRepository.save(review);
-            return reviewConverter.toResponseDTO(updatedReview);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update review: " + e.getMessage());
-        }
+        ReviewEntity updatedReview = reviewRepository.save(review);
+        return reviewConverter.toResponseDTO(updatedReview);
     }
 
     @Override
@@ -96,12 +88,8 @@ public class ReviewServiceImpl implements ReviewService {
     public void deleteReview(Long id) {
         ReviewEntity review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
-
-        try {
-            reviewRepository.delete(review);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to delete review: " + e.getMessage());
-        }
+        reviewRepository.delete(review);
+        
     }
 
     @Override

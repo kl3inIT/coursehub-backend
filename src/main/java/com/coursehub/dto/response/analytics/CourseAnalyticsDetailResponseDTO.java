@@ -28,7 +28,6 @@ public class CourseAnalyticsDetailResponseDTO {
     
     // Thống kê học viên
     private Long totalEnrollments;       // Tổng số đăng ký
-    private Long activeStudents;         // Số học viên đang học
     private Long completedStudents;      // Số học viên hoàn thành
     private Double completionRate;       // Tỷ lệ hoàn thành (%)
     
