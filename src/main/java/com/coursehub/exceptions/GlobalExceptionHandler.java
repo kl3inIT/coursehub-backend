@@ -1,20 +1,14 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
-<<<<<<< HEAD
-=======
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
->>>>>>> base2
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.exceptions.course.InvalidFileException;
-<<<<<<< HEAD
-=======
 import com.coursehub.exceptions.lesson.AccessDeniedException;
->>>>>>> base2
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
@@ -23,12 +17,9 @@ import com.coursehub.exceptions.user.*;
 import com.coursehub.exceptions.category.CategoryUsingException;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
-<<<<<<< HEAD
-=======
 import com.coursehub.exceptions.comment.CommentNotFoundException;
 import com.coursehub.exceptions.comment.CommentTooLongException;
 import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
->>>>>>> base2
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
