@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import static com.coursehub.constant.Constant.CommonConstants.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,7 +26,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<ResponseGeneral<AuthenticationResponseDTO>> login(@Valid @RequestBody AuthenticationRequestDTO authenticationRequestDTO) {
         ResponseGeneral<AuthenticationResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.login(authenticationRequestDTO));
         return ResponseEntity.ok(responseDTO);
     }
@@ -33,7 +34,7 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<ResponseGeneral<String>> logout(@Valid @RequestBody TokenRequestDTO tokenRequestDTO) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.logout(tokenRequestDTO));
         return ResponseEntity.ok(responseDTO);
     }
@@ -41,7 +42,7 @@ public class AuthenticationController {
     @PostMapping("/register/init")
     public ResponseEntity<ResponseGeneral<String>> initUser(@Valid @RequestBody UserRequestDTO user) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.initUser(user));
         return ResponseEntity.ok(responseDTO);
     }
@@ -49,7 +50,7 @@ public class AuthenticationController {
     @PostMapping("/register/verify")
     public ResponseEntity<ResponseGeneral<UserResponseDTO>> verifyUser(@Valid @RequestBody OtpRequestDTO otpRequest) {
         ResponseGeneral<UserResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.verifyUser(otpRequest));
         return ResponseEntity.ok(responseDTO);
     }
@@ -57,7 +58,7 @@ public class AuthenticationController {
     @PostMapping("/register/re-send-otp")
     public ResponseEntity<ResponseGeneral<String>> reSendOtp(@Valid @RequestBody OtpRequestDTO otpRequest) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.reSendOtp(otpRequest));
         return ResponseEntity.ok(responseDTO);
     }
@@ -66,7 +67,7 @@ public class AuthenticationController {
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<ResponseGeneral<String>> sendOtpToResetPassword(@Valid @RequestBody OtpRequestDTO otpRequest) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.sendOtpToResetPassword(otpRequest));
         return ResponseEntity.ok(responseDTO);
     }
@@ -74,7 +75,7 @@ public class AuthenticationController {
     @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<ResponseGeneral<String>> verifyOtpToResetPassword(@Valid @RequestBody OtpRequestDTO otpRequest) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.verifyOtpToResetPassword(otpRequest));
         return ResponseEntity.ok(responseDTO);
     }
@@ -82,7 +83,7 @@ public class AuthenticationController {
     @PostMapping("/forgot-password/reset-password")
     public ResponseEntity<ResponseGeneral<String>> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO resetPasswordRequestDTO) {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.resetPassword(resetPasswordRequestDTO));
         return ResponseEntity.ok(responseDTO);
     }
@@ -90,7 +91,7 @@ public class AuthenticationController {
     @GetMapping("/google-login-url")
     public ResponseEntity<ResponseGeneral<String>> googleUrl() {
         ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Success");
+        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(authenticationService.generateGoogleUrl());
         return ResponseEntity.ok(responseDTO);
     }

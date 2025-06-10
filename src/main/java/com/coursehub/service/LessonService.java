@@ -22,4 +22,16 @@ public interface LessonService {
     List<LessonResponseDTO> getLessonsByModuleId(Long moduleId);
 
     void deleteLesson(Long lessonId);
+
+    Long calculateTotalDurationByCourseId(Long courseId);
+
+    Long calculateTotalDurationByModuleId(Long moduleId);
+
+    Long countLessonsByCourseId(Long courseId);
+
+    Long countLessonsByModuleId(Long moduleId);
+
+    String getLessonPreviewUrl(Long lessonId);
+
+    String getLessonVideoUrl(Long lessonId);
 }

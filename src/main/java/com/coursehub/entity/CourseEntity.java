@@ -1,5 +1,7 @@
 package com.coursehub.entity;
 
+import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,10 +33,16 @@ public class CourseEntity extends BaseEntity {
     private String thumbnail;
 
     @Column(name = "level")
-    private String level;
+    @Enumerated(EnumType.STRING)
+    private CourseLevel level;
 
     @Column(name = "status")
-    private String status = "DRAFT";
+    @Enumerated(EnumType.STRING)
+    private CourseStatus status = CourseStatus.DRAFT;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity userEntity;
 
     // Relationship with reviews
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -55,6 +63,9 @@ public class CourseEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CertificateEntity> certificateEntities = new HashSet<>();
+
+    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CourseDiscountEntity> courseDiscountEntities = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

@@ -1,4 +1,4 @@
-package com.coursehub.controller;
+package com.coursehub.controller.admin;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +41,7 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{userId}/detail")
     public ResponseEntity<ResponseGeneral<UserManagementDTO>> getUserDetails(@PathVariable Long userId) {
         ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
         response.setData(userService.getUserDetails(userId));
@@ -50,7 +50,7 @@ public class UserManagementController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseGeneral<UserManagementDTO>> createUser(@RequestBody ProfileRequestDTO request) {
+    public ResponseEntity<ResponseGeneral<UserManagementDTO>> createManager(@RequestBody ProfileRequestDTO request) {
         ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
         response.setData(userService.createUser(request));
         response.setMessage("Create user successfully");

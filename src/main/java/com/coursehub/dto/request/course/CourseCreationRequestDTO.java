@@ -33,4 +33,5 @@ public class CourseCreationRequestDTO {
 
     @NotNull(message = "Course category required")
     private Long categoryCode;
+
 }

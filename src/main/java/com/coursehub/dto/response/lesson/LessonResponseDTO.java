@@ -10,10 +10,8 @@ import lombok.*;
 public class LessonResponseDTO {
     private Long id;
     private String title;
-    private String videoUrl;
     private Long duration;
     private Long orderNumber;
     private Long isPreview;
-
 
 }

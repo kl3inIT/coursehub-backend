@@ -2,22 +2,24 @@ package com.coursehub.service.impl;
 
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.repository.CourseRepository;
-import com.coursehub.service.CourseService;
-import com.coursehub.service.PaymentService;
-import com.coursehub.service.ReviewService;
-import com.coursehub.service.S3Service;
+import com.coursehub.repository.UserRepository;
+import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,9 +33,12 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseConverter courseConverter;
+    private final ModuleService moduleService;
     private final S3Service s3Service;
+    private final LessonService lessonService;
     private final ReviewService reviewService;
-    private final PaymentService paymentService;
+    private final EnrollmentService enrollmentService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -42,6 +47,10 @@ public class CourseServiceImpl implements CourseService {
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
+            SecurityContext context = SecurityContextHolder.getContext();
+            String email = context.getAuthentication().getName();
+            UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+            courseEntity.setUserEntity(user);
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
 
@@ -90,45 +99,6 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    @Transactional
-    public CourseResponseDTO updateCourseStatusAndLevel(Long courseId, CourseUpdateStatusAndLevelRequestDTO updateDTO) {
-        log.info("Updating status and level for course ID: {} to status: {}, level: {}", 
-            courseId, updateDTO.getStatus(), updateDTO.getLevel());
-
-        if (courseId == null) {
-            throw new IllegalArgumentException("Course ID cannot be null");
-        }
-
-        if (updateDTO.getStatus() == null || updateDTO.getLevel() == null) {
-            throw new IllegalArgumentException("Update request, status, and level cannot be null");
-        }
-
-        try {
-            CourseEntity courseEntity = findCourseEntityById(courseId);
-
-            String oldStatus = courseEntity.getStatus();
-            String oldLevel = courseEntity.getLevel();
-            String newStatus = updateDTO.getStatus();
-            String newLevel = updateDTO.getLevel();
-            
-            courseEntity.setStatus(newStatus);
-            courseEntity.setLevel(newLevel);
-            courseRepository.save(courseEntity);
-
-            log.info("Successfully updated course ID: {} status from {} to {} and level from {} to {}", 
-                courseId, oldStatus, newStatus, oldLevel, newLevel);
-            return courseConverter.toResponseDTO(courseEntity);
-            
-        } catch (CourseNotFoundException e) {
-            log.error("Course not found with ID: {}", courseId);
-            throw e;
-        } catch (Exception e) {
-            log.error("Failed to update course status and level for ID: {}: {}", courseId, e.getMessage(), e);
-            throw new CourseCreationException("Failed to update course status and level: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
     public Page<CourseResponseDTO> findAllCourse(Pageable pageable) {
 
         Page<CourseEntity> courseEntities = courseRepository.findAll(pageable);
@@ -162,7 +132,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, String level,
+    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
                                                  Double minPrice, Double maxPrice, Pageable pageable) {
         log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}",
                 search, categoryId, level, minPrice, maxPrice);
@@ -179,6 +149,7 @@ public class CourseServiceImpl implements CourseService {
         return courseConverter.toResponseDTOPage(courseEntities);
     }
 
+
     @Override
     public CourseEntity findCourseEntityById(Long courseId) {
         return courseRepository.findById(courseId)
@@ -187,6 +158,49 @@ public class CourseServiceImpl implements CourseService {
                     return new CourseNotFoundException(courseId);
                 });
     }
+
+    @Override
+    public CourseDetailsResponseDTO findCourseDetailsById(Long courseId) {
+        log.info("Finding course details for ID: {}", courseId);
+
+        CourseEntity courseEntity = findCourseEntityById(courseId);
+        CourseDetailsResponseDTO responseDTO = toDetailsResponseDTO(courseEntity);
+
+        log.info("Successfully found course details for ID: {}", courseId);
+        return responseDTO;
+    }
+
+
+
+    private CourseDetailsResponseDTO toDetailsResponseDTO(CourseEntity courseEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
+        }
+
+        return CourseDetailsResponseDTO.builder()
+                .id(courseEntity.getId())
+                .title(courseEntity.getTitle())
+                .description(courseEntity.getDescription())
+                .price(courseEntity.getPrice())
+                .discount(courseEntity.getDiscount())
+                .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
+                .category(courseEntity.getCategoryEntity().getName())
+                .level(courseEntity.getLevel().getLevelName())
+                .status(courseEntity.getStatus().getStatusName())
+                .instructorName("CourseHub Team")
+                .updatedAt(String.valueOf(courseEntity.getModifiedDate()))
+                .finalPrice(courseConverter.calculateFinalPrice(courseEntity))
+                .totalDuration(lessonService.calculateTotalDurationByCourseId(courseEntity.getId()))
+                .totalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()))
+                .averageRating(reviewService.getAverageRating(courseEntity.getId()))
+                .totalReviews(reviewService.getTotalReviews(courseEntity.getId()))
+                .totalStudents(enrollmentService.countByCourseEntityId(courseEntity.getId()))
+                .totalModules(moduleService.countByCourseEntityId(courseEntity.getId()))
+                .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
+                .build();
+    }
+
+
 
 
 }

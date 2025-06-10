@@ -7,18 +7,18 @@ import org.springframework.data.domain.Pageable;
 
 public interface ReviewService {
     Page<ReviewResponseDTO> findAllReviews(Long courseId, Long userId, Integer star, Pageable pageable);
-    
+
     ReviewResponseDTO findReviewById(Long id);
-    
-   ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
 
-   ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
+    ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
 
-   void deleteReview(Long id);
+    ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
+
+    void deleteReview(Long id);
 
     boolean existsByUserAndCourse(Long userId, Long courseId);
 
     Double getAverageRating(Long courseId);
-    
+
     Long getTotalReviews(Long courseId);
 } 

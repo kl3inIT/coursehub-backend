@@ -37,7 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewResponseDTO findReviewById(Long id) {
         ReviewEntity review = reviewRepository.findById(id)
-                .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
+                .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
         return reviewConverter.toResponseDTO(review);
     }
 
@@ -89,7 +89,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewEntity review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
         reviewRepository.delete(review);
-        
+
     }
 
     @Override

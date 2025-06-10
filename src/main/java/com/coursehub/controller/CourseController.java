@@ -3,7 +3,9 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.enums.CourseLevel;
 import com.coursehub.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +33,8 @@ public class CourseController {
     @PostMapping
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
             @Valid @RequestBody CourseCreationRequestDTO courseRequestDTO) {
-        
+
+
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
         
         CourseResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);
@@ -77,30 +80,11 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{courseId}/status")
-    public ResponseEntity<ResponseGeneral<CourseResponseDTO>> updateCourseStatusAndLevel(
-            @PathVariable Long courseId,
-            @Valid @RequestBody CourseUpdateStatusAndLevelRequestDTO updateDTO) {
-        
-        log.info("Updating status and level for course ID: {} to status: {}, level: {}", 
-            courseId, updateDTO.getStatus(), updateDTO.getLevel());
-        
-        CourseResponseDTO updatedCourse = courseService.updateCourseStatusAndLevel(courseId, updateDTO);
-        
-        ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
-        response.setData(updatedCourse);
-        response.setMessage(SUCCESS);
-        response.setDetail("Course status and level updated successfully");
-        
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/featured")
     public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> findFeaturedCourses(Pageable pageable) {
 
         log.info("Finding featured courses");
         List<CourseResponseDTO> featuredCourses = courseService.findFeaturedCourses(pageable);
-
         ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(featuredCourses);
         response.setMessage("Featured courses fetched successfully");
@@ -133,7 +117,7 @@ public class CourseController {
     public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> searchCourses(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long category,
-            @RequestParam(required = false) String level,
+            @RequestParam(required = false) CourseLevel level,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             Pageable pageable) {
@@ -146,8 +130,22 @@ public class CourseController {
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage(SUCCESS);
-        response.setDetail("Courses found with applied filters");
-        
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{courseId}/details")
+    public ResponseEntity<ResponseGeneral<CourseDetailsResponseDTO>> getCourseDetails(
+            @PathVariable Long courseId) {
+
+        log.info("Getting course details for ID: {}", courseId);
+
+        CourseDetailsResponseDTO courseDetails = courseService.findCourseDetailsById(courseId);
+
+        ResponseGeneral<CourseDetailsResponseDTO> response = new ResponseGeneral<>();
+        response.setData(courseDetails);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course details retrieved successfully");
+
         return ResponseEntity.ok(response);
     }
 

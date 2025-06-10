@@ -5,10 +5,12 @@ import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.ModuleEntity;
+import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
+import com.coursehub.exceptions.module.ModuleNotFoundException;
 import com.coursehub.repository.LessonRepository;
+import com.coursehub.repository.ModuleRepository;
 import com.coursehub.service.LessonService;
-import com.coursehub.service.ModuleService;
 import com.coursehub.service.S3Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +26,13 @@ import java.util.Map;
 public class LessonServiceImpl implements LessonService {
 
     private final LessonRepository lessonRepository;
-    private final ModuleService moduleService;
+    private final ModuleRepository moduleRepository;
     private final S3Service s3Service;
 
     @Override
     public Map<String, Object> prepareUpload(Long moduleId, LessonPreparedUploadRequestDTO requestDTO) {
-        ModuleEntity moduleEntity = moduleService.findModuleEntityById(moduleId);
+        ModuleEntity moduleEntity = moduleRepository.findById(moduleId).
+                orElseThrow(() -> new ModuleNotFoundException("Module not found with id: " + moduleId));
         Long maxOrderNumber = lessonRepository.findMaxOrderNumberByModuleId(moduleId);
         Long orderNumber = (maxOrderNumber == null) ? 1L : maxOrderNumber + 1;
         String s3Key = String.format("private/lessons/%d/%s", moduleId, requestDTO.getFileName());
@@ -59,6 +62,23 @@ public class LessonServiceImpl implements LessonService {
         LessonEntity updatedLesson = lessonRepository.save(lessonEntity);
 
         return mapToResponseDTO(updatedLesson);
+    }
+
+    @Override
+    public String getLessonPreviewUrl(Long lessonId) {
+        LessonEntity lesson = getLessonEntityById(lessonId);
+        if (lesson.getIsPreview() != 1L) {
+            throw new AccessDeniedException("This lesson is not available for preview");
+        }
+        String objectKey = lesson.getS3Key();
+        return s3Service.generatePermanentUrl(objectKey);
+    }
+
+    @Override
+    public String getLessonVideoUrl(Long lessonId) {
+        LessonEntity lesson = getLessonEntityById(lessonId);
+        String objectKey = lesson.getS3Key();
+        return s3Service.generatePresignedGetUrl(objectKey);
     }
 
     @Override
@@ -93,15 +113,42 @@ public class LessonServiceImpl implements LessonService {
         lessonRepository.delete(lesson);
     }
 
-    private String generateVideoUrl(String s3Key) {
-        return s3Service.generatePresignedGetUrl(s3Key);
+    @Override
+    public Long countLessonsByModuleId(Long moduleId) {
+        if (moduleId == null) {
+            return 0L;
+        }
+        return lessonRepository.countLessonEntityByModuleEntityId(moduleId);
+    }
+
+    @Override
+    public Long countLessonsByCourseId(Long courseId) {
+        if (courseId == null) {
+            return 0L;
+        }
+        return lessonRepository.countLessonsByCourseId(courseId);
+    }
+
+    @Override
+    public Long calculateTotalDurationByCourseId(Long courseId) {
+        if (courseId == null) {
+            return 0L;
+        }
+        return lessonRepository.sumDurationByCourseId(courseId);
+    }
+
+    @Override
+    public Long calculateTotalDurationByModuleId(Long moduleId) {
+        if (moduleId == null) {
+            return 0L;
+        }
+        return lessonRepository.sumDurationByModuleId(moduleId);
     }
 
     private LessonResponseDTO mapToResponseDTO(LessonEntity entity) {
         return LessonResponseDTO.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
-                .videoUrl(generateVideoUrl(entity.getS3Key()))
                 .duration(entity.getDuration())
                 .orderNumber(entity.getOrderNumber())
                 .isPreview(entity.getIsPreview())

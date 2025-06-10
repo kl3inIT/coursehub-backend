@@ -26,5 +26,6 @@ public class CourseResponseDTO {
     private Long totalReviews;
     private Long totalStudents;
     private Long totalLessons;
+    private Long managerId;
 
 }

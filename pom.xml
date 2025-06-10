@@ -153,6 +153,13 @@
 			<artifactId>httpclient5</artifactId>
 		</dependency>
 
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.11.0</version> <!-- hoặc version mới nhất -->
+		</dependency>
+
 	</dependencies>
 
 	<build>

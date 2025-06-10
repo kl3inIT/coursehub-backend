@@ -48,18 +48,18 @@ public class ModuleController {
     }
 
 
-    @GetMapping("/course/{courseId}")
-    public ResponseEntity<ResponseGeneral<Page<ModuleResponseDTO>>> getModulesByCourseId(
-            @PathVariable Long courseId,
-            Pageable pageable) {
-        log.info("Fetching modules for course ID: {}", courseId);
-        Page<ModuleResponseDTO> modules = moduleService.getModulesByCourseId(courseId, pageable);
-        ResponseGeneral<Page<ModuleResponseDTO>> response = new ResponseGeneral<>();
-        response.setData(modules);
-        response.setMessage(SUCCESS);
-        response.setDetail("Modules fetched successfully");
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/course/{courseId}")
+//    public ResponseEntity<ResponseGeneral<Page<ModuleResponseDTO>>> getModulesByCourseId(
+//            @PathVariable Long courseId,
+//            Pageable pageable) {
+//        log.info("Fetching modules for course ID: {}", courseId);
+//        Page<ModuleResponseDTO> modules = moduleService.getModulesByCourseId(courseId);
+//        ResponseGeneral<Page<ModuleResponseDTO>> response = new ResponseGeneral<>();
+//        response.setData(modules);
+//        response.setMessage(SUCCESS);
+//        response.setDetail("Modules fetched successfully");
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/{moduleId}")
     public ResponseEntity<ResponseGeneral<ModuleResponseDTO>> getModuleById(@PathVariable Long moduleId) {
