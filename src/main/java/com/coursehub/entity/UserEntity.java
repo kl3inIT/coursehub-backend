@@ -67,9 +67,6 @@ public class UserEntity extends BaseEntity {
     private Set<EnrollmentEntity> enrollmentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseProgressEntity> courseProgressEntities = new HashSet<>();
-
-    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PaymentEntity> paymentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
