@@ -1,0 +1,13 @@
+services:
+  coursehub-backend:
+    build: .
+    container_name: coursehub-backend-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - coursehub-network
