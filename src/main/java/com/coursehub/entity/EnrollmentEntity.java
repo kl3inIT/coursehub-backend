@@ -7,6 +7,7 @@ import lombok.*;
 @Table(name = "enrollments")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EnrollmentEntity extends BaseEntity {
@@ -20,6 +21,11 @@ public class EnrollmentEntity extends BaseEntity {
     private CourseEntity courseEntity;
 
     @Column(name = "is_completed", nullable = false)
-    private Long isCompleted;
+    @Builder.Default
+    private Long isCompleted = 0L;
+
+    @Column(name = "progress_percentage", nullable = false)
+    @Builder.Default
+    private Double progressPercentage = 0.0;
 
 } 

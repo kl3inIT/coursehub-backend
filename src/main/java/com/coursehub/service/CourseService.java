@@ -33,6 +33,7 @@ public interface CourseService {
 
     CourseDetailsResponseDTO findCourseDetailsById(Long courseId);
 
+    CourseEntity findCourseEntityByLessonId(Long lessonId);
 
 
 }    

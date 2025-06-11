@@ -299,4 +299,16 @@ public class UserServiceImpl implements UserService {
         userRepository.save(currentUser);
     }
 
+    @Override
+    public UserEntity getUserBySecurityContext() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        if(userEntity == null){
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        return userEntity;
+    }
+
 }

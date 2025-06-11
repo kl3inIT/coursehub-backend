@@ -120,27 +120,27 @@ public class UserConverter {
             }
         });
 
-        // Add course management activities for managers
-        if ("manager".equalsIgnoreCase(dto.getRole())) {
-            user.getCourseProgressEntities().forEach(progress -> {
-                UserActivityDTO activity = new UserActivityDTO();
-                CourseEntity course = progress.getCourseEntity();
-                
-                activity.setId(progress.getId());
-                activity.setType(progress.getCreatedDate().equals(progress.getModifiedDate()) 
-                    ? "course_creation" : "course_update");
-                activity.setTimestamp(progress.getModifiedDate());
-                
-                activity.setCourseId(course.getId());
-                activity.setCourseTitle(course.getTitle());
-                activity.setCourseThumbnail(course.getThumbnail());
-                
-                activity.setActionDescription(progress.getCreatedDate().equals(progress.getModifiedDate())
-                    ? "Created new course" : "Updated course content");
-                
-                activities.add(activity);
-            });
-        }
+//        // Add course management activities for managers
+//        if ("manager".equalsIgnoreCase(dto.getRole())) {
+//            user`.getCourseProgressEntities().forEach(progress -> {
+//                UserActivityDTO activity = new UserActivityDTO();
+//                CourseEntity course = progress.getCourseEntity();
+//
+//                activity.setId(progress.getId());
+//                activity.setType(progress.getCreatedDate().equals(progress.getModifiedDate())
+//                    ? "course_creation" : "course_update");
+//                activity.setTimestamp(progress.getModifiedDate());
+//
+//                activity.setCourseId(course.getId());
+//                activity.setCourseTitle(course.getTitle());
+//                activity.setCourseThumbnail(course.getThumbnail());
+//
+//                activity.setActionDescription(progress.getCreatedDate().equals(progress.getModifiedDate())
+//                    ? "Created new course" : "Updated course content");
+//
+//                activities.add(activity);
+//            });
+//        }
 
         dto.setActivities(activities);
         return dto;

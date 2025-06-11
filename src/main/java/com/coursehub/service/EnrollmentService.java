@@ -11,4 +11,6 @@ public interface EnrollmentService {
     Page<EnrollmentResponseDTO> findByUserEntityId(Long userId, Pageable pageable);
 
     Long countByCourseEntityId(Long courseId);
+
+    void updateCourseProgress(Long userId, Long courseId);
 }

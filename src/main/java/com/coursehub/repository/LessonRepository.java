@@ -1,5 +1,6 @@
 package com.coursehub.repository;
 
+import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.LessonEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,5 +30,6 @@ public interface LessonRepository extends JpaRepository<LessonEntity, Long> {
     @Query("SELECT COALESCE(SUM(l.duration), 0) FROM LessonEntity l " +
             "WHERE l.moduleEntity.id = :moduleId")
     Long sumDurationByModuleId(@Param("moduleId") Long moduleId);
+
 
 }

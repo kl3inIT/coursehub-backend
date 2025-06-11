@@ -43,7 +43,7 @@ public class CourseServiceImpl implements CourseService {
     private final LessonService lessonService;
     private final ReviewService reviewService;
     private final EnrollmentService enrollmentService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -52,9 +52,8 @@ public class CourseServiceImpl implements CourseService {
 
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
-            SecurityContext context = SecurityContextHolder.getContext();
-            String email = context.getAuthentication().getName();
-            UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+
+            UserEntity user = userService.getUserBySecurityContext();
             courseEntity.setUserEntity(user);
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
@@ -175,7 +174,11 @@ public class CourseServiceImpl implements CourseService {
         return responseDTO;
     }
 
-
+    @Override
+    public CourseEntity findCourseEntityByLessonId(Long lessonId) {
+        LessonEntity lessonEntity = lessonService.getLessonEntityById(lessonId);
+        return lessonEntity.getModuleEntity().getCourseEntity();
+    }
 
     private CourseDetailsResponseDTO toDetailsResponseDTO(CourseEntity courseEntity) {
         if (courseEntity == null) {
@@ -204,6 +207,8 @@ public class CourseServiceImpl implements CourseService {
                 .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
                 .build();
     }
+
+
 
 
 

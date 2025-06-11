@@ -19,4 +19,5 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Lo
     @Query("SELECT e FROM EnrollmentEntity e WHERE e.userEntity.id = :userId")
     Page<EnrollmentEntity> findEnrollmentsByUserId(@Param("userId") Long userId, Pageable pageable);
 
+    EnrollmentEntity findByUserEntity_IdAndCourseEntity_Id(Long userEntityId, Long courseEntityId);
 }

@@ -34,4 +34,6 @@ public interface LessonService {
     String getLessonPreviewUrl(Long lessonId);
 
     String getLessonVideoUrl(Long lessonId);
+
+
 }

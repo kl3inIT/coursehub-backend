@@ -5,11 +5,15 @@ import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.ModuleEntity;
+import com.coursehub.entity.UserLessonEntity;
 import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.LessonRepository;
 import com.coursehub.repository.ModuleRepository;
+import com.coursehub.repository.UserLessonRepository;
+import com.coursehub.repository.UserRepository;
 import com.coursehub.service.LessonService;
 import com.coursehub.service.S3Service;
 import jakarta.transaction.Transactional;
@@ -19,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -154,4 +160,6 @@ public class LessonServiceImpl implements LessonService {
                 .isPreview(entity.getIsPreview())
                 .build();
     }
+
+
 }
