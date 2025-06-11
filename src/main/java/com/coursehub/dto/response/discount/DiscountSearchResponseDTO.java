@@ -6,18 +6,22 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
-@Builder
 @Getter
 @Setter
-public class DiscountResponseDTO {
+@Builder
+public class DiscountSearchResponseDTO {
     private Long id;
     private String code;
-    private Double percentage;
     private String description;
-    private Date expiryDate;
-    private Long quantity;
+    private Double percentage;
+    private int totalCategory;
+    private int totalCourse;
+    private List<Long> categoryIds;
+    private List<Long> courseIds;
+    private String usage;
+    private Date expiryTime;
     private Long isActive;
     private Long isGlobal;
-
 }

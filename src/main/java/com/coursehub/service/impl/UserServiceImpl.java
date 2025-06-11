@@ -1,21 +1,29 @@
 package com.coursehub.service.impl;
 
+import com.coursehub.converter.DiscountConverter;
 import com.coursehub.converter.UserConverter;
+import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
+import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
 import com.coursehub.dto.response.user.UserManagementDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
+import com.coursehub.entity.DiscountEntity;
 import com.coursehub.entity.RoleEntity;
+import com.coursehub.entity.UserDiscountEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.exceptions.user.*;
+import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.RoleRepository;
+import com.coursehub.repository.UserDiscountRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.S3Service;
 import com.coursehub.service.UserService;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,7 +49,9 @@ public class UserServiceImpl implements UserService {
     private final S3Service s3Service;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final DiscountRepository discountRepository;
+    private final UserDiscountRepository userDiscountRepository;
+    private final DiscountConverter discountConverter;
     private static final String USER_NOT_FOUND = "User not found";
     private static final String ACTIVE = "active";
 
@@ -298,5 +308,36 @@ public class UserServiceImpl implements UserService {
         currentUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(currentUser);
     }
+
+    @Override
+    public String getDiscount(Long discountId) {
+        DiscountEntity discountEntity = discountRepository.findById(discountId)
+                .orElseThrow(() -> new DataNotFoundException("Discount not found"));
+        if(userDiscountRepository.findByUserEntity_IdAndDiscountEntity_Id(getCurrentUser().getId(), discountEntity.getId()) != null) {
+            throw new UserAlreadyOwnsDiscountException("You have already claimed this discount");
+        }
+
+        UserDiscountEntity userDiscountEntity = new UserDiscountEntity();
+        userDiscountEntity.setDiscountEntity(discountEntity);
+        userDiscountEntity.setUserEntity(getCurrentUser());
+        userDiscountEntity.setIsActive(1L);
+        userDiscountRepository.save(userDiscountEntity);
+        return "Get discount successfully";
+    }
+
+    @Override
+    public Page<DiscountSearchResponseDTO> getAllDiscounts(DiscountSearchRequestDTO discountSearchRequestDTO) {
+        Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
+        Page<DiscountEntity> discountEntities = discountRepository.searchDiscountsOwner(
+                discountSearchRequestDTO.getIsActive(),
+                discountSearchRequestDTO.getCategoryId(),
+                discountSearchRequestDTO.getCourseId(),
+                getCurrentUser().getId(),
+                discountSearchRequestDTO.getPercentage(),
+                pageable
+        );
+        return discountConverter.toSearchResponseDTO(discountEntities);
+    }
+
 
 }

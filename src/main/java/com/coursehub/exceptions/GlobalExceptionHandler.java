@@ -1,6 +1,8 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
+import com.coursehub.exceptions.discount.DiscountDuplicateException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
@@ -63,6 +65,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(UserAlreadyOwnsDiscountException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserAlreadyOwnsDiscountException(UserAlreadyOwnsDiscountException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from discount");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
+
     // validate request data
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseGeneral<List<String>>> handleValidationException(MethodArgumentNotValidException mex){
@@ -96,6 +107,14 @@ public class GlobalExceptionHandler {
         response.setMessage("Internal Server Error");
         response.setData(ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(DiscountDeletionNotAllowedException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleDiscountDeletionNotAllowedException(DiscountDeletionNotAllowedException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from discount deletion");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(OtpNotFoundException.class)
@@ -369,6 +388,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(DiscountDuplicateException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleDiscountDuplicateException(DiscountDuplicateException ex) {
+        log.error("Discount already exists: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Discount Already Exists");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
 
 
 }

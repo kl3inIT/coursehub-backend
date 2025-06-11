@@ -1,6 +1,7 @@
 package com.coursehub.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,8 +46,6 @@ public class DiscountEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "discountEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PaymentEntity> paymentEntities = new HashSet<>();
-
-
 
     // Additional fields and methods can be added as needed
 }
