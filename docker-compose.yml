@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   mysql:
     image: mysql:8.0
@@ -15,21 +16,6 @@ services:
     networks:
       - coursehub-network
 
-  coursehub-backend:
-    container_name: coursehub-backend
-    image: kl3init/coursehub:latest
-    expose:
-      - "8080"
-    env_file:
-      - .env
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-    networks:
-      - coursehub-network
-    depends_on:
-      - mysql
-      - redis
-
   redis:
     image: redis:latest
     container_name: redis-container
@@ -38,32 +24,6 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - coursehub-network
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx-proxy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    networks:
-      - coursehub-network
-    depends_on:
-      - coursehub-backend
-    restart: unless-stopped
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
     networks:
       - coursehub-network
 
