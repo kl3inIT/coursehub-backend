@@ -3,6 +3,8 @@ package com.coursehub.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "enrollments")
 @Getter
@@ -28,4 +30,6 @@ public class EnrollmentEntity extends BaseEntity {
     @Builder.Default
     private Double progressPercentage = 0.0;
 
+    @Column(name = "completed_date", nullable = true)
+    private Date completedDate;
 } 

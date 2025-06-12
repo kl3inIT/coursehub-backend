@@ -37,17 +37,17 @@ public class EnrollmentController {
     }
 
 
-    @GetMapping("/enrolled")
-    public ResponseEntity<ResponseGeneral<Page<EnrollmentResponseDTO>>> getByUserEntityId(Pageable pageable) {
-        Long userId = userService.getMyInfo().getId();
-        log.info("Get enrolled courses by user id: " + userId);
-        Page<EnrollmentResponseDTO> enrollmentResponseDTOS = enrollmentService.findByUserEntityId(userId, pageable);
-        ResponseGeneral<Page<EnrollmentResponseDTO>> response = new ResponseGeneral<>();
-        response.setData(enrollmentResponseDTOS);
-        response.setMessage("Successfully count total enrolled courses");
-        response.setDetail("Total enrolled courses: " + enrollmentResponseDTOS.getContent().size());
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/enrolled")
+//    public ResponseEntity<ResponseGeneral<Page<EnrollmentResponseDTO>>> getByUserEntityId(Pageable pageable) {
+//        Long userId = userService.getMyInfo().getId();
+//        log.info("Get enrolled courses by user id: " + userId);
+//        Page<EnrollmentResponseDTO> enrollmentResponseDTOS = enrollmentService.findByUserEntityId(userId, pageable);
+//        ResponseGeneral<Page<EnrollmentResponseDTO>> response = new ResponseGeneral<>();
+//        response.setData(enrollmentResponseDTOS);
+//        response.setMessage("Successfully count total enrolled courses");
+//        response.setDetail("Total enrolled courses: " + enrollmentResponseDTOS.getContent().size());
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/status/{courseId}")
     public ResponseEntity<ResponseGeneral<EnrollmentStatusResponseDTO>> getEnrollmentStatus(@PathVariable Long courseId) {

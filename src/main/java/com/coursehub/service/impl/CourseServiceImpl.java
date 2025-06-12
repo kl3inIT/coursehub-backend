@@ -2,33 +2,28 @@ package com.coursehub.service.impl;
 
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
-import com.coursehub.exceptions.lesson.AccessDeniedException;
-import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.repository.CourseRepository;
-import com.coursehub.repository.LessonRepository;
-import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -137,7 +132,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
-                                                 Double minPrice, Double maxPrice, Pageable pageable) {
+            Double minPrice, Double maxPrice, Pageable pageable) {
         log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}",
                 search, categoryId, level, minPrice, maxPrice);
 
@@ -152,7 +147,6 @@ public class CourseServiceImpl implements CourseService {
 
         return courseConverter.toResponseDTOPage(courseEntities);
     }
-
 
     @Override
     public CourseEntity findCourseEntityById(Long courseId) {
@@ -208,9 +202,35 @@ public class CourseServiceImpl implements CourseService {
                 .build();
     }
 
+    @Override
+    public List<DashboardCourseResponseDTO> getCoursesByUserId() {
+        UserEntity user = userService.getUserBySecurityContext();
+        List<EnrollmentEntity> enrollment = enrollmentService.getEnrollmentsByUserEntityId(user.getId());
 
+        return enrollment.stream()
+                .map(e -> toDashboardCourseResponseDTO(e.getCourseEntity(), e))
+                .toList();
+    }
 
+    private DashboardCourseResponseDTO toDashboardCourseResponseDTO(CourseEntity courseEntity,
+            EnrollmentEntity enrollmentEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
+        }
 
-
+        return DashboardCourseResponseDTO.builder()
+                .title(courseEntity.getTitle())
+                .description(courseEntity.getDescription())
+                .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
+                .category(courseEntity.getCategoryEntity().getName())
+                .instructorName("CourseHub")
+                .totalDuration(lessonService.calculateTotalDurationByCourseId(courseEntity.getId()))
+                .totalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()))
+                .completed(enrollmentEntity.getIsCompleted() == 1L)
+                .enrollDate(enrollmentEntity.getCreatedDate())
+                .completedDate(enrollmentEntity.getCompletedDate())
+                .progress(enrollmentEntity.getProgressPercentage())
+                .build();
+    }
 
 }
