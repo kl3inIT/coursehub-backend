@@ -5,6 +5,7 @@ import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.service.CourseService;
 import jakarta.validation.Valid;
@@ -34,16 +35,15 @@ public class CourseController {
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
             @Valid @RequestBody CourseCreationRequestDTO courseRequestDTO) {
 
-
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
-        
+
         CourseResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);
-        
+
         ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
         response.setData(createdCourse);
         response.setMessage(SUCCESS);
         response.setDetail("Course created successfully");
-        
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -51,32 +51,32 @@ public class CourseController {
     public ResponseEntity<ResponseGeneral<String>> uploadThumbnail(
             @PathVariable Long courseId,
             @RequestParam("thumbnail") MultipartFile thumbnailFile) {
-        
+
         log.info("Uploading thumbnail for course ID: {}", courseId);
 
         String thumbnailKey = courseService.uploadThumbnail(courseId, thumbnailFile);
-        
+
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setData(thumbnailKey);
         response.setMessage(SUCCESS);
         response.setDetail("Thumbnail uploaded successfully");
-        
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{courseId}")
     public ResponseEntity<ResponseGeneral<CourseResponseDTO>> getCourseById(
             @PathVariable Long courseId) {
-        
+
         log.info("Getting course with ID: {}", courseId);
-        
+
         CourseResponseDTO course = courseService.findCourseById(courseId);
-        
+
         ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
         response.setData(course);
         response.setMessage(SUCCESS);
         response.setDetail("Course retrieved successfully");
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -121,12 +121,13 @@ public class CourseController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             Pageable pageable) {
-        
-        log.info("Searching courses with filters - search: {}, category: {}, level: {}, minPrice: {}, maxPrice: {}", 
-            search, category, level, minPrice, maxPrice);
-        
-        Page<CourseResponseDTO> courses = courseService.searchCourses(search, category, level, minPrice, maxPrice, pageable);
-        
+
+        log.info("Searching courses with filters - search: {}, category: {}, level: {}, minPrice: {}, maxPrice: {}",
+                search, category, level, minPrice, maxPrice);
+
+        Page<CourseResponseDTO> courses = courseService.searchCourses(search, category, level, minPrice, maxPrice,
+                pageable);
+
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage(SUCCESS);
@@ -149,4 +150,18 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-} 
+    @GetMapping("/dashboard")
+    public ResponseEntity<ResponseGeneral<List<DashboardCourseResponseDTO>>> getDashboardCourses() {
+        log.info("Getting dashboard courses for current user");
+
+        List<DashboardCourseResponseDTO> dashboardCourses = courseService.getCoursesByUserId();
+
+        ResponseGeneral<List<DashboardCourseResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(dashboardCourses);
+        response.setMessage(SUCCESS);
+        response.setDetail("Dashboard courses retrieved successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
+}
