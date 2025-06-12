@@ -6,7 +6,6 @@ import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.entity.UserLessonEntity;
-import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
 import com.coursehub.repository.UserLessonRepository;
 import com.coursehub.service.*;
 import jakarta.transaction.Transactional;

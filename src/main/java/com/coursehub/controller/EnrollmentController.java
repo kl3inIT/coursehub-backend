@@ -1,8 +1,8 @@
 package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
-import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.dto.response.enrollment.EnrollmentResponseDTO;
+import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.service.EnrollmentService;
 import com.coursehub.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,4 +48,17 @@ public class EnrollmentController {
         response.setDetail("Total enrolled courses: " + enrollmentResponseDTOS.getContent().size());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/status/{courseId}")
+    public ResponseEntity<ResponseGeneral<EnrollmentStatusResponseDTO>> getEnrollmentStatus(@PathVariable Long courseId) {
+        log.info("Get enrollment status by course id: " + courseId);
+        EnrollmentStatusResponseDTO enrollmentStatus = enrollmentService.getEnrollmentStatus(courseId);
+        ResponseGeneral<EnrollmentStatusResponseDTO> response = new ResponseGeneral<>();
+        response.setData(enrollmentStatus);
+        response.setMessage("Successfully retrieved enrollment status");
+        response.setDetail("Enrollment status for course ID: " + courseId);
+        return ResponseEntity.ok(response);
+    }
+
+
 }
