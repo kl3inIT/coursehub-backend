@@ -13,8 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.coursehub.dto.response.category.CategoryChartDTO;
-import com.coursehub.dto.response.category.CategoryDetailDTO;
+import com.coursehub.dto.response.analytics.CategoryAnalyticsChartResponseDTO;
+import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,11 +64,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryChartDTO> getCategoryChart() {
+    public List<CategoryAnalyticsChartResponseDTO> getCategoryChart() {
         List<Object[]> results = categoryRepository.getCategoryCourseCounts();
         long total = results.stream().mapToLong(r -> (Long) r[1]).sum();
         return results.stream()
-            .map(r -> new CategoryChartDTO(
+            .map(r -> new CategoryAnalyticsChartResponseDTO(
                 (String) r[0],
                 (Long) r[1],
                 total == 0 ? 0.0 : ((double) (Long) r[1] / total) * 100
@@ -77,14 +77,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDetailDTO getCategoryDetail(Long categoryId) {
+    public CategoryAnalyticsDetailResponseDTO getCategoryDetail(Long categoryId) {
         List<Object[]> results = categoryRepository.getCategoryDetail(categoryId);
         if (results == null || results.isEmpty()) {
             return null;
         }
         Object[] r = results.get(0);
         log.debug("CategoryDetail array: {}", (Object) r);
-        return new CategoryDetailDTO(
+        return new CategoryAnalyticsDetailResponseDTO(
             r[0] != null ? ((Number) r[0]).longValue() : null,           // categoryId
             (String) r[1],                                               // categoryName
             (String) r[2],                                               // description
@@ -98,7 +98,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<CategoryDetailDTO> getAllCategoryDetails() {
+    public List<CategoryAnalyticsDetailResponseDTO> getAllCategoryDetails() {
         List<CategoryEntity> categories = categoryRepository.findAll();
         return categories.stream().map(category -> {
             Long courseCount = (long) category.getCourseEntities().size();
@@ -127,7 +127,7 @@ public class CategoryServiceImpl implements CategoryService {
             }
             double averageRating = totalReviews > 0 ? (double) totalRating / totalReviews : 0.0;
             averageRating = Math.round(averageRating * 100.0) / 100.0;
-            return new CategoryDetailDTO(
+            return new CategoryAnalyticsDetailResponseDTO(
                 category.getId(),
                 category.getName(),
                 category.getDescription(),

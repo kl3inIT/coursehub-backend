@@ -3,8 +3,8 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
-import com.coursehub.dto.response.category.CategoryChartDTO;
-import com.coursehub.dto.response.category.CategoryDetailDTO;
+import com.coursehub.dto.response.analytics.CategoryAnalyticsChartResponseDTO;
+import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -69,17 +69,17 @@ public class CategoryController {
     }
 
     @GetMapping("/chart")
-    public ResponseEntity<List<CategoryChartDTO>> getCategoryChart() {
+    public ResponseEntity<List<CategoryAnalyticsChartResponseDTO>> getCategoryChart() {
         return ResponseEntity.ok(categoryService.getCategoryChart());
     }
 
     @GetMapping("/{categoryId}/detail")
-    public ResponseEntity<CategoryDetailDTO> getCategoryDetail(@PathVariable Long categoryId) {
+    public ResponseEntity<CategoryAnalyticsDetailResponseDTO> getCategoryDetail(@PathVariable Long categoryId) {
         return ResponseEntity.ok(categoryService.getCategoryDetail(categoryId));
     }
 
     @GetMapping("/details")
-    public ResponseEntity<List<CategoryDetailDTO>> getAllCategoryDetails() {
+    public ResponseEntity<List<CategoryAnalyticsDetailResponseDTO>> getAllCategoryDetails() {
         return ResponseEntity.ok(categoryService.getAllCategoryDetails());
     }
 } 

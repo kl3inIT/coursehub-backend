@@ -1,4 +1,4 @@
-package com.coursehub.dto.response.category;
+package com.coursehub.dto.response.analytics;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryDetailDTO {
+public class CategoryAnalyticsDetailResponseDTO {
     private Long categoryId;
     private String categoryName;
     private String description;

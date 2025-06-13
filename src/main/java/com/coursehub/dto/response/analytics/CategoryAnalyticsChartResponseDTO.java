@@ -1,4 +1,4 @@
-package com.coursehub.dto.response.category;
+package com.coursehub.dto.response.analytics;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryChartDTO {
+public class CategoryAnalyticsChartResponseDTO {
     private String categoryName;
     private Long courseCount;
     private Double percentage;
