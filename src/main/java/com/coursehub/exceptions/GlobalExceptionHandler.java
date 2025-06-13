@@ -11,7 +11,9 @@ import com.coursehub.exceptions.course.InvalidFileException;
 import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
+import com.coursehub.exceptions.lesson.PreviousLessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
+import com.coursehub.exceptions.module.PreviousModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
 import com.coursehub.exceptions.s3.S3PresignUrlException;
 import com.coursehub.exceptions.user.*;
@@ -395,6 +397,31 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+    @ExceptionHandler(PreviousLessonNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handlePreviousLessonNotFoundException(PreviousLessonNotFoundException ex) {
+        log.error("Previous lesson not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Previous Lesson Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(PreviousModuleNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handlePreviousModuleNotFoundException(PreviousModuleNotFoundException ex) {
+        log.error("Previous module not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Previous Module Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
 
 
 

@@ -1,6 +1,6 @@
 package com.coursehub.repository;
 
-import com.coursehub.entity.CourseEntity;
+
 import com.coursehub.entity.LessonEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LessonRepository extends JpaRepository<LessonEntity, Long> {
@@ -31,5 +32,7 @@ public interface LessonRepository extends JpaRepository<LessonEntity, Long> {
             "WHERE l.moduleEntity.id = :moduleId")
     Long sumDurationByModuleId(@Param("moduleId") Long moduleId);
 
+    Optional<LessonEntity> findByModuleEntityIdAndOrderNumber(Long moduleId, Long orderNumber);
+    List<LessonEntity> findByModuleEntityId(Long moduleId);
 
 }

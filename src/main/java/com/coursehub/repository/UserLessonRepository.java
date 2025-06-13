@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,12 +15,25 @@ public interface UserLessonRepository extends JpaRepository<UserLessonEntity, Lo
 
     Optional<UserLessonEntity> findByUserEntityAndLessonEntityId(UserEntity user, Long lessonId);
 
+    Optional<UserLessonEntity> findByUserEntityAndLessonEntityIdAndIsCompleted(UserEntity user, Long lessonId, Long isCompleted);
+
+    List<UserLessonEntity> findByUserEntityAndLessonEntityIdInAndIsCompleted(UserEntity user, List<Long> lessonIds, Long isCompleted);
+
     @Query("""
-                SELECT COUNT(ul)
-                FROM UserLessonEntity ul
-                WHERE ul.userEntity.id = :userId
-                  AND ul.lessonEntity.moduleEntity.courseEntity.id = :courseId
-                  AND ul.isCompleted = 1
+            SELECT COUNT(ul)
+            FROM UserLessonEntity ul
+            WHERE ul.userEntity.id = :userId
+              AND ul.lessonEntity.moduleEntity.courseEntity.id = :courseId
+              AND ul.isCompleted = 1
             """)
     Long countCompletedLessonsByUserAndCourse(@Param("userId") Long userId, @Param("courseId") Long courseId);
+
+    @Query("""
+            SELECT ul
+            FROM UserLessonEntity ul
+            WHERE ul.userEntity.id = :userId
+              AND ul.lessonEntity.moduleEntity.id = :moduleId
+              AND ul.isCompleted = 1
+            """)
+    List<UserLessonEntity> findCompletedLessonsByUserAndModule(@Param("userId") Long userId, @Param("moduleId") Long moduleId);
 }
