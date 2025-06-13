@@ -56,9 +56,6 @@ public class CourseEntity extends BaseEntity {
     private Set<ModuleEntity> moduleEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseProgressEntity> courseProgressEntities = new HashSet<>();
-
-    @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PaymentEntity> paymentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "courseEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

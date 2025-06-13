@@ -1,0 +1,17 @@
+services:
+  coursehub-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coursehub-backend-dev
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - coursehub-network

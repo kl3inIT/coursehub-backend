@@ -1,5 +1,6 @@
 package com.coursehub.repository;
 
+import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseLevel;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.lang.NonNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +37,5 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
                                      @Param("minPrice") Double minPrice,
                                      @Param("maxPrice") Double maxPrice,
                                      Pageable pageable);
-
 
 }
