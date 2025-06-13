@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Long> {
@@ -16,7 +18,9 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Lo
 
     Long countByCourseEntity_Id(Long courseId);
 
-    @Query("SELECT e FROM EnrollmentEntity e WHERE e.userEntity.id = :userId")
-    Page<EnrollmentEntity> findEnrollmentsByUserId(@Param("userId") Long userId, Pageable pageable);
+    List<EnrollmentEntity> findEnrollmentEntitiesByUserEntity_Id(Long userId);
+
+    EnrollmentEntity findByUserEntity_IdAndCourseEntity_Id(Long userEntityId, Long courseEntityId);
+
 
 }

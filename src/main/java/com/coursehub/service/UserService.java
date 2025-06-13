@@ -1,5 +1,6 @@
 package com.coursehub.service;
 
+import com.coursehub.entity.UserEntity;
 import org.springframework.data.domain.Page;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
@@ -20,4 +21,6 @@ public interface UserService {
     void deleteUser(Long userId);
     UserManagementDTO createUser(ProfileRequestDTO request);
     void changePassword(ChangePasswordRequestDTO request);
+
+    UserEntity getUserBySecurityContext();
 }

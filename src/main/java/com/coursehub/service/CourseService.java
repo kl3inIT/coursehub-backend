@@ -1,6 +1,7 @@
 package com.coursehub.service;
 
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 
@@ -33,6 +34,7 @@ public interface CourseService {
 
     CourseDetailsResponseDTO findCourseDetailsById(Long courseId);
 
+    CourseEntity findCourseEntityByLessonId(Long lessonId);
 
-
+    List<DashboardCourseResponseDTO> getCoursesByUserId();
 }    
