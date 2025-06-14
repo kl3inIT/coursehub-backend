@@ -5,10 +5,15 @@ import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.ModuleEntity;
+import com.coursehub.entity.UserLessonEntity;
+import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.LessonRepository;
 import com.coursehub.repository.ModuleRepository;
+import com.coursehub.repository.UserLessonRepository;
+import com.coursehub.repository.UserRepository;
 import com.coursehub.service.LessonService;
 import com.coursehub.service.S3Service;
 import jakarta.transaction.Transactional;
@@ -18,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -61,6 +68,23 @@ public class LessonServiceImpl implements LessonService {
         LessonEntity updatedLesson = lessonRepository.save(lessonEntity);
 
         return mapToResponseDTO(updatedLesson);
+    }
+
+    @Override
+    public String getLessonPreviewUrl(Long lessonId) {
+        LessonEntity lesson = getLessonEntityById(lessonId);
+        if (lesson.getIsPreview() != 1L) {
+            throw new AccessDeniedException("This lesson is not available for preview");
+        }
+        String objectKey = lesson.getS3Key();
+        return s3Service.generatePermanentUrl(objectKey);
+    }
+
+    @Override
+    public String getLessonVideoUrl(Long lessonId) {
+        LessonEntity lesson = getLessonEntityById(lessonId);
+        String objectKey = lesson.getS3Key();
+        return s3Service.generatePresignedGetUrl(objectKey);
     }
 
     @Override
@@ -131,10 +155,11 @@ public class LessonServiceImpl implements LessonService {
         return LessonResponseDTO.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
-                .videoUrl(s3Service.generatePresignedGetUrl(entity.getS3Key()))
                 .duration(entity.getDuration())
                 .orderNumber(entity.getOrderNumber())
                 .isPreview(entity.getIsPreview())
                 .build();
     }
+
+
 }

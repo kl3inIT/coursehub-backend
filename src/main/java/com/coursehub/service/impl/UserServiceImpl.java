@@ -1,6 +1,7 @@
 package com.coursehub.service.impl;
 
 import com.coursehub.converter.DiscountConverter;
+import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
 import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -53,8 +55,9 @@ public class UserServiceImpl implements UserService {
     private final DiscountRepository discountRepository;
     private final UserDiscountRepository userDiscountRepository;
     private final DiscountConverter discountConverter;
+    private final OtpUtil otpUtil;
+
     private static final String USER_NOT_FOUND = "User not found";
-    private static final String ACTIVE = "active";
 
     @Override
     public UserResponseDTO getMyInfo() {
@@ -184,13 +187,13 @@ public class UserServiceImpl implements UserService {
 
         List<String> roles = Arrays.asList("LEARNER", "MANAGER");
         if (role != null && !role.isEmpty() && !role.equals("all")) {
-            roles = Arrays.asList(role.toUpperCase());
+            roles = List.of(role.toUpperCase());
         }
 
         Page<UserEntity> userPage;
         if (status != null && !status.isEmpty() && !status.equals("all")) {
             // Map status to isActive
-            Long isActive = status.equals(ACTIVE) ? 1L : 0L;
+            Long isActive = status.equals("active") ? 1L : 0L;
             userPage = userRepository.findByRoleEntity_CodeInAndIsActive(
                 roles,
                 isActive,
@@ -218,43 +221,20 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateUserStatus(Long userId, String status) {
         UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
-        
-        // Map status string to isActive
-        Long isActive = status.equals(ACTIVE) ? 1L : 0L;
-        user.setIsActive(isActive);
+                .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            user.setIsActive(1L);
+        } else if ("BANNED".equalsIgnoreCase(status)) {
+            user.setIsActive(0L);
+        }
         userRepository.save(user);
     }
 
     @Override
     @Transactional
-    public void updateUserRole(Long userId, String role) {
+    public void deleteManager(Long userId) {
         UserEntity user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-        
-        try {
-            RoleEntity roleEntity = roleRepository.findByCode(role.toUpperCase());
-            if (roleEntity == null) {
-                throw new DataNotFoundException("Role not found");
-            }
-
-            user.setRoleEntity(roleEntity);
-            userRepository.save(user);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid role: " + e.getMessage());
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteUser(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-
-        // Kiểm tra xem user có đăng ký khóa học nào không
-        if (!user.getEnrollmentEntities().isEmpty()) {
-            throw new UserDeletionException("User has enrolled courses and cannot be deleted");
-        }
 
         if (user.getAvatar() != null) {
             try {
@@ -269,7 +249,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserManagementDTO createUser(ProfileRequestDTO request) {
+    public UserManagementDTO createManager(ProfileRequestDTO request) {
         if (userRepository.existsByEmailAndIsActive(request.getEmail(), 1L)) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -278,30 +258,55 @@ public class UserServiceImpl implements UserService {
         if (learnerRole == null) {
             throw new DataNotFoundException("Default role not found");
         }
-
+        String tempPassword = generateTemporaryPassword(8);
         UserEntity user = new UserEntity();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setIsActive(1L);
-
+        user.setPassword(passwordEncoder.encode(tempPassword));
         user.setRoleEntity(learnerRole);
 
         UserEntity savedUser = userRepository.save(user);
+        otpUtil.sendPasswordToManager(savedUser.getEmail(), tempPassword);
         return userConverter.convertToUserManagementDTO(savedUser);
+    }
+
+    private String generateTemporaryPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
+
+    @Override
+    @Transactional
+    public void addWarning(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
+
+        long currentWarnings = user.getWarningCount() != null ? user.getWarningCount() : 0L;
+        user.setWarningCount(currentWarnings + 1);
+
+        if (user.getWarningCount() >= 5) {
+            user.setIsActive(0L);
+        }
+
+        userRepository.save(user);
     }
 
     @Override
     @Transactional
     public void changePassword(ChangePasswordRequestDTO request) {
-        // Get current user
         UserEntity currentUser = getCurrentUser();
         
-        // Verify current password
         if (!passwordEncoder.matches(request.getCurrentPassword(), currentUser.getPassword())) {
             throw new IncorrectPasswordException();
         }
         
-        // Check if new password is different from current
         if (passwordEncoder.matches(request.getNewPassword(), currentUser.getPassword())) {
             throw new SamePasswordException();
         }
@@ -342,5 +347,15 @@ public class UserServiceImpl implements UserService {
         return discountConverter.toSearchResponseDTO(discountEntities);
     }
 
+    public UserEntity getUserBySecurityContext() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        if(userEntity == null){
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        return userEntity;
+    }
 
 }

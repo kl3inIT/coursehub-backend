@@ -115,32 +115,31 @@ public class UserConverter {
                 
                 activities.add(activity);
             } catch (Exception e) {
-                // Skip this comment if there are any issues with entity relationships
-                // This can happen if the lesson or module was deleted
+                // Skip
             }
         });
 
-        // Add course management activities for managers
-        if ("manager".equalsIgnoreCase(dto.getRole())) {
-            user.getCourseProgressEntities().forEach(progress -> {
-                UserActivityDTO activity = new UserActivityDTO();
-                CourseEntity course = progress.getCourseEntity();
-                
-                activity.setId(progress.getId());
-                activity.setType(progress.getCreatedDate().equals(progress.getModifiedDate()) 
-                    ? "course_creation" : "course_update");
-                activity.setTimestamp(progress.getModifiedDate());
-                
-                activity.setCourseId(course.getId());
-                activity.setCourseTitle(course.getTitle());
-                activity.setCourseThumbnail(course.getThumbnail());
-                
-                activity.setActionDescription(progress.getCreatedDate().equals(progress.getModifiedDate())
-                    ? "Created new course" : "Updated course content");
-                
-                activities.add(activity);
-            });
-        }
+//        // Add course management activities for managers
+//        if ("manager".equalsIgnoreCase(dto.getRole())) {
+//            user`.getCourseProgressEntities().forEach(progress -> {
+//                UserActivityDTO activity = new UserActivityDTO();
+//                CourseEntity course = progress.getCourseEntity();
+//
+//                activity.setId(progress.getId());
+//                activity.setType(progress.getCreatedDate().equals(progress.getModifiedDate())
+//                    ? "course_creation" : "course_update");
+//                activity.setTimestamp(progress.getModifiedDate());
+//
+//                activity.setCourseId(course.getId());
+//                activity.setCourseTitle(course.getTitle());
+//                activity.setCourseThumbnail(course.getThumbnail());
+//
+//                activity.setActionDescription(progress.getCreatedDate().equals(progress.getModifiedDate())
+//                    ? "Created new course" : "Updated course content");
+//
+//                activities.add(activity);
+//            });
+//        }
 
         dto.setActivities(activities);
         return dto;
@@ -154,9 +153,10 @@ public class UserConverter {
             
         if (totalLessons == 0) return 0.0;
 
-        long completedLessons = 0; // This should be calculated from user's completed lessons
+        long completedLessons = 0;
         
         return (double) completedLessons / totalLessons * 100;
     }
+
 
 }

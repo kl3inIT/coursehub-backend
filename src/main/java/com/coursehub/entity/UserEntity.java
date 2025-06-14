@@ -67,9 +67,6 @@ public class UserEntity extends BaseEntity {
     private Set<EnrollmentEntity> enrollmentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseProgressEntity> courseProgressEntities = new HashSet<>();
-
-    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PaymentEntity> paymentEntities = new HashSet<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -99,7 +96,7 @@ public class UserEntity extends BaseEntity {
     @Column(name = "banned_at")
     private Date bannedAt;
 
-    @Column(name = "warning_count", columnDefinition = "bigint default 0")
-    private Long warningCount;
+    @Column(name = "warning_count")
+    private Long warningCount = 0L;
 
 }

@@ -11,8 +11,13 @@ import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.exceptions.course.InvalidFileException;
+import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
+import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
+import com.coursehub.exceptions.lesson.PreviousLessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
+import com.coursehub.exceptions.report.ReportNotFoundException;
+import com.coursehub.exceptions.module.PreviousModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
 import com.coursehub.exceptions.s3.S3PresignUrlException;
 import com.coursehub.exceptions.user.*;
@@ -63,7 +68,7 @@ public class GlobalExceptionHandler {
         response.setDetail("An unexpected error occurred");
         response.setData(null);
         
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(UserAlreadyOwnsDiscountException.class)
@@ -408,6 +413,69 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleAccessDeniedException(AccessDeniedException ex) {
+        log.error("Access denied: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Access Denied");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    // Report Exception Handler
+
+    @ExceptionHandler(ReportNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleReportNotFoundException(ReportNotFoundException ex) {
+        log.error("Report not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Report Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+
+    }
+
+    @ExceptionHandler(LessonProgressNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleLessonProgressNotFoundException(LessonProgressNotFoundException ex) {
+        log.error("Lesson progress not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Lesson Progress Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(PreviousLessonNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handlePreviousLessonNotFoundException(PreviousLessonNotFoundException ex) {
+        log.error("Previous lesson not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Previous Lesson Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(PreviousModuleNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handlePreviousModuleNotFoundException(PreviousModuleNotFoundException ex) {
+        log.error("Previous module not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Previous Module Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
 

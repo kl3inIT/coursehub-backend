@@ -163,6 +163,7 @@ public class CommentServiceImpl implements CommentService {
         if (!comment.getUserEntity().getId().equals(user.getId())) {
             throw new SecurityException("You can only delete your own comment");
         }
+        comment.getLikes().clear();
         commentRepository.delete(comment);
     }
 
@@ -217,6 +218,15 @@ public class CommentServiceImpl implements CommentService {
             commentLikeRepository.save(like);
             return true; // đã like
         }
+    }
+
+    @Override
+    public CommentResponseDTO getCommentById(Long commentId) {
+        UserEntity user = getCurrentUser();
+        CommentEntity comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+        long likeCount = comment.getLikes().size();
+        return commentConverter.toDTO(comment, user, likeCount);
     }
 
 }

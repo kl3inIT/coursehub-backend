@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface UserDiscountRepository extends JpaRepository<UserDiscountEntity, Long> {
     UserDiscountEntity findByDiscountEntity_IdAndIsActive(Long discountId, Long isActive);
 
