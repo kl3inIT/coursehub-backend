@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ModuleRepository extends JpaRepository<ModuleEntity,Long> {
@@ -17,4 +18,6 @@ public interface ModuleRepository extends JpaRepository<ModuleEntity,Long> {
     List<ModuleEntity> findByCourseEntityId(Long courseId);
 
     Long countModuleEntitiesByCourseEntityId(Long courseId);
+
+    Optional<ModuleEntity> findByCourseEntityIdAndOrderNumber(Long courseId, Long orderNumber);
 }

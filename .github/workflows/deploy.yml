@@ -1,11 +1,14 @@
 name: Deploy CourseHub to EC2 with Docker Compose
+
 on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,6 +21,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
 
@@ -29,20 +33,25 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push Docker image
         run: |
           docker build -t kl3init/coursehub:latest .
           docker push kl3init/coursehub:latest
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
       - name: Copy files to EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml, nginx.conf, .env"
+          source: |
+            docker-compose.yml,
+            docker-compose.prod.yml,
+            nginx.conf,
+            .env.
           target: "~/coursehub"
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -51,8 +60,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/coursehub
-            sudo mkdir -p certbot/www  # Chỉ tạo thư mục www, không chạm vào /etc/letsencrypt
-            sudo docker-compose down || true
-            sudo docker-compose pull coursehub-backend
-            sudo docker-compose up -d
+            sudo mkdir -p certbot/www
+            sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml down || true
+            sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            sudo docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
             sudo docker image prune -f
