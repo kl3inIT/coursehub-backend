@@ -12,6 +12,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.Arrays;
+
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
@@ -29,6 +31,18 @@ public class SecurityConfig {
             "/api/auth/logout",
     };
 
+    // cac api public gui token hay khong gui token deu cho phep truy cap
+    // Khi một filter chain đã khớp ➜ Các filter chain còn lại sẽ bị bỏ qua, không chạy nữa.
+    @Bean
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(request -> Arrays.stream(PUBLIC_API)
+                        .anyMatch(api -> request.getServletPath().startsWith(api)))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+        return http.build();
+    }
 
 
     @Bean

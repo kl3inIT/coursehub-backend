@@ -3,7 +3,7 @@ package com.coursehub.service.impl;
 import com.coursehub.converter.DiscountConverter;
 import com.coursehub.dto.request.discount.DiscountRequestDTO;
 import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
-import com.coursehub.dto.request.discount.DiscountVerifyRequestDTO;
+import com.coursehub.dto.request.discount.UserAvailableDiscountRequestDTO;
 import com.coursehub.dto.response.discount.DiscountResponseDTO;
 import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
 import com.coursehub.dto.response.discount.DiscountVerifyResponseDTO;
@@ -25,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -34,44 +35,24 @@ import java.util.List;
 public class DiscountServiceImpl implements DiscountService {
 
     private final DiscountRepository discountRepository;
-    private final CourseDiscountRepository courseDiscountRepository;
-    private final CourseService courseService;
-    private final CategoryDiscountRepository categoryDiscountRepository;
     private final UserDiscountRepository userDiscountRepository;
     private final DiscountConverter discountConverter;
     private final UserService userService;
+
+
     @Override
-    public DiscountVerifyResponseDTO verifyDiscountCode(DiscountVerifyRequestDTO discountVerifyRequestDTO) {
-        DiscountEntity discountEntity = discountRepository.findByCodeAndIsActive(discountVerifyRequestDTO.getCode(), 1L);
-        if (discountEntity == null) {
-            throw new DataNotFoundException("Discount code is not valid");
-        }
-        CourseEntity courseEntity = courseService.findCourseEntityById(discountVerifyRequestDTO.getCourseId());
-        Long categoryId = courseEntity.getCategoryEntity().getId();
-        List<CourseDiscountEntity> courseDiscountEntity = courseDiscountRepository.findByCourseEntity_Id(discountVerifyRequestDTO.getCourseId());
-        List<CategoryDiscountEntity> categoryDiscountEntity = categoryDiscountRepository.findByCategoryEntity_Id(categoryId);
-        UserDiscountEntity userDiscountEntity = userDiscountRepository.findByUserEntity_IdAndDiscountEntity_IdAndIsActive(
-                userService.getMyInfo().getId(), discountEntity.getId(), 1L
-        );
-        if ((discountEntity.getIsActive() == 0 && discountEntity.getIsGlobal() == 0)
-                || discountEntity.getExpiryDate().before(new Date())
-                || (courseDiscountEntity.isEmpty() && categoryDiscountEntity.isEmpty())
-                || userDiscountEntity == null
-        ) {
-            throw new DataNotFoundException("Discount code is not valid");
-        }
-        DiscountVerifyResponseDTO discountVerifyResponseDTO = new DiscountVerifyResponseDTO();
-        discountVerifyResponseDTO.setPercentage(discountEntity.getPercentage());
-        discountVerifyResponseDTO.setIsValid(true);
-        return discountVerifyResponseDTO;
+    public List<DiscountResponseDTO> getMyDiscount(UserAvailableDiscountRequestDTO userAvailableDiscountRequestDTO) {
+        Long userId = userService.getMyInfo().getId();
+        LocalDateTime now = LocalDateTime.now();
+        List<DiscountEntity> discountEntities = userDiscountRepository.findActiveDiscountsByUser(userId, 1L,1L, userAvailableDiscountRequestDTO.getCourseId(), now)
+                .stream()
+                .map(UserDiscountEntity::getDiscountEntity)
+                .toList();
+        return discountConverter.toDtoList(discountEntities);
     }
 
     @Override
     public DiscountResponseDTO createDiscount(DiscountRequestDTO discountRequestDTO) {
-
-        if(discountRequestDTO.getId() == null && discountRepository.findByCode(discountRequestDTO.getCode().trim().toUpperCase()) != null) {
-            throw new DiscountDuplicateException("Discount code already exists");
-        }
         DiscountEntity discountEntity = discountConverter.toEntity(discountRequestDTO);
         discountRepository.save(discountEntity);
         return discountConverter.toDto(discountEntity);

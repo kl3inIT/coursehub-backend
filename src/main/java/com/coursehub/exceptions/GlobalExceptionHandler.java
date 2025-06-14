@@ -3,6 +3,7 @@ package com.coursehub.exceptions;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
 import com.coursehub.exceptions.discount.DiscountDuplicateException;
+import com.coursehub.exceptions.discount.QuantityException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
@@ -69,6 +70,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseGeneral<String>> handleUserAlreadyOwnsDiscountException(UserAlreadyOwnsDiscountException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Bad request from discount");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(QuantityException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleQuantityException(QuantityException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from quantity");
         response.setData(ex.getMessage());
         return ResponseEntity.badRequest().body(response);
     }

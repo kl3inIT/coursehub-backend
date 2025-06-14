@@ -6,6 +6,7 @@ import com.coursehub.entity.DiscountEntity;
 import com.coursehub.entity.PaymentEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.PaymentStatus;
+import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.CourseService;
@@ -44,9 +45,10 @@ public class PaymentConverter {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
-        DiscountEntity discountEntity = null;
-        if(paymentRequestDTO.getDiscountCode() != null){
-            discountEntity = discountRepository.findByCodeAndIsActive(paymentRequestDTO.getDiscountCode(), 1L);
+
+        if(paymentRequestDTO.getDiscountId() != null){
+            DiscountEntity discountEntity = discountRepository.findById(paymentRequestDTO.getDiscountId()).orElseThrow(() -> new DataNotFoundException("Discount not found"));
+            paymentEntity.setDiscountEntity(discountEntity);
         }
 
         paymentEntity.setTransactionCode(transactionCode);
@@ -54,7 +56,6 @@ public class PaymentConverter {
         paymentEntity.setUserEntity(userEntity);
         paymentEntity.setStatus(PaymentStatus.PENDING.getStatus());
         paymentEntity.setAmount(paymentRequestDTO.getAmount() * 25000);
-        paymentEntity.setDiscountEntity(discountEntity);
         return paymentEntity;
     }
 

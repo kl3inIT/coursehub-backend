@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DiscountVerifyRequestDTO {
-    private String code;
+public class UserAvailableDiscountRequestDTO {
+    private Long discountId;
     private Long courseId;
 }

@@ -10,19 +10,16 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> {
-    DiscountEntity findByCodeAndIsActive(String code, Long isActive);
-    DiscountEntity findByCode(String code);
-
     @Query("""
-        SELECT DISTINCT d FROM DiscountEntity d
-        JOIN d.categoryDiscountEntities cde
-        JOIN d.courseDiscountEntities cse
-        WHERE (:isActive IS NULL OR d.isActive = :isActive)
-          AND (:categoryId IS NULL OR cde.categoryEntity.id = :categoryId)
-          AND (:courseId IS NULL OR cse.courseEntity.id = :courseId)
-          AND (:percentage IS NULL OR d.percentage >= :percentage)
-        ORDER BY d.modifiedDate DESC
-    """)
+                SELECT DISTINCT d FROM DiscountEntity d
+                LEFT JOIN d.categoryDiscountEntities cde
+                LEFT JOIN d.courseDiscountEntities cse
+                WHERE (:isActive IS NULL OR d.isActive = :isActive)
+                  AND (:categoryId IS NULL OR cde.categoryEntity.id = :categoryId)
+                  AND (:courseId IS NULL OR cse.courseEntity.id = :courseId)
+                  AND (:percentage IS NULL OR d.percentage >= :percentage)
+                ORDER BY d.modifiedDate DESC
+            """)
     Page<DiscountEntity> searchDiscounts(
             @Param("isActive") Long isActive,
             @Param("categoryId") Long categoryId,
@@ -40,6 +37,7 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> 
                   AND (:courseId IS NULL OR cse.courseEntity.id = :courseId)
                   AND (:userId IS NULL OR ude.userEntity.id = :userId)
                   AND (:percentage IS NULL OR d.percentage >= :percentage)
+                  AND (d.endDate > :currentDateTime)
                 ORDER BY d.modifiedDate DESC
             """)
     Page<DiscountEntity> searchDiscountsOwner(
@@ -48,6 +46,6 @@ public interface DiscountRepository extends JpaRepository<DiscountEntity, Long> 
             @Param("courseId") Long courseId,
             @Param("userId") Long userId,
             @Param("percentage") Double percentage,
+            @Param("currentDateTime") java.time.LocalDateTime currentDateTime,
             Pageable pageable);
-
 }

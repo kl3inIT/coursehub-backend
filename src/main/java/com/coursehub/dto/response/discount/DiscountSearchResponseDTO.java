@@ -13,15 +13,16 @@ import java.util.List;
 @Builder
 public class DiscountSearchResponseDTO {
     private Long id;
-    private String code;
     private String description;
     private Double percentage;
     private int totalCategory;
     private int totalCourse;
+    private Long usage;
+    private Long quantity;
+    private Long availableQuantity;
     private List<Long> categoryIds;
     private List<Long> courseIds;
-    private String usage;
-    private Date expiryTime;
+    private Date startDate;
+    private Date endDate;
     private Long isActive;
-    private Long isGlobal;
 }

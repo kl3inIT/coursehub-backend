@@ -35,6 +35,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -327,6 +328,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<DiscountSearchResponseDTO> getAllDiscounts(DiscountSearchRequestDTO discountSearchRequestDTO) {
+        LocalDateTime now = LocalDateTime.now();
         Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
         Page<DiscountEntity> discountEntities = discountRepository.searchDiscountsOwner(
                 discountSearchRequestDTO.getIsActive(),
@@ -334,6 +336,7 @@ public class UserServiceImpl implements UserService {
                 discountSearchRequestDTO.getCourseId(),
                 getCurrentUser().getId(),
                 discountSearchRequestDTO.getPercentage(),
+                now,
                 pageable
         );
         return discountConverter.toSearchResponseDTO(discountEntities);

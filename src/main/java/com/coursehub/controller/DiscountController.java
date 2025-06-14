@@ -3,10 +3,9 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.discount.DiscountRequestDTO;
 import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
-import com.coursehub.dto.request.discount.DiscountVerifyRequestDTO;
+import com.coursehub.dto.request.discount.UserAvailableDiscountRequestDTO;
 import com.coursehub.dto.response.discount.DiscountResponseDTO;
 import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
-import com.coursehub.dto.response.discount.DiscountVerifyResponseDTO;
 import com.coursehub.service.DiscountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +24,11 @@ public class DiscountController {
 
     private final DiscountService discountService;
 
-    @PostMapping("/verify")
-    public ResponseEntity<ResponseGeneral<DiscountVerifyResponseDTO>> verifyDiscount(@RequestBody DiscountVerifyRequestDTO discountVerifyRequestDTO) {
-        ResponseGeneral<DiscountVerifyResponseDTO> responseDTO = new ResponseGeneral<>();
+    @GetMapping("/my")
+    public ResponseEntity<ResponseGeneral<List<DiscountResponseDTO>>> getMyDiscount(@ModelAttribute UserAvailableDiscountRequestDTO userAvailableDiscountRequestDTO) {
+        ResponseGeneral<List<DiscountResponseDTO>> responseDTO = new ResponseGeneral<>();
         responseDTO.setMessage(SUCCESS);
-        responseDTO.setData(discountService.verifyDiscountCode(discountVerifyRequestDTO));
+        responseDTO.setData(discountService.getMyDiscount(userAvailableDiscountRequestDTO));
         return ResponseEntity.ok(responseDTO);
     }
 
