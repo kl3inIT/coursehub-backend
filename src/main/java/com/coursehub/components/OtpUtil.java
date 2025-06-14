@@ -62,6 +62,24 @@ public class OtpUtil {
         }
     }
 
+    public void sendPasswordToManager(String email, String tempPassword) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Tài khoản ITCourseHub - Mật khẩu đăng nhập tạm thời");
+            String htmlContent = "<p>Chào quản lý,</p>" +
+                    "<p>Tài khoản của bạn trên <b>ITCourseHub</b> đã được tạo.</p>" +
+                    "<p><b>Mật khẩu đăng nhập tạm thời:</b> <span style='color:blue;'>" + tempPassword + "</span></p>" +
+                    "<p>Vui lòng đăng nhập và đổi mật khẩu mới để đảm bảo an toàn cho tài khoản.</p>" +
+                    "<br/><p>Trân trọng,<br/>ITCourseHub Team</p>";
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        } catch (MessagingException | MailException e) {
+            throw new EmailSendingException("Failed to send password email", e);
+        }
+    }
 
     private String getInvoiceEmailTemplate(Map<String, String> invoiceData){
         String template = "<!DOCTYPE html>\n" +

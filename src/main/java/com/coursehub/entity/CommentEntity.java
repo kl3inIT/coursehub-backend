@@ -13,7 +13,6 @@ import java.util.Set;
 @Setter
 public class CommentEntity extends BaseEntity {
 
-
     @Column
     private String comment;
 
@@ -24,9 +23,6 @@ public class CommentEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
-
-    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ReportEntity> reportEntities = new HashSet<>();
 
     // Quan hệ tự tham chiếu (comment cha)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,7 +36,7 @@ public class CommentEntity extends BaseEntity {
     @Column(name = "is_hidden")
     private Long isHidden = 0L;
 
-    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CommentLikeEntity> likes = new HashSet<>();
 
 }

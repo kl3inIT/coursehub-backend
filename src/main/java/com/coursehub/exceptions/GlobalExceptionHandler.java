@@ -1,6 +1,9 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
+import com.coursehub.exceptions.discount.DiscountDuplicateException;
+import com.coursehub.exceptions.discount.QuantityException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
@@ -13,6 +16,7 @@ import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
 import com.coursehub.exceptions.lesson.PreviousLessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
+import com.coursehub.exceptions.report.ReportNotFoundException;
 import com.coursehub.exceptions.module.PreviousModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
 import com.coursehub.exceptions.s3.S3PresignUrlException;
@@ -64,8 +68,25 @@ public class GlobalExceptionHandler {
         response.setDetail("An unexpected error occurred");
         response.setData(null);
         
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(UserAlreadyOwnsDiscountException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserAlreadyOwnsDiscountException(UserAlreadyOwnsDiscountException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from discount");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(QuantityException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleQuantityException(QuantityException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from quantity");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    }
+
 
     // validate request data
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -100,6 +121,14 @@ public class GlobalExceptionHandler {
         response.setMessage("Internal Server Error");
         response.setData(ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(DiscountDeletionNotAllowedException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleDiscountDeletionNotAllowedException(DiscountDeletionNotAllowedException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Bad request from discount deletion");
+        response.setData(ex.getMessage());
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(OtpNotFoundException.class)
@@ -374,6 +403,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(DiscountDuplicateException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleDiscountDuplicateException(DiscountDuplicateException ex) {
+        log.error("Discount already exists: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Discount Already Exists");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ResponseGeneral<String>> handleAccessDeniedException(AccessDeniedException ex) {
         log.error("Access denied: {}", ex.getMessage());
@@ -384,6 +425,21 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    // Report Exception Handler
+
+    @ExceptionHandler(ReportNotFoundException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleReportNotFoundException(ReportNotFoundException ex) {
+        log.error("Report not found: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Report Not Found");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+
     }
 
     @ExceptionHandler(LessonProgressNotFoundException.class)
@@ -421,7 +477,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-
 
 
 

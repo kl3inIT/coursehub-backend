@@ -2,9 +2,11 @@ package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseSearchRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
 import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.service.CourseService;
@@ -125,12 +127,27 @@ public class CourseController {
         log.info("Searching courses with filters - search: {}, category: {}, level: {}, minPrice: {}, maxPrice: {}",
                 search, category, level, minPrice, maxPrice);
 
-        Page<CourseResponseDTO> courses = courseService.searchCourses(search, category, level, minPrice, maxPrice,
-                pageable);
+        // Create search request DTO
+        CourseSearchRequestDTO searchRequest = CourseSearchRequestDTO.builder()
+                .searchTerm(search)
+                .categoryId(category)
+                .level(level != null ? level.name() : null)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .sortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY)
+                .sortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION)
+                .build();
+
+        // Validate price range
+        searchRequest.validatePriceRange();
+
+        Page<CourseResponseDTO> courses = courseService.advancedSearch(searchRequest, pageable);
 
         ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage(SUCCESS);
+        response.setDetail("Search completed successfully");
+
         return ResponseEntity.ok(response);
     }
 
@@ -164,4 +181,34 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/search/advanced-search")
+    public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> advancedSearch(
+            @Valid CourseSearchRequestDTO searchRequest,
+            Pageable pageable) {
+
+        log.info("Advanced search with filters - {}", searchRequest);
+
+        Page<CourseResponseDTO> courses = courseService.advancedSearch(searchRequest, pageable);
+
+        ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(courses);
+        response.setMessage(SUCCESS);
+        response.setDetail("Advanced search completed successfully");
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search/stats")
+    public ResponseEntity<ResponseGeneral<CourseSearchStatsResponseDTO>> getSearchStats() {
+        log.info("Getting search statistics");
+
+        CourseSearchStatsResponseDTO stats = courseService.getSearchStatistics();
+
+        ResponseGeneral<CourseSearchStatsResponseDTO> response = new ResponseGeneral<>();
+        response.setData(stats);
+        response.setMessage(SUCCESS);
+        response.setDetail("Search statistics retrieved successfully");
+
+        return ResponseEntity.ok(response);
+    }
 }

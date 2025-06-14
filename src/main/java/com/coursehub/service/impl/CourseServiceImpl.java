@@ -2,6 +2,8 @@ package com.coursehub.service.impl;
 
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseSearchRequestDTO;
+import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
 import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
@@ -13,18 +15,25 @@ import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CourseRepository;
+import com.coursehub.repository.SearchRepository;
+import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +47,8 @@ public class CourseServiceImpl implements CourseService {
     private final LessonService lessonService;
     private final ReviewService reviewService;
     private final EnrollmentService enrollmentService;
-    private final UserService userService;
+    private final UserRepository userRepository;
+    private final SearchRepository searchRepository;
 
     @Override
     @Transactional
@@ -48,7 +58,12 @@ public class CourseServiceImpl implements CourseService {
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
 
-            UserEntity user = userService.getUserBySecurityContext();
+            SecurityContext context = SecurityContextHolder.getContext();
+            String email = context.getAuthentication().getName();
+            UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+            if(user == null){
+                throw new UserNotFoundException("User not found with email: " + email);
+            }
             courseEntity.setUserEntity(user);
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
@@ -136,16 +151,21 @@ public class CourseServiceImpl implements CourseService {
         log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}",
                 search, categoryId, level, minPrice, maxPrice);
 
-        Page<CourseEntity> courseEntities = courseRepository.searchCourses(
-                search, categoryId, level, minPrice, maxPrice, pageable);
+        // Create search request DTO
+        CourseSearchRequestDTO searchRequest = CourseSearchRequestDTO.builder()
+                .searchTerm(search)
+                .categoryId(categoryId)
+                .level(level != null ? level.name() : null)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .sortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY)
+                .sortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION)
+                .build();
 
-        if (courseEntities.isEmpty()) {
-            log.warn("No courses found with applied filters");
-        } else {
-            log.info("Found {} courses with applied filters", courseEntities.getTotalElements());
-        }
+        // Validate price range
+        searchRequest.validatePriceRange();
 
-        return courseConverter.toResponseDTOPage(courseEntities);
+        return advancedSearch(searchRequest, pageable);
     }
 
     @Override
@@ -204,7 +224,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<DashboardCourseResponseDTO> getCoursesByUserId() {
-        UserEntity user = userService.getUserBySecurityContext();
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if(user == null){
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
         List<EnrollmentEntity> enrollment = enrollmentService.getEnrollmentsByUserEntityId(user.getId());
 
         return enrollment.stream()
@@ -219,6 +244,7 @@ public class CourseServiceImpl implements CourseService {
         }
 
         return DashboardCourseResponseDTO.builder()
+                .id(courseEntity.getId())
                 .title(courseEntity.getTitle())
                 .description(courseEntity.getDescription())
                 .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
@@ -231,6 +257,77 @@ public class CourseServiceImpl implements CourseService {
                 .completedDate(enrollmentEntity.getCompletedDate())
                 .progress(enrollmentEntity.getProgressPercentage())
                 .build();
+    }
+
+    @Override
+    public Page<CourseResponseDTO> advancedSearch(CourseSearchRequestDTO searchRequest, Pageable pageable) {
+        log.info("Performing advanced search with filters - {}", searchRequest);
+
+        // Validate price range
+        searchRequest.validatePriceRange();
+
+        // Set default values if not provided
+        if (searchRequest.getSortBy() == null) {
+            searchRequest.setSortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY);
+        }
+        if (searchRequest.getSortDirection() == null) {
+            searchRequest.setSortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION);
+        }
+
+        Page<CourseEntity> courseEntities = searchRepository.advancedSearch(searchRequest, pageable);
+
+        if (courseEntities.isEmpty()) {
+            log.warn("No courses found with applied search filters");
+        } else {
+            log.info("Found {} courses with applied search filters", courseEntities.getTotalElements());
+        }
+
+        return courseConverter.toResponseDTOPage(courseEntities);
+    }
+
+    @Override
+    public CourseSearchStatsResponseDTO getSearchStatistics() {
+        log.info("Calculating search statistics");
+
+        // Get all courses for statistics
+        List<CourseEntity> allCourses = courseRepository.findAll();
+
+        // Calculate total courses
+        long totalCourses = allCourses.size();
+
+        // Calculate price range
+        Long minPrice = allCourses.stream()
+                .mapToLong(course -> course.getPrice().longValue())
+                .min()
+                .orElse(0L);
+
+        Long maxPrice = allCourses.stream()
+                .mapToLong(course -> course.getPrice().longValue())
+                .max()
+                .orElse(0L);
+
+        // Calculate average rating
+        Long avgRating = allCourses.stream()
+                .mapToLong(course -> reviewService.getAverageRating(course.getId()).longValue())
+                .sum() / (totalCourses > 0 ? totalCourses : 1);
+
+        // Calculate level statistics
+        Map<String, Long> levelStats = allCourses.stream()
+                .collect(Collectors.groupingBy(
+                        course -> course.getLevel().getLevelName(),
+                        Collectors.counting()
+                ));
+
+        CourseSearchStatsResponseDTO stats = CourseSearchStatsResponseDTO.builder()
+                .totalCourses(totalCourses)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .avgRating(avgRating)
+                .levelStats(levelStats)
+                .build();
+
+        log.info("Search statistics calculated successfully");
+        return stats;
     }
 
 }
