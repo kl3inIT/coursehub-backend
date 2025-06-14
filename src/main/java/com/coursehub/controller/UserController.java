@@ -1,15 +1,20 @@
 package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
+import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
 import com.coursehub.dto.response.user.UserManagementDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
 
 @RestController
 @RequestMapping("/api/users")
@@ -52,5 +57,20 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @PostMapping("/discounts/{discountId}")
+    public ResponseEntity<ResponseGeneral<String>> getCoupon(@PathVariable Long discountId) {
+        ResponseGeneral<String> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage("Coupon received successfully");
+        responseDTO.setData(userService.getDiscount(discountId));
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/discounts")
+    public ResponseEntity<ResponseGeneral<Page<DiscountSearchResponseDTO>>> searchDiscount(@ModelAttribute DiscountSearchRequestDTO discountSearchRequestDTO) {
+        ResponseGeneral<Page<DiscountSearchResponseDTO>> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage(SUCCESS);
+        responseDTO.setData(userService.getAllDiscounts(discountSearchRequestDTO));
+        return ResponseEntity.ok(responseDTO);
+    }
 
 }
