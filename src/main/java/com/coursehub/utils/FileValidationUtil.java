@@ -199,13 +199,6 @@ public class FileValidationUtil {
         return contentType != null && ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase());
     }
 
-    /**
-     * Checks if file is a video
-     */
-    public static boolean isVideoFile(MultipartFile file) {
-        String contentType = file.getContentType();
-        return contentType != null && ALLOWED_VIDEO_TYPES.contains(contentType.toLowerCase());
-    }
 
     /**
      * Checks if file is a document

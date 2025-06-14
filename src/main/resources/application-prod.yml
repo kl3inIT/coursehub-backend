@@ -10,7 +10,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: http://it4beginner.vercel.app/auth/google/callback
+            redirect-uri: https://it4beginner.vercel.app//auth/google/callback
         provider:
           google:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
