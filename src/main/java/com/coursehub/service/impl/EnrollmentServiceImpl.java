@@ -4,13 +4,17 @@ import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.EnrollmentRepository;
 import com.coursehub.repository.UserLessonRepository;
+import com.coursehub.repository.UserRepository;
 import com.coursehub.service.EnrollmentService;
 import com.coursehub.service.LessonService;
 import com.coursehub.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +28,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final LessonService lessonService;
     private final UserLessonRepository userLessonRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     public Long countByUserEntityId(Long userId) {
@@ -66,7 +70,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public EnrollmentStatusResponseDTO getEnrollmentStatus(Long courseId) {
-        UserEntity user = userService.getUserBySecurityContext();
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if(user == null){
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
         log.info("Checking enrollment status for user ID: {} and course ID: {}", user.getId(), courseId);
         EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
         if (enrollment == null) {

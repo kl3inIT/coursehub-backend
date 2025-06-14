@@ -7,6 +7,6 @@ import lombok.Setter;
 @Setter
 public class PaymentRequestDTO {
     private Long courseId;
-    private String discountCode;
+    private Long discountId;
     private Double amount;
 }

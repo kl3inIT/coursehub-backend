@@ -4,6 +4,7 @@ import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
 import com.coursehub.dto.response.category.CategoryChartDTO;
 import com.coursehub.dto.response.category.CategoryDetailDTO;
+import com.coursehub.entity.CategoryEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
@@ -16,4 +17,6 @@ public interface CategoryService {
     List<CategoryChartDTO> getCategoryChart();
     CategoryDetailDTO getCategoryDetail(Long categoryId);
     List<CategoryDetailDTO> getAllCategoryDetails();
+    CategoryEntity findById(Long id);
+
 }

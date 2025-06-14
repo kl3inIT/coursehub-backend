@@ -15,14 +15,18 @@ import com.coursehub.enums.CourseLevel;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.SearchRepository;
+import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,7 +47,7 @@ public class CourseServiceImpl implements CourseService {
     private final LessonService lessonService;
     private final ReviewService reviewService;
     private final EnrollmentService enrollmentService;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final SearchRepository searchRepository;
 
     @Override
@@ -54,7 +58,12 @@ public class CourseServiceImpl implements CourseService {
         try {
             CourseEntity courseEntity = courseConverter.toEntity(courseRequestDTO);
 
-            UserEntity user = userService.getUserBySecurityContext();
+            SecurityContext context = SecurityContextHolder.getContext();
+            String email = context.getAuthentication().getName();
+            UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+            if(user == null){
+                throw new UserNotFoundException("User not found with email: " + email);
+            }
             courseEntity.setUserEntity(user);
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
@@ -215,7 +224,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<DashboardCourseResponseDTO> getCoursesByUserId() {
-        UserEntity user = userService.getUserBySecurityContext();
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if(user == null){
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
         List<EnrollmentEntity> enrollment = enrollmentService.getEnrollmentsByUserEntityId(user.getId());
 
         return enrollment.stream()
