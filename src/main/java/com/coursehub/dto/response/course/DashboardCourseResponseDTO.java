@@ -12,6 +12,7 @@ import java.util.Date;
 @Setter
 public class DashboardCourseResponseDTO {
 
+    private Long id;
     private String title;
     private String description;
     private String thumbnailUrl;
