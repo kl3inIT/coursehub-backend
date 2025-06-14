@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-public class UserManagementController {
+public class AdminController {
 
     private final UserService userService;
 
@@ -49,10 +49,10 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping("/create-manager")
     public ResponseEntity<ResponseGeneral<UserManagementDTO>> createManager(@RequestBody ProfileRequestDTO request) {
         ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
-        response.setData(userService.createUser(request));
+        response.setData(userService.createManager(request));
         response.setMessage("Create user successfully");
         return ResponseEntity.ok(response);
     }
@@ -68,22 +68,19 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{userId}/role")
-    public ResponseEntity<ResponseGeneral<Void>> updateUserRole(
-        @PathVariable Long userId,
-        @RequestParam String role
-    ) {
+    @DeleteMapping("/{managerId}")
+    public ResponseEntity<ResponseGeneral<Void>> deleteManager(@PathVariable Long managerId) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.updateUserRole(userId, role);
-        response.setMessage("Update user role successfully");
+        userService.deleteManager(managerId);
+        response.setMessage("Delete user successfully");
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<ResponseGeneral<Void>> deleteUser(@PathVariable Long userId) {
+    @PostMapping("/{userId}/warn")
+    public ResponseEntity<ResponseGeneral<Void>> addWarning(@PathVariable Long userId) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.deleteUser(userId);
-        response.setMessage("Delete user successfully");
+        userService.addWarning(userId);
+        response.setMessage("Warning added successfully");
         return ResponseEntity.ok(response);
     }
 } 

@@ -16,8 +16,8 @@ public interface UserService {
     Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, String status);
     UserManagementDTO getUserDetails(Long userId);
     void updateUserStatus(Long userId, String status);
-    void updateUserRole(Long userId, String role);
-    void deleteUser(Long userId);
-    UserManagementDTO createUser(ProfileRequestDTO request);
+    void deleteManager(Long userId);
+    UserManagementDTO createManager(ProfileRequestDTO request);
     void changePassword(ChangePasswordRequestDTO request);
+    void addWarning(Long userId);
 }

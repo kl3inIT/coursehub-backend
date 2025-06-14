@@ -115,8 +115,7 @@ public class UserConverter {
                 
                 activities.add(activity);
             } catch (Exception e) {
-                // Skip this comment if there are any issues with entity relationships
-                // This can happen if the lesson or module was deleted
+                // Skip
             }
         });
 
@@ -154,9 +153,10 @@ public class UserConverter {
             
         if (totalLessons == 0) return 0.0;
 
-        long completedLessons = 0; // This should be calculated from user's completed lessons
+        long completedLessons = 0;
         
         return (double) completedLessons / totalLessons * 100;
     }
+
 
 }

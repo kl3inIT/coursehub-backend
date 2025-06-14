@@ -99,7 +99,7 @@ public class UserEntity extends BaseEntity {
     @Column(name = "banned_at")
     private Date bannedAt;
 
-    @Column(name = "warning_count", columnDefinition = "bigint default 0")
-    private Long warningCount;
+    @Column(name = "warning_count")
+    private Long warningCount = 0L;
 
 }
