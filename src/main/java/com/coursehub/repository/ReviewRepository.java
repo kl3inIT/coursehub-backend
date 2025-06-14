@@ -1,6 +1,7 @@
 package com.coursehub.repository;
 
 import com.coursehub.entity.ReviewEntity;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
@@ -23,4 +25,7 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
     List<ReviewEntity> findByCourseEntityId(Long courseId);
 
     Long countByCourseEntityId(Long courseId);
+
+    @Query("SELECT r FROM ReviewEntity r JOIN FETCH r.userEntity WHERE r.id = :id")
+    Optional<ReviewEntity> findByIdWithUser(@Param("id") Long id);
 } 

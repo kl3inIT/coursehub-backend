@@ -49,11 +49,11 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{id}/hide")
-    public ResponseEntity<ResponseGeneral<String>> hideComment(@PathVariable Long id) {
-        commentService.hideComment(id);
+    @PatchMapping("/{commentId}/hide")
+    public ResponseEntity<ResponseGeneral<String>> hideComment(@PathVariable Long commentId) {
+        commentService.hideComment(commentId);
         ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage("Comment has been hidden due to violation");
+        response.setMessage("Comment has been hidden");
         response.setData("Hidden");
         return ResponseEntity.ok(response);
     }
@@ -78,6 +78,15 @@ public class CommentController {
         response.setMessage(liked ? "Liked successfully" : "Unliked successfully");
         response.setData(liked);
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseGeneral<CommentResponseDTO>> getCommentById(@PathVariable Long id) {
+        CommentResponseDTO comment = commentService.getCommentById(id);
+        ResponseGeneral<CommentResponseDTO> response = new ResponseGeneral<>();
+        response.setMessage("Comment retrieved successfully");
+        response.setData(comment);
         return ResponseEntity.ok(response);
     }
 

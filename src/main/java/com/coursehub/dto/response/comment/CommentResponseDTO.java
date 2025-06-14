@@ -24,5 +24,6 @@ public class CommentResponseDTO {
     private boolean likedByCurrentUser;
     private boolean owner;
     private List<CommentResponseDTO> replies;
+    private Long lessonId;
 }
 

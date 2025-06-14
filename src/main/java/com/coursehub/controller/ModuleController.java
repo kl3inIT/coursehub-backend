@@ -84,6 +84,4 @@ public class ModuleController {
         response.setDetail("Module updated successfully");
         return ResponseEntity.ok(response);
     }
-
-
 }

@@ -3,6 +3,7 @@ package com.coursehub.converter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import org.springframework.stereotype.Component;
 
 import com.coursehub.dto.response.comment.CommentResponseDTO;
@@ -20,8 +21,8 @@ public class CommentConverter {
         if (entity == null) return null;
         
         UserEntity user = entity.getUserEntity();
-        boolean isManager = Optional.ofNullable(user.getRoleEntity())
-                .map(role -> "MANAGER".equalsIgnoreCase(role.getCode()))
+        boolean isManagerOrAdmin = Optional.ofNullable(user.getRoleEntity())
+                .map(role -> "MANAGER".equalsIgnoreCase(role.getCode()) || "ADMIN".equalsIgnoreCase(role.getCode()))
                 .orElse(false);
 
         boolean liked = Optional.ofNullable(entity.getLikes())
@@ -39,11 +40,12 @@ public class CommentConverter {
                 .author(user.getName())
                 .avatar(user.getAvatar())
                 .createdAt(entity.getCreatedDate())
-                .isManager(isManager)
+                .isManager(isManagerOrAdmin)
                 .isHidden(entity.getIsHidden())
                 .likeCount(likeCount)
                 .likedByCurrentUser(liked)
                 .owner(isOwner)
+                .lessonId(entity.getLessonEntity() != null ? entity.getLessonEntity().getId() : null)
                 .build();
     }
 

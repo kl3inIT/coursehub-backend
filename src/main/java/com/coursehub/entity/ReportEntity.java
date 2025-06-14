@@ -1,18 +1,19 @@
 package com.coursehub.entity;
 
+import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
+import com.coursehub.enums.ResourceType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.util.Date;
 
 @Entity
 @Table(name = "reports")
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class ReportEntity extends BaseEntity {
 
@@ -24,9 +25,12 @@ public class ReportEntity extends BaseEntity {
     @JoinColumn(name = "reported_user_id", nullable = false)
     private UserEntity reportedUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_id", nullable = false)
-    private CommentEntity comment;
+    @Enumerated(EnumType.STRING)
+    @Column( nullable = false)
+    private ResourceType type;
+
+    @Column(name = "resource_id", nullable = false)
+    private Long resourceId;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String reason;
@@ -35,11 +39,15 @@ public class ReportEntity extends BaseEntity {
     @Column(nullable = false)
     private ReportStatus status = ReportStatus.PENDING;
 
-    @Column(name = "resolved_at")
-    @CreatedDate
-    private Date resolvedAt;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ReportSeverity severity = ReportSeverity.LOW;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resolved_by")
     private UserEntity resolvedBy;
+
+    @Column(name = "action_note", columnDefinition = "TEXT")
+    private String actionNote;
+
 }
