@@ -2,9 +2,13 @@ package com.coursehub.controller;
 
 import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
 
+import com.coursehub.dto.request.report.ReportSearchRequestDTO;
+import com.coursehub.dto.response.report.ResourceLocationDTO;
+import com.coursehub.entity.ReportEntity;
 import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
 import com.coursehub.enums.ResourceType;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,22 +40,16 @@ public class ReportController {
 
     @GetMapping
     public ResponseEntity<ResponseGeneral<Page<ReportResponseDTO>>> getAllReports(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdDate") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir,
-            @RequestParam(required = false) ResourceType type,
-            @RequestParam(required = false) ReportSeverity severity,
-            @RequestParam(required = false) ReportStatus status,
-            @RequestParam(required = false) String search) {
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        
-        ResponseGeneral<Page<ReportResponseDTO>> responseDTO = new ResponseGeneral<>();
-        responseDTO.setData(reportService.getAllReports(type, severity, status, search, pageRequest));
-        responseDTO.setMessage(SUCCESS);
-        return ResponseEntity.ok(responseDTO);
+            @ModelAttribute ReportSearchRequestDTO searchRequest
+    ) {
+        Page<ReportResponseDTO> reports = reportService.searchReports(searchRequest);
+        ResponseGeneral<Page<ReportResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(reports);
+        response.setMessage(SUCCESS);
+        response.setDetail("Reports retrieved successfully");
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseGeneral<ReportResponseDTO>> getReportById(@PathVariable Long id) {
@@ -78,4 +76,14 @@ public class ReportController {
         responseDTO.setMessage(SUCCESS);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @GetMapping("/{reportId}/resource-location")
+    public ResponseEntity<ResponseGeneral<ResourceLocationDTO>> getReportResourceLocation(@PathVariable Long reportId) {
+        ResponseGeneral<ResourceLocationDTO> response = new ResponseGeneral<>();
+        ResourceLocationDTO dto = reportService.getResourceLocationByReportId(reportId);
+        response.setMessage(SUCCESS);
+        response.setData(dto);
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -169,9 +169,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void hideComment(Long commentId) {
+    public void setCommentVisibility(Long commentId, boolean isVisible) {
         CommentEntity comment = getCommentOrThrow(commentId);
-        comment.setIsHidden(1L);
+        if(isVisible) {
+            comment.setIsHidden(1L);
+        }else{
+            comment.setIsHidden(0L);
+        }
         comment.setModifiedDate(new Date());
         commentRepository.save(comment);
     }
