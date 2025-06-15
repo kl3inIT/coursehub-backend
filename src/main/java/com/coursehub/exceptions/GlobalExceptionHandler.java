@@ -59,17 +59,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.notFound().build();
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ResponseGeneral<Object>> handleGenericException(Exception ex) {
-        log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
-        
-        ResponseGeneral<Object> response = new ResponseGeneral<>();
-        response.setMessage("Internal server error");
-        response.setDetail("An unexpected error occurred");
-        response.setData(null);
-        
-         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
+
 
     @ExceptionHandler(UserAlreadyOwnsDiscountException.class)
     public ResponseEntity<ResponseGeneral<String>> handleUserAlreadyOwnsDiscountException(UserAlreadyOwnsDiscountException ex) {
@@ -476,6 +466,19 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // generic phải để cuối vì nếu không sẽ bắt hết các exception khác
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ResponseGeneral<Object>> handleGenericException(Exception ex) {
+        log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
+
+        ResponseGeneral<Object> response = new ResponseGeneral<>();
+        response.setMessage("Internal server error");
+        response.setDetail("An unexpected error occurred");
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
 
