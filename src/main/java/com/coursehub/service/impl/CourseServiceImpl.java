@@ -330,4 +330,12 @@ public class CourseServiceImpl implements CourseService {
         return stats;
     }
 
+    @Override
+    public List<CourseResponseDTO> getCoursesRecommend() {
+        log.info("Course recommendations: ");
+        List<CourseEntity> courseRecommend = courseRepository.getCoursesRecommend();
+
+        return courseConverter.toResponseDTOList(courseRecommend);
+    }
+
 }

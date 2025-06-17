@@ -37,4 +37,6 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
                                      @Param("maxPrice") Double maxPrice,
                                      Pageable pageable);
 
+    @Query(value = "SELECT * FROM courses ORDER BY RAND() LIMIT 3", nativeQuery = true)
+    List<CourseEntity> getCoursesRecommend();
 }
