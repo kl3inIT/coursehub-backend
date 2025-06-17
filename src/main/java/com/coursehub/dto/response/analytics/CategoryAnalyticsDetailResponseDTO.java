@@ -17,9 +17,10 @@ public class CategoryAnalyticsDetailResponseDTO {
     private String categoryName;
     private String description;
     private Long courseCount;
-    private Double averageRating;
     private Long totalStudents;
+    private Double averageRating;
     private BigDecimal totalRevenue;
+    private Double revenueProportion;
     private Date createdDate;
     private Date modifiedDate;
 } 

@@ -3,8 +3,6 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
-import com.coursehub.dto.response.analytics.CategoryAnalyticsChartResponseDTO;
-import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -68,18 +64,4 @@ public class CategoryController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/chart")
-    public ResponseEntity<List<CategoryAnalyticsChartResponseDTO>> getCategoryChart() {
-        return ResponseEntity.ok(categoryService.getCategoryChart());
-    }
-
-    @GetMapping("/{categoryId}/detail")
-    public ResponseEntity<CategoryAnalyticsDetailResponseDTO> getCategoryDetail(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(categoryService.getCategoryDetail(categoryId));
-    }
-
-    @GetMapping("/details")
-    public ResponseEntity<List<CategoryAnalyticsDetailResponseDTO>> getAllCategoryDetails() {
-        return ResponseEntity.ok(categoryService.getAllCategoryDetails());
-    }
 } 
