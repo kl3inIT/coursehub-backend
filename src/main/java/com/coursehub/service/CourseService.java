@@ -43,4 +43,6 @@ public interface CourseService {
     Page<CourseResponseDTO> advancedSearch(CourseSearchRequestDTO searchRequest, Pageable pageable);
 
     CourseSearchStatsResponseDTO getSearchStatistics();
+
+    List<CourseResponseDTO> getCoursesRecommend();
 }    

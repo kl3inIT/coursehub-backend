@@ -211,4 +211,15 @@ public class CourseController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/recommended")
+    public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> getCourseRecommendations() {
+        log.info("Getting course recommendations");
+        List<CourseResponseDTO> dtos = courseService.getCoursesRecommend();
+        ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(dtos);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course recommendations retrieved successfully");
+        return ResponseEntity.ok(response);
+    }
 }
