@@ -1,16 +1,13 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
 import com.coursehub.exceptions.discount.DiscountDuplicateException;
 import com.coursehub.exceptions.discount.QuantityException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
-import com.coursehub.exceptions.course.CourseCreationException;
-import com.coursehub.exceptions.course.CourseNotFoundException;
-import com.coursehub.exceptions.course.FileUploadException;
-import com.coursehub.exceptions.course.InvalidFileException;
 import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
@@ -466,6 +463,18 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(InvalidCourseStatusException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidCourseStatusException(InvalidCourseStatusException ex) {
+        log.error("Invalid course status: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Invalid Course Status");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // generic phải để cuối vì nếu không sẽ bắt hết các exception khác

@@ -4,11 +4,9 @@ import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseSearchRequestDTO;
 import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
-import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
-import com.coursehub.dto.response.course.CourseResponseDTO;
-import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
-import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
+import com.coursehub.dto.response.course.*;
 import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import com.coursehub.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.coursehub.constant.Constant.CommonConstants.*;
 
@@ -94,11 +93,11 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> findAllCourse(Pageable pageable) {
+    @GetMapping("/status/courses")
+    public ResponseEntity<ResponseGeneral<List<ManagerCourseResponseDTO>>> findAllCourseByCourseStatus(CourseStatus status) {
         log.info("Finding all courses");
-        Page<CourseResponseDTO> courses = courseService.findAllCourse(pageable);
-        ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
+        List<ManagerCourseResponseDTO> courses = courseService.findAllCourseByStatus(status);
+        ResponseGeneral<List<ManagerCourseResponseDTO>> response = new ResponseGeneral<>();
         response.setData(courses);
         response.setMessage("All courses fetched successfully");
         response.setDetail("Finding all courses successfully");
@@ -112,42 +111,6 @@ public class CourseController {
         response.setData(courses);
         response.setMessage("All courses fetched successfully");
         response.setDetail("Finding courses by category successfully");
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> searchCourses(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) Long category,
-            @RequestParam(required = false) CourseLevel level,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            Pageable pageable) {
-
-        log.info("Searching courses with filters - search: {}, category: {}, level: {}, minPrice: {}, maxPrice: {}",
-                search, category, level, minPrice, maxPrice);
-
-        // Create search request DTO
-        CourseSearchRequestDTO searchRequest = CourseSearchRequestDTO.builder()
-                .searchTerm(search)
-                .categoryId(category)
-                .level(level != null ? level.name() : null)
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .sortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY)
-                .sortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION)
-                .build();
-
-        // Validate price range
-        searchRequest.validatePriceRange();
-
-        Page<CourseResponseDTO> courses = courseService.advancedSearch(searchRequest, pageable);
-
-        ResponseGeneral<Page<CourseResponseDTO>> response = new ResponseGeneral<>();
-        response.setData(courses);
-        response.setMessage(SUCCESS);
-        response.setDetail("Search completed successfully");
-
         return ResponseEntity.ok(response);
     }
 
@@ -222,4 +185,14 @@ public class CourseController {
         response.setDetail("Course recommendations retrieved successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/status/statuses")
+    public ResponseEntity<ResponseGeneral<Map<String, String>>> getCourseStatuses() {
+        ResponseGeneral<Map<String, String>> response = new ResponseGeneral<>();
+        response.setData(CourseStatus.getCourseStatuses());
+        response.setMessage("Course statuses fetched successfully");
+        response.setDetail("All course statuses");
+        return ResponseEntity.ok(response);
+    }
+
 }

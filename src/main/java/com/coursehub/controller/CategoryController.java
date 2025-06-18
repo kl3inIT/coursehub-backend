@@ -80,4 +80,6 @@ public class CategoryController {
     public ResponseEntity<List<CategoryDetailDTO>> getAllCategoryDetails() {
         return ResponseEntity.ok(categoryService.getAllCategoryDetails());
     }
+
+
 } 

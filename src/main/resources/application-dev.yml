@@ -29,23 +29,6 @@ spring:
       hibernate:
         format_sql: true
 
-  # Cấu hình p6spy trực tiếp trong application.yml
-  p6spy:
-    config:
-      # Định dạng log (SingleLineFormat để dễ đọc)
-      logMessageFormat: com.p6spy.engine.spy.appender.SingleLineFormat
-      # Appender để ghi log vào Slf4j (mặc định trong Spring Boot)
-      appender: com.p6spy.engine.spy.appender.Slf4jLogger
-      # Không log các truy vấn không quan trọng (tuỳ chọn)
-      exclude: >
-        select 1,^mysql: .*
-      # Bật logging (mặc định là true)
-      logEnabled: false
-      # Tắt log stack trace nếu không cần (tuỳ chọn)
-      stacktrace: false
-      # Đường dẫn file log (tuỳ chọn, để log vào file thay vì console)
-      # logFile: logs/p6spy.log
-
   aws:
     access-key: ${AWS_ACCESS_KEY}
     secret-key: ${AWS_SECRET_KEY}
@@ -88,12 +71,4 @@ bank:
   bank-code: TPBank
   account-holder: NHU DINH NHAT
 
-logging:
-  level:
-    org:
-      hibernate:
-        SQL: DEBUG
-        type:
-          descriptor:
-            sql: TRACE
-    # Bật logging cho p6spy
+

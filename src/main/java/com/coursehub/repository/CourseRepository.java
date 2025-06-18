@@ -3,6 +3,7 @@ package com.coursehub.repository;
 import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,8 +20,7 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     @Query("SELECT c FROM CourseEntity c LEFT JOIN c.enrollmentEntities e GROUP BY c.id ORDER BY COUNT(e.id) DESC")
     List<CourseEntity> findFeaturedCourse(Pageable pageable);
 
-    @NonNull
-    Page<CourseEntity> findAll(Pageable pageable);
+    List<CourseEntity> findAllByStatus(CourseStatus status);
 
     List<CourseEntity> findByCategoryEntity_Id(Long categoryId);
 

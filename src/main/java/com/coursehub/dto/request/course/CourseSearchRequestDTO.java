@@ -32,22 +32,7 @@ public class CourseSearchRequestDTO {
     private Boolean isFree;
     private Boolean isDiscounted;
     private String status;
-    
-    // Default values
-    public static final String DEFAULT_SORT_BY = "createdDate";
-    public static final String DEFAULT_SORT_DIRECTION = "desc";
-    public static final int DEFAULT_PAGE_SIZE = 10;
-    public static final int DEFAULT_PAGE_NUMBER = 0;
-    
-    // Sort directions
-    public static final String SORT_ASC = "asc";
-    public static final String SORT_DESC = "desc";
-    
-    // Sortable fields
-    public static final String SORT_BY_TITLE = "title";
-    public static final String SORT_BY_PRICE = "price";
-    public static final String SORT_BY_CREATED_DATE = "createdDate";
-    public static final String SORT_BY_RATING = "averageRating";
+
     
     // Validation method
     public void validatePriceRange() {

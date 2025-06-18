@@ -3,15 +3,12 @@ package com.coursehub.service.impl;
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
-import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
-import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
-import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.dto.response.course.*;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
@@ -30,7 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import static com.coursehub.constant.Constant.SearchConstants.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -113,14 +110,51 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Page<CourseResponseDTO> findAllCourse(Pageable pageable) {
-
-        Page<CourseEntity> courseEntities = courseRepository.findAll(pageable);
+    public List<ManagerCourseResponseDTO> findAllCourseByStatus(CourseStatus status) {
+        List<CourseEntity> courseEntities = courseRepository.findAllByStatus(status);
         if (courseEntities.isEmpty())
             log.warn("No courses found");
-
-        return courseConverter.toResponseDTOPage(courseEntities);
+        return courseEntities.stream()
+                .map(this::toManagerCourseResponseDTO)
+                .toList();
     }
+
+    private ManagerCourseResponseDTO toManagerCourseResponseDTO(CourseEntity courseEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
+        }
+
+        return ManagerCourseResponseDTO.builder()
+                .id(courseEntity.getId())
+                .title(courseEntity.getTitle())
+                .description(courseEntity.getDescription())
+                .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
+                .category(courseEntity.getCategoryEntity().getName())
+                .lastUpdatedDate(courseEntity.getModifiedDate())
+                .rating(reviewService.getAverageRating(courseEntity.getId()))
+                .totalEnrollments(enrollmentService.countByCourseEntityId(courseEntity.getId()))
+                .canEdit(canEditCourse(courseEntity))
+                .status(courseEntity.getStatus().getStatusName())
+                .build();
+    }
+
+    private Boolean canEditCourse(CourseEntity course) {
+        SecurityContext context = SecurityContextHolder.getContext();
+
+        String email = context.getAuthentication().getName();
+
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        if (userEntity == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        if (userEntity.getRoleEntity().getCode().equals("ADMIN")) {
+            return true;
+        }
+
+        return course.getUserEntity().getId().equals(userEntity.getId());
+    }
+
 
     @Override
     public List<CourseResponseDTO> findByCategoryId(Long categoryId) {
@@ -143,29 +177,6 @@ public class CourseServiceImpl implements CourseService {
             log.info("Found {} featured courses", featuredCourses.size());
         }
         return courseConverter.toResponseDTOList(featuredCourses);
-    }
-
-    @Override
-    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
-            Double minPrice, Double maxPrice, Pageable pageable) {
-        log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}",
-                search, categoryId, level, minPrice, maxPrice);
-
-        // Create search request DTO
-        CourseSearchRequestDTO searchRequest = CourseSearchRequestDTO.builder()
-                .searchTerm(search)
-                .categoryId(categoryId)
-                .level(level != null ? level.name() : null)
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .sortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY)
-                .sortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION)
-                .build();
-
-        // Validate price range
-        searchRequest.validatePriceRange();
-
-        return advancedSearch(searchRequest, pageable);
     }
 
     @Override
@@ -268,10 +279,10 @@ public class CourseServiceImpl implements CourseService {
 
         // Set default values if not provided
         if (searchRequest.getSortBy() == null) {
-            searchRequest.setSortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY);
+            searchRequest.setSortBy(DEFAULT_SORT_BY);
         }
         if (searchRequest.getSortDirection() == null) {
-            searchRequest.setSortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION);
+            searchRequest.setSortDirection(DEFAULT_SORT_DIRECTION);
         }
 
         Page<CourseEntity> courseEntities = searchRepository.advancedSearch(searchRequest, pageable);

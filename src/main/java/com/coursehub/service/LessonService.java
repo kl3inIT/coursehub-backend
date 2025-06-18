@@ -35,5 +35,4 @@ public interface LessonService {
 
     String getLessonVideoUrl(Long lessonId);
 
-
 }
