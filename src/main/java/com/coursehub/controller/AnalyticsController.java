@@ -3,6 +3,7 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.CourseAnalyticsDetailResponseDTO;
+import com.coursehub.dto.response.analytics.RevenueAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.StudentAnalyticsDetailResponseDTO;
 import com.coursehub.exceptions.analytics.AnalyticsRetrievalException;
 import com.coursehub.service.AnalyticsService;
@@ -214,6 +215,69 @@ public class AnalyticsController {
         response.setDetail("Student analytics details retrieved successfully");
         
         log.info("Successfully returned {} student analytics records", studentAnalyticsPage.getContent().size());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/revenue/details")
+    public ResponseEntity<ResponseGeneral<Page<RevenueAnalyticsDetailResponseDTO>>> getRevenueAnalyticsDetails(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
+            @RequestParam(required = false) String range,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size
+    ) throws AnalyticsRetrievalException {
+        log.info("Fetching revenue analytics details - page: {}, size: {}", page, size);
+        
+        // Xử lý range parameter nếu không có startDate/endDate
+        if (range != null && startDate == null && endDate == null) {
+            Calendar calendar = Calendar.getInstance();
+            endDate = calendar.getTime();
+            
+            switch (range) {
+                case "7d":
+                    calendar.add(Calendar.DAY_OF_MONTH, -7);
+                    break;
+                case "30d":
+                    calendar.add(Calendar.DAY_OF_MONTH, -30);
+                    break;
+                case "90d":
+                    calendar.add(Calendar.DAY_OF_MONTH, -90);
+                    break;
+                case "6m":
+                    calendar.add(Calendar.MONTH, -6);
+                    break;
+                case "1y":
+                    calendar.add(Calendar.YEAR, -1);
+                    break;
+                default:
+                    calendar.add(Calendar.MONTH, -6); // Default to 6 months
+                    break;
+            }
+            startDate = calendar.getTime();
+        }
+        
+        // Set endDate to end of day (23:59:59)
+        if (endDate != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(endDate);
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            endDate = calendar.getTime();
+        }
+
+        // Sorting được handle trong service layer với logic custom
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<RevenueAnalyticsDetailResponseDTO> revenueAnalyticsPage =
+                analyticsService.getRevenueAnalyticsDetails(startDate, endDate, pageable);
+
+        ResponseGeneral<Page<RevenueAnalyticsDetailResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(revenueAnalyticsPage);
+        response.setMessage(SUCCESS);
+        response.setDetail("Revenue analytics details retrieved successfully");
+        
+        log.info("Successfully returned {} revenue analytics records", revenueAnalyticsPage.getContent().size());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -2,6 +2,7 @@ package com.coursehub.service;
 
 import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.CourseAnalyticsDetailResponseDTO;
+import com.coursehub.dto.response.analytics.RevenueAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.StudentAnalyticsDetailResponseDTO;
 import com.coursehub.exceptions.analytics.AnalyticsRetrievalException;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,11 @@ public interface AnalyticsService {
             Pageable pageable) throws AnalyticsRetrievalException;
 
     Page<StudentAnalyticsDetailResponseDTO> getStudentAnalyticsDetails(
+            Date startDate,
+            Date endDate,
+            Pageable pageable) throws AnalyticsRetrievalException;
+
+    Page<RevenueAnalyticsDetailResponseDTO> getRevenueAnalyticsDetails(
             Date startDate,
             Date endDate,
             Pageable pageable) throws AnalyticsRetrievalException;

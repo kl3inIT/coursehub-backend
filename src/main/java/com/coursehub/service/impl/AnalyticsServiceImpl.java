@@ -2,6 +2,7 @@ package com.coursehub.service.impl;
 
 import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.CourseAnalyticsDetailResponseDTO;
+import com.coursehub.dto.response.analytics.RevenueAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.StudentAnalyticsDetailResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.exceptions.analytics.AnalyticsRetrievalException;
@@ -160,10 +161,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         );
                     })
                     // 4. Sort according to requirements:
-                    // 1. Growth DESC, 2. New Students DESC, 3. Reviews DESC, 4. Avg Rating DESC, 5. Course Name ASC
+                    // 1. New Students DESC, 2. Growth DESC, 3. Reviews DESC, 4. Avg Rating DESC, 5. Course Name ASC
                     .sorted(Comparator
-                            .comparing(StudentAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
-                            .thenComparing(StudentAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
+                            .comparing(StudentAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
+                            .thenComparing(StudentAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
                             .thenComparing(StudentAnalyticsDetailResponseDTO::getReviews, Comparator.reverseOrder())
                             .thenComparing(StudentAnalyticsDetailResponseDTO::getAvgRating, Comparator.reverseOrder())
                             .thenComparing(StudentAnalyticsDetailResponseDTO::getCourseName)
@@ -241,6 +242,154 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 current, previous, previous, formattedGrowth);
         
         return formattedGrowth;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RevenueAnalyticsDetailResponseDTO> getRevenueAnalyticsDetails(
+            Date startDate,
+            Date endDate,
+            Pageable pageable) throws AnalyticsRetrievalException {
+        try {
+            log.info("Fetching revenue analytics details for period: {} to {}", startDate, endDate);
+
+            // 1. Calculate previous period dates for comparison
+            Date[] previousPeriod = calculatePreviousPeriod(startDate, endDate);
+            Date previousStartDate = previousPeriod[0];
+            Date previousEndDate = previousPeriod[1];
+
+            log.debug("Previous period: {} to {}", previousStartDate, previousEndDate);
+
+            // 2. Get total revenue for revenue share calculation
+            Double totalRevenue = analyticsRepository.getTotalRevenueInPeriod(startDate, endDate);
+            log.debug("Total revenue for period: {}", totalRevenue);
+
+            // 3. Get all courses (we'll do pagination manually after sorting)
+            Page<CourseEntity> coursesPage = analyticsRepository.getAllCoursesForRevenueAnalytics(
+                    org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
+            );
+
+            // 4. Build analytics data for each course
+            List<RevenueAnalyticsDetailResponseDTO> revenueAnalyticsList = coursesPage.getContent().stream()
+                    .map(course -> {
+                        // Get current period data
+                        Double revenue = analyticsRepository.getRevenueByCourseInPeriod(
+                                course.getId(), startDate, endDate);
+                        Integer orders = analyticsRepository.getOrdersCountByCourse(
+                                course.getId(), startDate, endDate);
+                        Integer newStudents = analyticsRepository.getNewStudentsByCourseFromPayment(
+                                course.getId(), startDate, endDate);
+
+                        // Get previous period data
+                        Double previousRevenue = analyticsRepository.getPreviousRevenueByCourse(
+                                course.getId(), previousStartDate, previousEndDate);
+
+                        log.debug("Course {}: revenue={}, previousRevenue={}, orders={}, newStudents={}", 
+                                course.getTitle(), revenue, previousRevenue, orders, newStudents);
+
+                        // Calculate growth rate using same logic as student analytics
+                        Double growth = calculateRevenueGrowthRate(revenue, previousRevenue);
+
+                        // Calculate revenue share
+                        Double revenueShare = calculateRevenueShare(revenue, totalRevenue);
+
+                        // Ensure values are not null
+                        revenue = revenue != null ? revenue : 0.0;
+                        previousRevenue = previousRevenue != null ? previousRevenue : 0.0;
+
+                        return new RevenueAnalyticsDetailResponseDTO(
+                                course.getId(),
+                                course.getTitle(),
+                                revenue,
+                                previousRevenue,
+                                growth,
+                                orders != null ? orders : 0,
+                                newStudents != null ? newStudents : 0,
+                                revenueShare
+                        );
+                    })
+                    // 5. Sort according to requirements:
+                    // 1. Revenue DESC, 2. Growth DESC, 3. Orders DESC, 4. New Students DESC, 5. Course Name ASC
+                    .sorted(Comparator
+                            .comparing(RevenueAnalyticsDetailResponseDTO::getRevenue, Comparator.reverseOrder())
+                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
+                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getOrders, Comparator.reverseOrder())
+                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
+                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getCourseName)
+                    )
+                    .toList();
+
+            log.info("Successfully processed {} revenue analytics records", revenueAnalyticsList.size());
+
+            // 6. Apply pagination manually
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), revenueAnalyticsList.size());
+            List<RevenueAnalyticsDetailResponseDTO> paginatedList = 
+                    start >= revenueAnalyticsList.size() ? 
+                            Collections.emptyList() : 
+                            revenueAnalyticsList.subList(start, end);
+
+            return new PageImpl<>(paginatedList, pageable, revenueAnalyticsList.size());
+
+        } catch (Exception e) {
+            log.error("Failed to retrieve revenue analytics details", e);
+            throw new AnalyticsRetrievalException("Failed to retrieve revenue analytics details: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Tính tỷ lệ tăng trưởng revenue với format 2 chữ số thập phân
+     * Formula: ((current - previous) / previous) * 100
+     */
+    private Double calculateRevenueGrowthRate(Double current, Double previous) {
+        log.debug("Calculating revenue growth rate: current={}, previous={}", current, previous);
+        
+        // Handle null cases
+        if (previous == null || previous == 0.0) {
+            // Nếu không có revenue trước đó, mà hiện tại có => 100% growth
+            Double result = current != null && current > 0.0 ? 100.0 : 0.0;
+            log.debug("Previous revenue is null/zero, returning: {}", result);
+            return result;
+        }
+        if (current == null) {
+            log.debug("Current revenue is null, returning: -100.0");
+            return -100.0;
+        }
+        
+        // Calculate growth rate: ((current - previous) / previous) * 100
+        double growth = ((current - previous) / previous) * 100.0;
+        Double formattedGrowth = Double.parseDouble(String.format("%.2f", growth));
+        
+        log.debug("Revenue growth calculation: (({} - {}) / {}) * 100 = {}", 
+                current, previous, previous, formattedGrowth);
+        
+        return formattedGrowth;
+    }
+
+    /**
+     * Tính tỷ trọng doanh thu (revenue share) với format 2 chữ số thập phân
+     * Formula: (course revenue / total revenue) * 100
+     */
+    private Double calculateRevenueShare(Double courseRevenue, Double totalRevenue) {
+        log.debug("Calculating revenue share: courseRevenue={}, totalRevenue={}", courseRevenue, totalRevenue);
+        
+        if (totalRevenue == null || totalRevenue == 0.0) {
+            log.debug("Total revenue is null/zero, returning: 0.0");
+            return 0.0;
+        }
+        if (courseRevenue == null) {
+            log.debug("Course revenue is null, returning: 0.0");
+            return 0.0;
+        }
+        
+        // Calculate revenue share: (course revenue / total revenue) * 100
+        double share = (courseRevenue / totalRevenue) * 100.0;
+        Double formattedShare = Double.parseDouble(String.format("%.2f", share));
+        
+        log.debug("Revenue share calculation: ({} / {}) * 100 = {}", 
+                courseRevenue, totalRevenue, formattedShare);
+        
+        return formattedShare;
     }
 
 }

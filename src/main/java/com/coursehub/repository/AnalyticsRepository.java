@@ -182,9 +182,9 @@ public interface AnalyticsRepository extends JpaRepository<CategoryEntity, Long>
     /**
      * Lấy danh sách course để tính student analytics với phân trang
      * Note: Sorting sẽ được handle trong service layer theo thứ tự:
-     * 1. Growth DESC
-     * 2. New Students DESC (nếu growth bằng nhau)
-     * 3. Reviews DESC (nếu new students bằng nhau)  
+     * 1. New Students DESC
+     * 2. Growth DESC (nếu new students bằng nhau)
+     * 3. Reviews DESC (nếu growth bằng nhau)  
      * 4. Avg Rating DESC (nếu reviews bằng nhau)
      * 5. Course Name ASC (cuối cùng)
      */
@@ -240,4 +240,81 @@ public interface AnalyticsRepository extends JpaRepository<CategoryEntity, Long>
     Double getAvgRatingByCourse(@Param("courseId") Long courseId,
                                @Param("startDate") Date startDate,
                                @Param("endDate") Date endDate);
+
+    // ==================== REVENUE ANALYTICS METHODS ====================
+
+    /**
+     * Lấy danh sách course để tính revenue analytics với phân trang
+     * Note: Sorting sẽ được handle trong service layer theo thứ tự:
+     * 1. Revenue DESC
+     * 2. Growth DESC (nếu revenue bằng nhau)
+     * 3. Orders DESC (nếu growth bằng nhau)
+     * 4. New Students DESC (nếu orders bằng nhau)
+     * 5. Course Name ASC (cuối cùng)
+     */
+    @Query("SELECT c FROM CourseEntity c ORDER BY c.title ASC")
+    Page<CourseEntity> getAllCoursesForRevenueAnalytics(Pageable pageable);
+
+    /**
+     * Tính tổng doanh thu của course trong khoảng thời gian hiện tại (payment COMPLETED)
+     */
+    @Query("SELECT COALESCE(SUM(p.amount), 0.0) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.courseEntity.id = :courseId " +
+            "AND p.status = 'COMPLETED' " +
+            "AND (:startDate IS NULL OR p.modifiedDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.modifiedDate < :endDate)")
+    Double getRevenueByCourseInPeriod(@Param("courseId") Long courseId,
+                                     @Param("startDate") Date startDate,
+                                     @Param("endDate") Date endDate);
+
+    /**
+     * Tính tổng doanh thu của course trong khoảng thời gian trước đó (để tính growth rate)
+     */
+    @Query("SELECT COALESCE(SUM(p.amount), 0.0) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.courseEntity.id = :courseId " +
+            "AND p.status = 'COMPLETED' " +
+            "AND (:previousStartDate IS NULL OR p.modifiedDate >= :previousStartDate) " +
+            "AND (:previousEndDate IS NULL OR p.modifiedDate < :previousEndDate)")
+    Double getPreviousRevenueByCourse(@Param("courseId") Long courseId,
+                                     @Param("previousStartDate") Date previousStartDate,
+                                     @Param("previousEndDate") Date previousEndDate);
+
+    /**
+     * Đếm số lượng đơn hàng thành công của course trong khoảng thời gian hiện tại
+     */
+    @Query("SELECT COUNT(p.id) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.courseEntity.id = :courseId " +
+            "AND p.status = 'COMPLETED' " +
+            "AND (:startDate IS NULL OR p.modifiedDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.modifiedDate < :endDate)")
+    Integer getOrdersCountByCourse(@Param("courseId") Long courseId,
+                                  @Param("startDate") Date startDate,
+                                  @Param("endDate") Date endDate);
+
+    /**
+     * Đếm số học viên mới của course từ payment trong khoảng thời gian hiện tại (distinct userId)
+     */
+    @Query("SELECT COUNT(DISTINCT p.userEntity.id) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.courseEntity.id = :courseId " +
+            "AND p.status = 'COMPLETED' " +
+            "AND (:startDate IS NULL OR p.modifiedDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.modifiedDate < :endDate)")
+    Integer getNewStudentsByCourseFromPayment(@Param("courseId") Long courseId,
+                                             @Param("startDate") Date startDate,
+                                             @Param("endDate") Date endDate);
+
+    /**
+     * Tính tổng doanh thu của tất cả course trong khoảng thời gian để tính revenue share
+     */
+    @Query("SELECT COALESCE(SUM(p.amount), 0.0) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.status = 'COMPLETED' " +
+            "AND (:startDate IS NULL OR p.modifiedDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.modifiedDate < :endDate)")
+    Double getTotalRevenueInPeriod(@Param("startDate") Date startDate,
+                                  @Param("endDate") Date endDate);
 }
