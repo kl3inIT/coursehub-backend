@@ -1,6 +1,7 @@
 package com.coursehub.service.impl;
 
 import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
+import com.coursehub.dto.response.analytics.CourseAnalyticsDetailResponseDTO;
 import com.coursehub.exceptions.analytics.AnalyticsRetrievalException;
 import com.coursehub.repository.AnalyticsRepository;
 import com.coursehub.service.AnalyticsService;
@@ -49,13 +50,56 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         }
                         return currentDto;
                     })
-                    .collect(Collectors.toList());
+                    .toList();
 
             return new PageImpl<>(processedList, pageable, currentPeriodPage.getTotalElements());
 
         } catch (Exception e) {
-            log.error("Error in getCategoryAnalyticsDetails: {}", e.getMessage(), e);
             throw new AnalyticsRetrievalException("Failed to retrieve category analytics details: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseAnalyticsDetailResponseDTO> getCourseAnalyticsDetails(
+            Date startDate,
+            Date endDate,
+            Pageable pageable) throws AnalyticsRetrievalException {
+        try {
+            log.info("Fetching course analytics details for period: {} to {}", startDate, endDate);
+
+            // 1. Fetch course analytics data với revenue sorting handled trong repository
+            Page<CourseAnalyticsDetailResponseDTO> courseAnalyticsPage =
+                    analyticsRepository.getCourseAnalyticsDetails(startDate, endDate, pageable);
+
+            // 2. Tính tổng revenue của tất cả course trong khoảng thời gian
+            Double totalCourseRevenue = analyticsRepository.getTotalCourseRevenue(startDate, endDate);
+            
+            log.debug("Total course revenue for period: {}", totalCourseRevenue);
+
+            // 3. Tính revenuePercent cho từng course
+            List<CourseAnalyticsDetailResponseDTO> processedList = courseAnalyticsPage.getContent().stream()
+                    .map(courseDto -> {
+                        // Tính revenue percent = (course revenue / total revenue) * 100
+                        if (totalCourseRevenue != null && totalCourseRevenue > 0 && courseDto.getRevenue() != null) {
+                            double revenuePercent = (courseDto.getRevenue() / totalCourseRevenue) * 100;
+                            // Format to 2 decimal places
+                            courseDto.setRevenuePercent(Double.parseDouble(String.format("%.2f", revenuePercent)));
+                        } else {
+                            courseDto.setRevenuePercent(0.0);
+                        }
+                        return courseDto;
+                    })
+                    .collect(Collectors.toList());
+
+            log.info("Successfully processed {} course analytics records", processedList.size());
+
+            return new PageImpl<>(processedList, pageable, courseAnalyticsPage.getTotalElements());
+
+        } catch (Exception e) {
+            log.error("Failed to retrieve course analytics details", e);
+            throw new AnalyticsRetrievalException("Failed to retrieve course analytics details: " + e.getMessage(), e);
+        }
+    }
+
 }
