@@ -21,4 +21,6 @@ public interface ReviewService {
     Double getAverageRating(Long courseId);
 
     Long getTotalReviews(Long courseId);
+
+    void setReviewVisibility(Long reviewId, boolean hide);
 } 

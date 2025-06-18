@@ -33,8 +33,8 @@ public class ReportController {
     @PostMapping
     public ResponseEntity<ResponseGeneral<ReportResponseDTO>> createReport(@RequestBody ReportRequestDTO reportRequestDTO) {
         ResponseGeneral<ReportResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(reportService.createReport(reportRequestDTO));
+        responseDTO.setMessage(SUCCESS);
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -54,8 +54,8 @@ public class ReportController {
     @GetMapping("/{id}")
     public ResponseEntity<ResponseGeneral<ReportResponseDTO>> getReportById(@PathVariable Long id) {
         ResponseGeneral<ReportResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(reportService.getReportById(id));
+        responseDTO.setMessage(SUCCESS);
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -64,8 +64,8 @@ public class ReportController {
             @PathVariable Long id,
             @RequestBody ReportStatusDTO statusDTO) {
         ResponseGeneral<ReportResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage(SUCCESS);
         responseDTO.setData(reportService.updateReportStatus(id, statusDTO));
+        responseDTO.setMessage(SUCCESS);
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -81,8 +81,8 @@ public class ReportController {
     public ResponseEntity<ResponseGeneral<ResourceLocationDTO>> getReportResourceLocation(@PathVariable Long reportId) {
         ResponseGeneral<ResourceLocationDTO> response = new ResponseGeneral<>();
         ResourceLocationDTO dto = reportService.getResourceLocationByReportId(reportId);
-        response.setMessage(SUCCESS);
         response.setData(dto);
+        response.setMessage(SUCCESS);
         return ResponseEntity.ok(response);
     }
 

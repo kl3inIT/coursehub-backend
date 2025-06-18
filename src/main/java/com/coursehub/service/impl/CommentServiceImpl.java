@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import com.coursehub.exceptions.comment.CommentNotFoundException;
 import com.coursehub.exceptions.comment.CommentTooLongException;
 import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
+import com.coursehub.service.NotificationService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,7 @@ public class CommentServiceImpl implements CommentService {
     private final LessonRepository lessonRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentConverter commentConverter;
+    private final NotificationService notificationService;
 
 
     private UserEntity getCurrentUser() {
@@ -70,8 +72,17 @@ public class CommentServiceImpl implements CommentService {
         if (request.getContent().length() > 500) {
             throw new CommentTooLongException("Comment content is too long");
         }
+        CommentEntity saved = commentRepository.save(comment);
+        // ==== Gửi thông báo nếu là reply ====
+        if (parent != null && !user.getId().equals(parent.getUserEntity().getId())) {
+            notificationService.notifyReplyComment(
+                    parent.getUserEntity().getId(), // người nhận reply
+                    user.getId(),                   // người reply
+                    parent.getId()
+            );
+        }
 
-        return commentConverter.toDTO(commentRepository.save(comment), user, 0L) ;
+        return commentConverter.toDTO(saved, user, 0L);
     }
 
     private CommentEntity getParentIfReply(Long parentId) {
@@ -79,12 +90,10 @@ public class CommentServiceImpl implements CommentService {
 
         CommentEntity parent = commentRepository.findById(parentId)
                 .orElseThrow(() -> new ParentCommentNotFoundException("Parent comment not found"));
-
         // Nếu parent đã là reply (có parent khác), thì lấy parent gốc
         if (parent.getParent() != null) {
             return parent.getParent();
         }
-
         // Nếu parent là comment gốc, trả về nó
         return parent;
     }
@@ -143,9 +152,8 @@ public class CommentServiceImpl implements CommentService {
             Long parentId,
             UserEntity currentUser,
             Map<Long, Long> likeCountMap
-    ) {
+    ){
         List<CommentEntity> children = grouped.getOrDefault(parentId, Collections.emptyList());
-
         return children.stream()
                 .map(child -> {
                     List<CommentResponseDTO> replies = buildCommentTree(grouped, child.getId(), currentUser, likeCountMap);
@@ -169,15 +177,24 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void setCommentVisibility(Long commentId, boolean isVisible) {
+    public void setCommentVisibility(Long commentId, boolean hide ) {
         CommentEntity comment = getCommentOrThrow(commentId);
-        if(isVisible) {
-            comment.setIsHidden(1L);
-        }else{
-            comment.setIsHidden(0L);
-        }
+        comment.setIsHidden(hide ? 1L : 0L);
         comment.setModifiedDate(new Date());
         commentRepository.save(comment);
+        if (hide) {
+            notificationService.notifyHideResource(
+                    comment.getUserEntity().getId(),
+                    commentId,
+                    "COMMENT"
+            );
+        } else {
+            notificationService.notifyShowResource(
+                    comment.getUserEntity().getId(),
+                    commentId,
+                    "COMMENT"
+            );
+        }
     }
 
     @Override
@@ -206,29 +223,34 @@ public class CommentServiceImpl implements CommentService {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
         if (user == null) throw new UserNotFoundException("User not found");
-        CommentEntity comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+        CommentEntity comment = getCommentOrThrow(commentId);
 
         Optional<CommentLikeEntity> existingLike = commentLikeRepository.findByComment_IdAndUser_Id(commentId, user.getId());
 
         if (existingLike.isPresent()) {
             commentLikeRepository.delete(existingLike.get());
-            return false; // đã unlike
+            return false;
         } else {
             CommentLikeEntity like = new CommentLikeEntity();
             like.setComment(comment);
             like.setUser(user);
             like.setCreatedDate(new Date());
             commentLikeRepository.save(like);
-            return true; // đã like
+            if (!user.getId().equals(comment.getUserEntity().getId())) {
+                notificationService.notifyLikeComment(
+                        comment.getUserEntity().getId(), // người nhận
+                        user.getId(),                    // người like
+                        commentId
+                );
+            }
+            return true;
         }
     }
 
     @Override
     public CommentResponseDTO getCommentById(Long commentId) {
         UserEntity user = getCurrentUser();
-        CommentEntity comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException("Comment not found"));
+        CommentEntity comment = getCommentOrThrow(commentId);
         long likeCount = comment.getLikes().size();
         return commentConverter.toDTO(comment, user, likeCount);
     }

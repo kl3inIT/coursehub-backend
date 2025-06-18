@@ -11,16 +11,13 @@ import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
 import com.coursehub.enums.ResourceType;
 import com.coursehub.exceptions.comment.CommentNotFoundException;
-import com.coursehub.exceptions.report.ContentAlreadyReportedException;
-import com.coursehub.exceptions.report.ReportNotFoundException;
-import com.coursehub.exceptions.report.TooManyRequestsException;
+import com.coursehub.exceptions.report.*;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
 import com.coursehub.repository.*;
 import com.coursehub.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContext;
@@ -45,6 +42,9 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public ReportResponseDTO createReport(ReportRequestDTO dto) {
         UserEntity reporter = getCurrentUser();
+        if (dto.getReason().length() > 500) {
+            throw new ReasonTooLongException("Reason must be less than 500 characters.");
+        }
         boolean alreadyReported = reportRepository.existsByReporterAndResourceIdAndType(reporter, dto.getResourceId(), dto.getResourceType());
         if (alreadyReported) {
             throw new ContentAlreadyReportedException("Content already reported.");
@@ -56,11 +56,17 @@ public class ReportServiceImpl implements ReportService {
         if(dto.getResourceType().equals(ResourceType.COMMENT)) {
             CommentEntity comment = commentRepository.findByIdWithUser(dto.getResourceId()) //Fetch comment để lấy thông tin userEntity
                     .orElseThrow(() -> new CommentNotFoundException("Comment not found with ID: " + dto.getResourceId()));
+            if(comment.getIsHidden() == 1){
+                throw new ContentAlreadyHiddenException("Cannot report a hidden comment.");
+            }
             UserEntity reportedUser = comment.getUserEntity();
             report.setReportedUser(reportedUser);
         } else {
             ReviewEntity review = reviewRepository.findByIdWithUser(dto.getResourceId())
                     .orElseThrow(() -> new ReviewNotFoundException("Review not found with ID: " + dto.getResourceId()));
+            if(review.getIsHidden() == 1){
+                throw new ContentAlreadyHiddenException("Cannot report a hidden review.");
+            }
             UserEntity reportedUser = review.getUserEntity();
             report.setReportedUser(reportedUser);
         }

@@ -16,10 +16,8 @@ import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
 import com.coursehub.exceptions.lesson.PreviousLessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
-import com.coursehub.exceptions.report.ContentAlreadyReportedException;
-import com.coursehub.exceptions.report.ReportNotFoundException;
+import com.coursehub.exceptions.report.*;
 import com.coursehub.exceptions.module.PreviousModuleNotFoundException;
-import com.coursehub.exceptions.report.TooManyRequestsException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
 import com.coursehub.exceptions.s3.S3PresignUrlException;
 import com.coursehub.exceptions.user.*;
@@ -466,6 +464,30 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
+    }
+
+    @ExceptionHandler(ReasonTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleReasonTooLongException(ReasonTooLongException ex) {
+        log.error("Reason too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Reason must be less than 500 characters.");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ContentAlreadyHiddenException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCommentAlreadyHiddenException(ContentAlreadyHiddenException ex) {
+        log.error("Content already hidden: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Content Already Hidden");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // Handler for Lesson Exceptions

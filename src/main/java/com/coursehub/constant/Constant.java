@@ -14,5 +14,12 @@ public class Constant {
 
         public static final String SUCCESS = "com.coursehub.constant.CommonConstans.SUCCESS";
 
+        public static final String COMMENT = "COMMENT";
+
+        public static final String REVIEW = "REVIEW";
+
+        public static final String ADMIN = "ADMIN";
+
+
     }
 }

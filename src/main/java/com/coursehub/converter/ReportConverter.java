@@ -33,6 +33,7 @@ public class ReportConverter {
          }else if(reportEntity.getType().equals(ResourceType.REVIEW)) {
              Optional<ReviewEntity> reviewEntity = reviewRepository.findById(reportEntity.getResourceId());
              reviewEntity.ifPresent(entity -> responseDTO.setDescription(entity.getComment()));
+             reviewEntity.ifPresent(entity -> responseDTO.setHidden(entity.getIsHidden() == 1));
          }
 
          responseDTO.setReportId(reportEntity.getId());

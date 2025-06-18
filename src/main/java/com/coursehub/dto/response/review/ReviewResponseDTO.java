@@ -19,6 +19,7 @@ public class ReviewResponseDTO {
     private String courseName;
     private Integer star;
     private String comment;
+    private Long isHidden;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
 } 
