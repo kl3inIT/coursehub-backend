@@ -2,6 +2,7 @@ package com.coursehub.repository;
 
 import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.CourseAnalyticsDetailResponseDTO;
+import com.coursehub.dto.response.analytics.StudentAnalyticsDetailResponseDTO;
 import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
 import org.springframework.data.domain.Page;
@@ -175,6 +176,68 @@ public interface AnalyticsRepository extends JpaRepository<CategoryEntity, Long>
             "AND (:startDate IS NULL OR r.createdDate >= :startDate) " +
             "AND (:endDate IS NULL OR r.createdDate < :endDate)")
     Long getReviewCountByCourse(@Param("courseId") Long courseId,
+                               @Param("startDate") Date startDate,
+                               @Param("endDate") Date endDate);
+
+    /**
+     * Lấy danh sách course để tính student analytics với phân trang
+     * Note: Sorting sẽ được handle trong service layer theo thứ tự:
+     * 1. Growth DESC
+     * 2. New Students DESC (nếu growth bằng nhau)
+     * 3. Reviews DESC (nếu new students bằng nhau)  
+     * 4. Avg Rating DESC (nếu reviews bằng nhau)
+     * 5. Course Name ASC (cuối cùng)
+     */
+    @Query("SELECT c FROM CourseEntity c ORDER BY c.title ASC")
+    Page<CourseEntity> getAllCoursesForStudentAnalytics(Pageable pageable);
+
+    /**
+     * Đếm số sinh viên mới trong khoảng thời gian hiện tại (distinct userID từ payment đã hoàn thành)
+     */
+    @Query("SELECT COUNT(DISTINCT p.userEntity.id) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.courseEntity.id = :courseId " +
+            "AND p.status = 'COMPLETED' " +
+            "AND (:startDate IS NULL OR p.modifiedDate >= :startDate) " +
+            "AND (:endDate IS NULL OR p.modifiedDate < :endDate)")
+    Integer getNewStudentsByCourse(@Param("courseId") Long courseId,
+                                   @Param("startDate") Date startDate,
+                                   @Param("endDate") Date endDate);
+
+    /**
+     * Đếm số sinh viên trong khoảng thời gian trước đó (để tính growth rate)
+     */
+    @Query("SELECT COUNT(DISTINCT p.userEntity.id) " +
+            "FROM PaymentEntity p " +
+            "WHERE p.courseEntity.id = :courseId " +
+            "AND p.status = 'COMPLETED' " +
+            "AND (:previousStartDate IS NULL OR p.modifiedDate >= :previousStartDate) " +
+            "AND (:previousEndDate IS NULL OR p.modifiedDate < :previousEndDate)")
+    Integer getPreviousStudentsByCourse(@Param("courseId") Long courseId,
+                                       @Param("previousStartDate") Date previousStartDate,
+                                       @Param("previousEndDate") Date previousEndDate);
+
+    /**
+     * Đếm số review của course trong khoảng thời gian hiện tại
+     */
+    @Query("SELECT COUNT(r.id) " +
+            "FROM ReviewEntity r " +
+            "WHERE r.courseEntity.id = :courseId " +
+            "AND (:startDate IS NULL OR r.createdDate >= :startDate) " +
+            "AND (:endDate IS NULL OR r.createdDate < :endDate)")
+    Integer getReviewsCountByCourse(@Param("courseId") Long courseId,
+                                   @Param("startDate") Date startDate,
+                                   @Param("endDate") Date endDate);
+
+    /**
+     * Tính điểm đánh giá trung bình của course trong khoảng thời gian hiện tại
+     */
+    @Query("SELECT COALESCE(AVG(CAST(r.star AS double)), 0.0) " +
+            "FROM ReviewEntity r " +
+            "WHERE r.courseEntity.id = :courseId " +
+            "AND (:startDate IS NULL OR r.createdDate >= :startDate) " +
+            "AND (:endDate IS NULL OR r.createdDate < :endDate)")
+    Double getAvgRatingByCourse(@Param("courseId") Long courseId,
                                @Param("startDate") Date startDate,
                                @Param("endDate") Date endDate);
 }
