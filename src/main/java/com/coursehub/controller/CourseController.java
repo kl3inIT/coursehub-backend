@@ -3,7 +3,7 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateStatusAndLevelRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
 import com.coursehub.dto.response.course.*;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.enums.CourseStatus;
@@ -33,14 +33,14 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping
-    public ResponseEntity<ResponseGeneral<CourseResponseDTO>> createCourse(
+    public ResponseEntity<ResponseGeneral<CourseCreateUpdateResponseDTO>> createCourse(
             @Valid @RequestBody CourseCreationRequestDTO courseRequestDTO) {
 
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
 
-        CourseResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);
+        CourseCreateUpdateResponseDTO createdCourse = courseService.createCourse(courseRequestDTO);
 
-        ResponseGeneral<CourseResponseDTO> response = new ResponseGeneral<>();
+        ResponseGeneral<CourseCreateUpdateResponseDTO> response = new ResponseGeneral<>();
         response.setData(createdCourse);
         response.setMessage(SUCCESS);
         response.setDetail("Course created successfully");
@@ -192,6 +192,32 @@ public class CourseController {
         response.setData(CourseStatus.getCourseStatuses());
         response.setMessage("Course statuses fetched successfully");
         response.setDetail("All course statuses");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/levels/levels")
+    public ResponseEntity<ResponseGeneral<Map<String, String>>> getCourseLevels(){
+        ResponseGeneral<Map<String, String>> response = new ResponseGeneral<>();
+        response.setData(CourseLevel.getCourseLevels());
+        response.setMessage("Course levels fetched successfully");
+        response.setDetail("All course levels");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{courseId}")
+    public ResponseEntity<ResponseGeneral<CourseCreateUpdateResponseDTO>> updateCourse(
+            @PathVariable Long courseId,
+            @Valid @RequestBody CourseUpdateRequestDTO courseRequestDTO) {
+
+        log.info("Updating course with ID: {}", courseId);
+
+        CourseCreateUpdateResponseDTO updatedCourse = courseService.updateCourse(courseId, courseRequestDTO);
+
+        ResponseGeneral<CourseCreateUpdateResponseDTO> response = new ResponseGeneral<>();
+        response.setData(updatedCourse);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course updated successfully");
+
         return ResponseEntity.ok(response);
     }
 

@@ -42,12 +42,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ResponseGeneral<Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.error("Invalid argument: {}", ex.getMessage());
-        
+
         ResponseGeneral<Object> response = new ResponseGeneral<>();
         response.setMessage("Invalid request");
         response.setDetail(ex.getMessage());
         response.setData(null);
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
@@ -55,7 +55,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException ex) {
         return ResponseEntity.notFound().build();
     }
-
 
 
     @ExceptionHandler(UserAlreadyOwnsDiscountException.class)
@@ -77,7 +76,7 @@ public class GlobalExceptionHandler {
 
     // validate request data
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ResponseGeneral<List<String>>> handleValidationException(MethodArgumentNotValidException mex){
+    public ResponseEntity<ResponseGeneral<List<String>>> handleValidationException(MethodArgumentNotValidException mex) {
         List<String> errors = mex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
         ResponseGeneral<List<String>> response = new ResponseGeneral<>();
         response.setMessage("Validation Error");
@@ -87,7 +86,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(InvalidOtpException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleInvalidOtpException(InvalidOtpException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidOtpException(InvalidOtpException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Bad request from otp");
         response.setData(ex.getMessage());
@@ -95,7 +94,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalEmailException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleEmailAlreadyExistsException(IllegalEmailException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleEmailAlreadyExistsException(IllegalEmailException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Bad request from email");
         response.setData(ex.getMessage());
@@ -103,7 +102,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EmailSendingException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleEmailSendingException(EmailSendingException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleEmailSendingException(EmailSendingException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Internal Server Error");
         response.setData(ex.getMessage());
@@ -119,7 +118,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(OtpNotFoundException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleOtpNotFoundException(OtpNotFoundException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleOtpNotFoundException(OtpNotFoundException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Not Found");
         response.setData(ex.getMessage());
@@ -127,7 +126,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PasswordNotMatchException.class)
-    public ResponseEntity<ResponseGeneral<String>> handlePasswordNotMatchException(PasswordNotMatchException ex){
+    public ResponseEntity<ResponseGeneral<String>> handlePasswordNotMatchException(PasswordNotMatchException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Bad request from password");
         response.setData(ex.getMessage());
@@ -135,7 +134,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(RedisOperationException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleRedisOperationException(RedisOperationException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleRedisOperationException(RedisOperationException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Internal Server Error");
         response.setData(ex.getMessage());
@@ -143,7 +142,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataNotFoundException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleDataNotFoundException(DataNotFoundException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleDataNotFoundException(DataNotFoundException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Data Not Found");
         response.setData(ex.getMessage());
@@ -151,7 +150,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ResponseGeneral<String>> handleDataNotFoundException(InvalidTokenException ex){
+    public ResponseEntity<ResponseGeneral<String>> handleDataNotFoundException(InvalidTokenException ex) {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage("Forbidden");
         response.setData(ex.getMessage());
@@ -378,6 +377,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
     @ExceptionHandler(GenerateTokenException.class)
     public ResponseEntity<ResponseGeneral<String>> handleGenerateTokenException(GenerateTokenException ex) {
         log.error("Token generation failed: {}", ex.getMessage());
@@ -477,6 +477,43 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
+        log.error("Unauthorized access: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Unauthorized Access");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(InvalidCourseLevelException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidCourseLevelException(InvalidCourseLevelException ex) {
+        log.error("Invalid course level: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Invalid Course Level");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(CourseUpdateException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCourseUpdateException(CourseUpdateException ex) {
+        log.error("Course update failed: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Course Update Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+
     // generic phải để cuối vì nếu không sẽ bắt hết các exception khác
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseGeneral<Object>> handleGenericException(Exception ex) {
@@ -489,7 +526,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
 
 
 }

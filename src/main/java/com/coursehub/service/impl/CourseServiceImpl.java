@@ -3,15 +3,14 @@ package com.coursehub.service.impl;
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseSearchRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
 import com.coursehub.dto.response.course.*;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.CourseStatus;
-import com.coursehub.exceptions.course.CourseCreationException;
-import com.coursehub.exceptions.course.CourseNotFoundException;
-import com.coursehub.exceptions.course.FileUploadException;
+import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.SearchRepository;
@@ -49,7 +48,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO) {
+    public CourseCreateUpdateResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO) {
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
 
         try {
@@ -65,11 +64,39 @@ public class CourseServiceImpl implements CourseService {
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
 
-            return courseConverter.toResponseDTO(courseEntity);
+            return courseConverter.toCreateUpdateResponseDTO(courseEntity);
 
         } catch (Exception e) {
             log.error("Failed to create course: {}", e.getMessage(), e);
             throw new CourseCreationException("Failed to create course: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public CourseCreateUpdateResponseDTO updateCourse(Long courseId, CourseUpdateRequestDTO courseRequestDTO) {
+        log.info("Updating course with ID: {}", courseId);
+
+        // Validate course exists
+        CourseEntity course = findCourseEntityById(courseId);
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!course.getUserEntity().getEmail().equals(email)) {
+            throw new UnauthorizedAccessException("You are not allowed to update this course");
+        }
+
+        // Update course details
+        courseConverter.updateEntityFromRequest(course, courseRequestDTO);
+
+        try {
+            // Save updated course
+            CourseEntity updatedCourse = courseRepository.save(course);
+            log.info("Successfully updated course with ID: {}", updatedCourse.getId());
+            return courseConverter.toCreateUpdateResponseDTO(updatedCourse);
+
+        } catch (Exception e) {
+            log.error("Failed to update course with ID {}: {}", courseId, e.getMessage(), e);
+            throw new CourseUpdateException("Failed to update course: " + e.getMessage());
         }
     }
 
