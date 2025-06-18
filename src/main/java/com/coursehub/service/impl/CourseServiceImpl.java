@@ -100,6 +100,25 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
+    public String archiveCourse(Long courseId, String currentUserGmail) {
+        log.info("Archiving course with ID: {}", courseId);
+
+        // Validate course exists
+        CourseEntity courseEntity = findCourseEntityById(courseId);
+
+        // Check if current user is the owner of the course
+        if (!courseEntity.getUserEntity().getEmail().equals(currentUserGmail)) {
+            throw new UnauthorizedAccessException("You are not allowed to archive this course");
+        }
+
+        // Set course status to ARCHIVED
+        courseEntity.setStatus(CourseStatus.ARCHIVED);
+        courseRepository.save(courseEntity);
+        log.info("Successfully archived course with ID: {}", courseId);
+
+        return "Course archived successfully";
+    }
+
     @Override
     public String uploadThumbnail(Long courseId, MultipartFile file) {
         log.info("Uploading thumbnail for course ID: {}", courseId);

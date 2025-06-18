@@ -2,6 +2,7 @@ package com.coursehub.service.impl;
 
 import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
+import com.coursehub.dto.request.lesson.LessonUpdateRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.ModuleEntity;
@@ -161,5 +162,16 @@ public class LessonServiceImpl implements LessonService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public LessonResponseDTO updateLesson(Long lessonId, LessonUpdateRequestDTO requestDTO) {
+        LessonEntity lesson = getLessonEntityById(lessonId);
+        if (requestDTO.getTitle() != null) lesson.setTitle(requestDTO.getTitle());
+        if (requestDTO.getDuration() != null) lesson.setDuration(requestDTO.getDuration());
+        if (requestDTO.getOrder() != null) lesson.setOrderNumber(requestDTO.getOrder());
+        if (requestDTO.getIsPreview() != null) lesson.setIsPreview(requestDTO.getIsPreview() ? 1L : 0L);
+        LessonEntity updated = lessonRepository.save(lesson);
+        return mapToResponseDTO(updated);
+    }
 
 }

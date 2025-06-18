@@ -3,6 +3,7 @@ package com.coursehub.service;
 
 import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
+import com.coursehub.dto.request.lesson.LessonUpdateRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.entity.LessonEntity;
 
@@ -34,5 +35,7 @@ public interface LessonService {
     String getLessonPreviewUrl(Long lessonId);
 
     String getLessonVideoUrl(Long lessonId);
+
+    LessonResponseDTO updateLesson(Long lessonId, LessonUpdateRequestDTO requestDTO);
 
 }

@@ -43,4 +43,6 @@ public interface CourseService {
 
     CourseCreateUpdateResponseDTO updateCourse(Long courseId, CourseUpdateRequestDTO courseRequestDTO);
 
+    String archiveCourse(Long courseId, String currentUserGmail);
+
 }    

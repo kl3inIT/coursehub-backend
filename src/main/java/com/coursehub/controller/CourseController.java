@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -220,5 +221,17 @@ public class CourseController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/courses/{id}/archive")
+    public ResponseEntity<ResponseGeneral<String>> archiveCourse(@PathVariable Long id, Principal principal) {
+        String msg = courseService.archiveCourse(id, principal.getName());
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setData("ARCHIVED");
+        response.setMessage(SUCCESS);
+        response.setDetail(msg);
+        return ResponseEntity.ok(response);
+    }
+
+
 
 }
