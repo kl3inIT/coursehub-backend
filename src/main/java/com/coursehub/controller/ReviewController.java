@@ -2,6 +2,7 @@ package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.review.ReviewRequestDTO;
+import com.coursehub.dto.response.comment.CommentResponseDTO;
 import com.coursehub.dto.response.review.ReviewResponseDTO;
 import com.coursehub.service.ReviewService;
 import jakarta.validation.Valid;
@@ -125,5 +126,16 @@ public class ReviewController {
         response.setMessage(SUCCESS);
         response.setDetail("Total reviews retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{reviewId}/hide")
+    public ResponseEntity<ResponseGeneral<String>> setReviewVisibility(
+            @PathVariable Long reviewId,
+            @RequestParam(required = false, defaultValue = "true") boolean hide) {
+        reviewService.setReviewVisibility(reviewId, hide);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage(hide ? "Review has been hidden" : "review has been shown");
+        response.setData(hide ? "Hidden" : "Visible");
+        return ResponseEntity.ok(response);
     }
 } 

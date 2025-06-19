@@ -1,9 +1,11 @@
 package com.coursehub.converter;
 
+import com.coursehub.components.DiscountScheduler;
 import com.coursehub.dto.request.discount.DiscountRequestDTO;
 import com.coursehub.dto.response.discount.DiscountResponseDTO;
 import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
 import com.coursehub.entity.*;
+import com.coursehub.enums.DiscountStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.exceptions.discount.QuantityException;
 import com.coursehub.repository.DiscountRepository;
@@ -14,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +31,7 @@ public class DiscountConverter {
     private final CourseService courseService;
     private final CategoryService categoryService;
     private final DiscountRepository discountRepository;
+    private final DiscountScheduler discountScheduler;
 
     public DiscountEntity toEntity(DiscountRequestDTO discountRequestDTO) {
         DiscountEntity discountEntity;
@@ -69,7 +73,7 @@ public class DiscountConverter {
 
         discountEntity.getCourseDiscountEntities().addAll(courseDiscountEntities);
         discountEntity.getCategoryDiscountEntities().addAll(categoryDiscountEntities);
-
+        discountScheduler.updateDiscountStatus(discountEntity);
         return discountEntity;
     }
 
@@ -111,16 +115,12 @@ public class DiscountConverter {
                         .map(categoryDiscountEntity -> categoryDiscountEntity.getCategoryEntity().getId())
                         .toList())
                 .quantity(discountEntity.getQuantity())
-                .usage(getUsedDiscount(discountEntity.getUserDiscountEntities()))
+                .usage(discountScheduler.getUsedDiscount(discountEntity))
+                .status(discountEntity.getStatus())
                 .build());
     }
 
 
-    public Long getUsedDiscount(Set<UserDiscountEntity> userDiscountEntities) {
-        return userDiscountEntities.stream()
-                .filter(e -> e.getIsActive() == 0)
-                .count();
-    }
 
 
 

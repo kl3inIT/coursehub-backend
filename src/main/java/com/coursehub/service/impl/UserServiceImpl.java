@@ -1,5 +1,6 @@
 package com.coursehub.service.impl;
 
+import com.coursehub.components.DiscountScheduler;
 import com.coursehub.converter.DiscountConverter;
 import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
@@ -13,12 +14,14 @@ import com.coursehub.entity.DiscountEntity;
 import com.coursehub.entity.RoleEntity;
 import com.coursehub.entity.UserDiscountEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.ResourceType;
 import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.exceptions.user.*;
 import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.RoleRepository;
 import com.coursehub.repository.UserDiscountRepository;
 import com.coursehub.repository.UserRepository;
+import com.coursehub.service.NotificationService;
 import com.coursehub.service.S3Service;
 import com.coursehub.service.UserService;
 import com.coursehub.utils.FileValidationUtil;
@@ -54,10 +57,11 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final DiscountRepository discountRepository;
     private final UserDiscountRepository userDiscountRepository;
-    private final DiscountConverter discountConverter;
+    private final DiscountScheduler discountScheduler;
     private final OtpUtil otpUtil;
 
     private static final String USER_NOT_FOUND = "User not found";
+    private final NotificationService notificationService;
 
     @Override
     public UserResponseDTO getMyInfo() {
@@ -224,8 +228,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
         if ("ACTIVE".equalsIgnoreCase(status)) {
             user.setIsActive(1L);
+            notificationService.notifyUnban(userId);
         } else if ("BANNED".equalsIgnoreCase(status)) {
             user.setIsActive(0L);
+            notificationService.notifyBan(userId);
         }
         userRepository.save(user);
     }
@@ -284,15 +290,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void addWarning(Long userId) {
+    public void addWarning(Long userId, ResourceType resourceType, Long resourceId) {
         UserEntity user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
 
         long currentWarnings = user.getWarningCount() != null ? user.getWarningCount() : 0L;
         user.setWarningCount(currentWarnings + 1);
 
+        notificationService.notifyWarn(userId, resourceId, String.valueOf(resourceType));
+
         if (user.getWarningCount() >= 5) {
             user.setIsActive(0L);
+            notificationService.notifyBan(userId);
         }
 
         userRepository.save(user);
@@ -328,24 +337,10 @@ public class UserServiceImpl implements UserService {
         userDiscountEntity.setUserEntity(getCurrentUser());
         userDiscountEntity.setIsActive(1L);
         userDiscountRepository.save(userDiscountEntity);
+        discountScheduler.updateDiscountStatus(discountEntity);
         return "Get discount successfully";
     }
 
-    @Override
-    public Page<DiscountSearchResponseDTO> getAllDiscounts(DiscountSearchRequestDTO discountSearchRequestDTO) {
-        LocalDateTime now = LocalDateTime.now();
-        Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
-        Page<DiscountEntity> discountEntities = discountRepository.searchDiscountsOwner(
-                discountSearchRequestDTO.getIsActive(),
-                discountSearchRequestDTO.getCategoryId(),
-                discountSearchRequestDTO.getCourseId(),
-                getCurrentUser().getId(),
-                discountSearchRequestDTO.getPercentage(),
-                now,
-                pageable
-        );
-        return discountConverter.toSearchResponseDTO(discountEntities);
-    }
 
     public UserEntity getUserBySecurityContext() {
         SecurityContext context = SecurityContextHolder.getContext();

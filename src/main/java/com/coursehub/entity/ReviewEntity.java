@@ -25,4 +25,7 @@ public class ReviewEntity extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "is_hidden")
+    private Long isHidden = 0L;
+
 } 

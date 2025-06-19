@@ -23,11 +23,11 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: update   # hoặc validate/create/create-drop tùy môi trường
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
   aws:
     access-key: ${AWS_ACCESS_KEY}
@@ -71,4 +71,11 @@ bank:
   bank-code: TPBank
   account-holder: NHU DINH NHAT
 
-
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE

@@ -4,13 +4,15 @@ import com.coursehub.entity.UserDiscountEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserDiscountRepository extends JpaRepository<UserDiscountEntity, Long> {
+    long countByIsActive(Long isActive);
+
     UserDiscountEntity findByDiscountEntity_IdAndIsActive(Long discountId, Long isActive);
 
     UserDiscountEntity findByUserEntity_IdAndDiscountEntity_Id(Long userId, Long discountId);
@@ -25,11 +27,13 @@ public interface UserDiscountRepository extends JpaRepository<UserDiscountEntity
                   AND ude.discountEntity.startDate < :currentDateTime
                   AND (:courseId IS NULL OR cde.courseEntity.id = :courseId)
             """)
-    List<UserDiscountEntity> findActiveDiscountsByUser(
+    List<UserDiscountEntity> findActiveDiscountsByCourseId(
             @Param("userId") Long userId,
             @Param("userIsActive") Long userIsActive,
             @Param("discountIsActive") Long discountIsActive,
             @Param("courseId") Long courseId,
             @Param("currentDateTime") LocalDateTime currentDateTime
     );
+
+
 }

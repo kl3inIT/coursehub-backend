@@ -65,12 +65,5 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/discounts")
-    public ResponseEntity<ResponseGeneral<Page<DiscountSearchResponseDTO>>> searchDiscount(@ModelAttribute DiscountSearchRequestDTO discountSearchRequestDTO) {
-        ResponseGeneral<Page<DiscountSearchResponseDTO>> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage(SUCCESS);
-        responseDTO.setData(userService.getAllDiscounts(discountSearchRequestDTO));
-        return ResponseEntity.ok(responseDTO);
-    }
 
 }

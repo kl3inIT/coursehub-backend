@@ -25,4 +25,5 @@ public class DiscountSearchResponseDTO {
     private Date startDate;
     private Date endDate;
     private Long isActive;
+    private String status;
 }
