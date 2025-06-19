@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy file cấu hình trước để tận dụng cache nếu không đổi
 COPY pom.xml .
-RUN mvn dependency:go-offline
+#RUN mvn dependency:go-offline
 
 # Copy mã nguồn
 COPY src ./src
