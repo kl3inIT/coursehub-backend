@@ -30,7 +30,7 @@ public class ReviewController {
             @RequestParam(required = false) Integer star,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createDate") String sortBy,
+            @RequestParam(defaultValue = "createdDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
