@@ -9,6 +9,7 @@ public class DiscountSearchRequestDTO {
     private Long categoryId;
     private Long courseId;
     private Long isActive;
+    private String status;
     private Double percentage;
     private int page;
     private int size = 3;

@@ -15,6 +15,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CourseEntity extends BaseEntity {
 
     @Column
@@ -38,6 +39,7 @@ public class CourseEntity extends BaseEntity {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private CourseStatus status = CourseStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY)

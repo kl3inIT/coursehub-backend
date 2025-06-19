@@ -1,5 +1,6 @@
 package com.coursehub.enums;
 
+import com.coursehub.exceptions.course.InvalidCourseLevelException;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -26,8 +27,13 @@ public enum CourseLevel {
     }
 
     public static CourseLevel fromString(String level) {
-        return valueOf(level.toUpperCase());
+        try {
+            return CourseLevel.valueOf(level.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCourseLevelException(String.format("Invalid course level: %s", level));
+        }
     }
+
 
 
 }

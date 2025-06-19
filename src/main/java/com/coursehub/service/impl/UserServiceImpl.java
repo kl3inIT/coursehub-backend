@@ -1,5 +1,6 @@
 package com.coursehub.service.impl;
 
+import com.coursehub.components.DiscountScheduler;
 import com.coursehub.converter.DiscountConverter;
 import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
@@ -56,7 +57,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final DiscountRepository discountRepository;
     private final UserDiscountRepository userDiscountRepository;
-    private final DiscountConverter discountConverter;
+    private final DiscountScheduler discountScheduler;
     private final OtpUtil otpUtil;
 
     private static final String USER_NOT_FOUND = "User not found";
@@ -336,24 +337,10 @@ public class UserServiceImpl implements UserService {
         userDiscountEntity.setUserEntity(getCurrentUser());
         userDiscountEntity.setIsActive(1L);
         userDiscountRepository.save(userDiscountEntity);
+        discountScheduler.updateDiscountStatus(discountEntity);
         return "Get discount successfully";
     }
 
-    @Override
-    public Page<DiscountSearchResponseDTO> getAllDiscounts(DiscountSearchRequestDTO discountSearchRequestDTO) {
-        LocalDateTime now = LocalDateTime.now();
-        Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
-        Page<DiscountEntity> discountEntities = discountRepository.searchDiscountsOwner(
-                discountSearchRequestDTO.getIsActive(),
-                discountSearchRequestDTO.getCategoryId(),
-                discountSearchRequestDTO.getCourseId(),
-                getCurrentUser().getId(),
-                discountSearchRequestDTO.getPercentage(),
-                now,
-                pageable
-        );
-        return discountConverter.toSearchResponseDTO(discountEntities);
-    }
 
     public UserEntity getUserBySecurityContext() {
         SecurityContext context = SecurityContextHolder.getContext();

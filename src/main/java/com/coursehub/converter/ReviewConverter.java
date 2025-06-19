@@ -43,7 +43,7 @@ public class ReviewConverter {
         if (entity.getCourseEntity() != null) {
             responseDTO.setCourseId(entity.getCourseEntity().getId());
             responseDTO.setCourseName(entity.getCourseEntity().getTitle());
-
+            responseDTO.setCategoryName(entity.getCourseEntity().getCategoryEntity().getName());
         }
         
         // Map createdDate và modifiedDate

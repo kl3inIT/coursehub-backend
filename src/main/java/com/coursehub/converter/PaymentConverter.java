@@ -1,6 +1,7 @@
 package com.coursehub.converter;
 
 import com.coursehub.dto.request.payment.PaymentRequestDTO;
+import com.coursehub.dto.response.payment.PaymentHistoryResponseDTO;
 import com.coursehub.dto.response.payment.PaymentResponseDTO;
 import com.coursehub.entity.DiscountEntity;
 import com.coursehub.entity.PaymentEntity;
@@ -12,10 +13,12 @@ import com.coursehub.repository.UserRepository;
 import com.coursehub.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -55,7 +58,7 @@ public class PaymentConverter {
         paymentEntity.setCourseEntity(courseService.findCourseEntityById(paymentRequestDTO.getCourseId()));
         paymentEntity.setUserEntity(userEntity);
         paymentEntity.setStatus(PaymentStatus.PENDING.getStatus());
-        paymentEntity.setAmount(paymentRequestDTO.getAmount() * 25000);
+        paymentEntity.setAmount(paymentRequestDTO.getAmount());
         return paymentEntity;
     }
 
@@ -63,7 +66,7 @@ public class PaymentConverter {
     public PaymentResponseDTO toPaymentResponseDTO(PaymentEntity paymentEntity) {
         return PaymentResponseDTO.builder()
                 .transactionCode(paymentEntity.getTransactionCode())
-                .amount(paymentEntity.getAmount())
+                .amount(paymentEntity.getAmount() * 25000)
                 .bankNumber(bankNumber)
                 .bankCode(bankCode)
                 .accountHolder(accountHolder)
@@ -73,5 +76,29 @@ public class PaymentConverter {
     public static String generateOrderCode() {
         String uuid = UUID.randomUUID().toString().replace("-", ""); // 32 kí tự hex
         return uuid.substring(0, 12).toUpperCase(); // Lấy 12 ký tự đầu
+    }
+
+    public Page<PaymentHistoryResponseDTO> toPaymentHistoryResponseDTO(Page<PaymentEntity> paymentEntities) {
+        return paymentEntities.map(paymentEntity -> PaymentHistoryResponseDTO.builder()
+                .id(paymentEntity.getId())
+                .transactionCode(paymentEntity.getTransactionCode())
+                .courseName(paymentEntity.getCourseEntity().getTitle())
+                .userName(paymentEntity.getUserEntity().getEmail())
+                .amount(paymentEntity.getAmount())
+                .status(paymentEntity.getStatus())
+                .date(paymentEntity.getModifiedDate())
+                .build());
+    }
+
+    public List<PaymentHistoryResponseDTO> toPaymentHistoryResponseDTO(List<PaymentEntity> paymentEntities) {
+        return paymentEntities.stream().map(paymentEntity -> PaymentHistoryResponseDTO.builder()
+                .id(paymentEntity.getId())
+                .transactionCode(paymentEntity.getTransactionCode())
+                .courseName(paymentEntity.getCourseEntity().getTitle())
+                .userName(paymentEntity.getUserEntity().getEmail())
+                .amount(paymentEntity.getAmount())
+                .status(paymentEntity.getStatus())
+                .date(paymentEntity.getModifiedDate())
+                .build()).toList();
     }
 }

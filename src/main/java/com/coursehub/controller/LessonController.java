@@ -3,6 +3,7 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
+import com.coursehub.dto.request.lesson.LessonUpdateRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
 import com.coursehub.service.CourseService;
 import com.coursehub.service.LessonService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
 import static com.coursehub.constant.Constant.CommonConstants.*;
 
 @RestController
@@ -25,7 +27,7 @@ public class LessonController {
     private final LessonService lessonService;
 
     @PostMapping("/{moduleId}/prepare-upload")
-    public ResponseEntity<ResponseGeneral<Map<String,Object>>> lessonPrepareUpload(
+    public ResponseEntity<ResponseGeneral<Map<String, Object>>> lessonPrepareUpload(
             @PathVariable Long moduleId,
             @Valid @RequestBody LessonPreparedUploadRequestDTO requestDTO) {
         log.info("Preparing upload for lesson in module ID: {}", moduleId);
@@ -109,5 +111,18 @@ public class LessonController {
         log.info("Getting video URL for lesson ID: {}", lessonId);
         String videoUrl = lessonService.getLessonVideoUrl(lessonId);
         return ResponseEntity.ok(videoUrl);
+    }
+
+    @PutMapping("/{lessonId}")
+    public ResponseEntity<ResponseGeneral<LessonResponseDTO>> updateLesson(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody LessonUpdateRequestDTO requestDTO) {
+        log.info("Updating lesson with ID: {}", lessonId);
+        LessonResponseDTO updatedLesson = lessonService.updateLesson(lessonId, requestDTO);
+        ResponseGeneral<LessonResponseDTO> response = new ResponseGeneral<>();
+        response.setData(updatedLesson);
+        response.setMessage(SUCCESS);
+        response.setDetail("Lesson updated successfully");
+        return ResponseEntity.ok(response);
     }
 }

@@ -3,24 +3,21 @@ package com.coursehub.service.impl;
 import com.coursehub.converter.CourseConverter;
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
 import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
-import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
-import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
-import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
+import com.coursehub.dto.response.course.*;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.enums.CourseLevel;
-import com.coursehub.exceptions.course.CourseCreationException;
-import com.coursehub.exceptions.course.CourseNotFoundException;
-import com.coursehub.exceptions.course.FileUploadException;
+import com.coursehub.enums.CourseStatus;
+import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.SearchRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
+import com.coursehub.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +27,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import static com.coursehub.constant.Constant.SearchConstants.*;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO) {
+    public CourseCreateUpdateResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO) {
         log.info("Creating new course: {}", courseRequestDTO.getTitle());
 
         try {
@@ -61,19 +60,138 @@ public class CourseServiceImpl implements CourseService {
             SecurityContext context = SecurityContextHolder.getContext();
             String email = context.getAuthentication().getName();
             UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-            if(user == null){
+            if (user == null) {
                 throw new UserNotFoundException("User not found with email: " + email);
             }
             courseEntity.setUserEntity(user);
             courseRepository.save(courseEntity);
             log.info("Successfully created course with ID: {}", courseEntity.getId());
 
-            return courseConverter.toResponseDTO(courseEntity);
+            return courseConverter.toCreateUpdateResponseDTO(courseEntity);
 
         } catch (Exception e) {
             log.error("Failed to create course: {}", e.getMessage(), e);
             throw new CourseCreationException("Failed to create course: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    @Transactional
+    public CourseCreateUpdateResponseDTO updateCourse(Long courseId, CourseUpdateRequestDTO courseRequestDTO) {
+        log.info("Updating course with ID: {}", courseId);
+
+        // Validate course exists
+        CourseEntity course = findCourseEntityById(courseId);
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!course.getUserEntity().getEmail().equals(email)) {
+            throw new UnauthorizedAccessException("You are not allowed to update this course");
+        }
+
+        // Update course details
+        courseConverter.updateEntityFromRequest(course, courseRequestDTO);
+
+        try {
+            // Save updated course
+            CourseEntity updatedCourse = courseRepository.save(course);
+            log.info("Successfully updated course with ID: {}", updatedCourse.getId());
+            return courseConverter.toCreateUpdateResponseDTO(updatedCourse);
+
+        } catch (Exception e) {
+            log.error("Failed to update course with ID {}: {}", courseId, e.getMessage(), e);
+            throw new CourseUpdateException("Failed to update course: " + e.getMessage());
+        }
+    }
+
+    public String archiveCourse(Long courseId, String userEmail) {
+        CourseEntity course = findCourseEntityById(courseId);
+        UserEntity user = getActiveUserByEmail(userEmail);
+
+        if (!canArchiveCourse(user, course)) {
+            throw new UnauthorizedAccessException("You are not allowed to archive this course");
+        }
+
+        if (course.getStatus() == CourseStatus.ARCHIVED) {
+            throw new CourseAlreadyArchivedException("Course is already archived.");
+        }
+
+        course.setStatus(CourseStatus.ARCHIVED);
+        courseRepository.save(course);
+
+        return "Course archived successfully.";
+    }
+
+    public String publishCourse(Long courseId, String userEmail) {
+        CourseEntity course = findCourseEntityById(courseId);
+        UserEntity user = getActiveUserByEmail(userEmail);
+
+        if (!canPublishCourse(user, course)) {
+            throw new UnauthorizedAccessException("You are not allowed to publish this course");
+        }
+
+        if (course.getModuleEntities() == null || course.getModuleEntities().isEmpty()) {
+            throw new CourseInvalidStateException("Course must have at least one module before publishing.");
+        }
+
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+
+        return "Course published successfully.";
+    }
+
+    public String restoreCourse(Long courseId, String userEmail) {
+        CourseEntity course = findCourseEntityById(courseId);
+        UserEntity user = getActiveUserByEmail(userEmail);
+
+        if (!canRestoreCourse(user, course)) {
+            throw new UnauthorizedAccessException("You are not allowed to restore this course");
+        }
+
+        if (course.getStatus() != CourseStatus.ARCHIVED) {
+            throw new InvalidCourseRestoreStateException("Only archived courses can be restored.");
+        }
+
+        course.setStatus(CourseStatus.DRAFT); // hoặc PUBLISHED nếu muốn khôi phục thẳng
+        courseRepository.save(course);
+
+        return "Course restored successfully.";
+    }
+
+    private UserEntity getActiveUserByEmail(String email) {
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if (user == null) {
+            throw new UserNotFoundException("User not found or inactive: " + email);
+        }
+        return user;
+    }
+
+    private boolean canArchiveCourse(UserEntity user, CourseEntity course) {
+        return UserUtils.isAdmin(user) || UserUtils.isOwner(user, course);
+    }
+
+    private boolean canPublishCourse(UserEntity user, CourseEntity course) {
+        return UserUtils.isAdmin(user) || UserUtils.isOwner(user, course);
+    }
+
+    private boolean canRestoreCourse(UserEntity user, CourseEntity course) {
+        return UserUtils.isAdmin(user) || UserUtils.isOwner(user, course);
+    }
+
+    private Boolean canEditCourse(CourseEntity course) {
+        SecurityContext context = SecurityContextHolder.getContext();
+
+        String email = context.getAuthentication().getName();
+
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        if (userEntity == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        if (userEntity.getRoleEntity().getCode().equals("ADMIN")) {
+            return true;
+        }
+
+        return course.getUserEntity().getId().equals(userEntity.getId());
     }
 
     @Override
@@ -113,14 +231,34 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Page<CourseResponseDTO> findAllCourse(Pageable pageable) {
-
-        Page<CourseEntity> courseEntities = courseRepository.findAll(pageable);
+    public List<ManagerCourseResponseDTO> findAllCourseByStatus(CourseStatus status) {
+        List<CourseEntity> courseEntities = courseRepository.findAllByStatus(status);
         if (courseEntities.isEmpty())
             log.warn("No courses found");
-
-        return courseConverter.toResponseDTOPage(courseEntities);
+        return courseEntities.stream()
+                .map(this::toManagerCourseResponseDTO)
+                .toList();
     }
+
+    private ManagerCourseResponseDTO toManagerCourseResponseDTO(CourseEntity courseEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
+        }
+
+        return ManagerCourseResponseDTO.builder()
+                .id(courseEntity.getId())
+                .title(courseEntity.getTitle())
+                .description(courseEntity.getDescription())
+                .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
+                .category(courseEntity.getCategoryEntity().getName())
+                .lastUpdatedDate(courseEntity.getModifiedDate())
+                .rating(reviewService.getAverageRating(courseEntity.getId()))
+                .totalEnrollments(enrollmentService.countByCourseEntityId(courseEntity.getId()))
+                .canEdit(canEditCourse(courseEntity))
+                .status(courseEntity.getStatus().getStatusName())
+                .build();
+    }
+
 
     @Override
     public List<CourseResponseDTO> findByCategoryId(Long categoryId) {
@@ -136,36 +274,13 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponseDTO> findFeaturedCourses(Pageable pageable) {
         log.info("Finding featured courses with pageable: page={}, size={}",
                 pageable.getPageNumber(), pageable.getPageSize());
-        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourse(pageable);
+        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourse(CourseStatus.PUBLISHED, pageable);
         if (featuredCourses.isEmpty()) {
             log.warn("No featured courses found");
         } else {
             log.info("Found {} featured courses", featuredCourses.size());
         }
         return courseConverter.toResponseDTOList(featuredCourses);
-    }
-
-    @Override
-    public Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
-            Double minPrice, Double maxPrice, Pageable pageable) {
-        log.info("Searching courses with filters - search: {}, categoryId: {}, level: {}, minPrice: {}, maxPrice: {}",
-                search, categoryId, level, minPrice, maxPrice);
-
-        // Create search request DTO
-        CourseSearchRequestDTO searchRequest = CourseSearchRequestDTO.builder()
-                .searchTerm(search)
-                .categoryId(categoryId)
-                .level(level != null ? level.name() : null)
-                .minPrice(minPrice)
-                .maxPrice(maxPrice)
-                .sortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY)
-                .sortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION)
-                .build();
-
-        // Validate price range
-        searchRequest.validatePriceRange();
-
-        return advancedSearch(searchRequest, pageable);
     }
 
     @Override
@@ -227,7 +342,7 @@ public class CourseServiceImpl implements CourseService {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-        if(user == null){
+        if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
         List<EnrollmentEntity> enrollment = enrollmentService.getEnrollmentsByUserEntityId(user.getId());
@@ -238,7 +353,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private DashboardCourseResponseDTO toDashboardCourseResponseDTO(CourseEntity courseEntity,
-            EnrollmentEntity enrollmentEntity) {
+                                                                    EnrollmentEntity enrollmentEntity) {
         if (courseEntity == null) {
             throw new CourseNotFoundException("Course not found");
         }
@@ -268,10 +383,10 @@ public class CourseServiceImpl implements CourseService {
 
         // Set default values if not provided
         if (searchRequest.getSortBy() == null) {
-            searchRequest.setSortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY);
+            searchRequest.setSortBy(DEFAULT_SORT_BY);
         }
         if (searchRequest.getSortDirection() == null) {
-            searchRequest.setSortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION);
+            searchRequest.setSortDirection(DEFAULT_SORT_DIRECTION);
         }
 
         Page<CourseEntity> courseEntities = searchRepository.advancedSearch(searchRequest, pageable);
@@ -328,6 +443,14 @@ public class CourseServiceImpl implements CourseService {
 
         log.info("Search statistics calculated successfully");
         return stats;
+    }
+
+    @Override
+    public List<CourseResponseDTO> getCoursesRecommend() {
+        log.info("Course recommendations: ");
+        List<CourseEntity> courseRecommend = courseRepository.getCoursesRecommend();
+
+        return courseConverter.toResponseDTOList(courseRecommend);
     }
 
 }
