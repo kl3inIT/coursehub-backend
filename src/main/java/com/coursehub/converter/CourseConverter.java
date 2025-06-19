@@ -1,10 +1,13 @@
 package com.coursehub.converter;
 
 import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
+import com.coursehub.dto.response.course.CourseCreateUpdateResponseDTO;
 import com.coursehub.dto.response.course.CourseResponseDTO;
 import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.repository.CategoryRepository;
@@ -50,6 +53,47 @@ public class CourseConverter {
         courseResponseDTO.setManagerId(courseEntity.getUserEntity().getId());
         return courseResponseDTO;
     }
+
+    public CourseCreateUpdateResponseDTO toCreateUpdateResponseDTO(CourseEntity courseEntity) {
+        if (courseEntity == null) {
+            throw new CourseNotFoundException("Course not found");
+        }
+
+        return CourseCreateUpdateResponseDTO.builder()
+                .id(courseEntity.getId())
+                .level(courseEntity.getLevel().getLevelName())
+                .title(courseEntity.getTitle())
+                .description(courseEntity.getDescription())
+                .price(courseEntity.getPrice())
+                .discount(courseEntity.getDiscount())
+                .status(courseEntity.getStatus().getStatusName())
+                .thumbnailUrl(generateThumbnailUrl(courseEntity.getThumbnail()))
+                .category(courseEntity.getCategoryEntity().getName())
+                .build();
+    }
+
+    public void updateEntityFromRequest(CourseEntity courseEntity, CourseUpdateRequestDTO dto) {
+        if (courseEntity == null || dto == null) return;
+
+        modelMapper.map(dto, courseEntity);
+
+        if (dto.getCategoryCode() != null) {
+            CategoryEntity categoryEntity = categoryRepository.findById(dto.getCategoryCode())
+                    .orElseThrow(() -> new CategoryNotFoundException("Category not found with ID: " + dto.getCategoryCode()));
+            courseEntity.setCategoryEntity(categoryEntity);
+        }
+
+        if (dto.getLevel() != null) {
+            courseEntity.setLevel(CourseLevel.fromString(dto.getLevel()));
+        }
+
+        if (dto.getStatus() != null) {
+            courseEntity.setStatus(CourseStatus.fromString(dto.getStatus()));
+        }
+
+
+    }
+
 
     public CourseEntity toEntity(CourseCreationRequestDTO courseDTO) {
         if (courseDTO == null) {

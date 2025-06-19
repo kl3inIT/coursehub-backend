@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,11 @@ public class PaymentServiceImpl implements PaymentService {
     private final EnrollmentRepository enrollmentRepository;
     private final DiscountScheduler discountScheduler;
     private final UserService userService;
+
+    @Override
+    public BigDecimal getTotalRevenueByCourseId(Long courseId) {
+        return paymentRepository.getTotalRevenueByCourseId(courseId);
+    }
 
     @Override
     public PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO) {

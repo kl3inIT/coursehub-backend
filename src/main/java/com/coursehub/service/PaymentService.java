@@ -8,7 +8,7 @@ import com.coursehub.dto.response.payment.PaymentStatusResponseDTO;
 import org.springframework.data.domain.Page;
 
 import java.io.ByteArrayInputStream;
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.Map;
 
 public interface PaymentService {
@@ -21,4 +21,5 @@ public interface PaymentService {
     ByteArrayInputStream exportToExcel(PaymentHistoryRequestDTO paymentHistoryRequestDTO);
     Map<String, String> getPaymentOverall(PaymentHistoryRequestDTO paymentHistoryRequestDTO);
     Page<PaymentHistoryResponseDTO> getMyPaymentHistory(PaymentHistoryRequestDTO paymentHistoryRequestDTO);
+    BigDecimal getTotalRevenueByCourseId(Long courseId);
 }

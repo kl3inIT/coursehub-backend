@@ -29,7 +29,6 @@ spring:
       hibernate:
         format_sql: true
 
-
   aws:
     access-key: ${AWS_ACCESS_KEY}
     secret-key: ${AWS_SECRET_KEY}
@@ -72,13 +71,4 @@ bank:
   bank-code: TPBank
   account-holder: NHU DINH NHAT
 
-logging:
-  level:
-    org:
-      hibernate:
-        SQL: DEBUG
-        type:
-          descriptor:
-            sql: TRACE
-    # Bật logging cho p6spy
-    p6spy: INFO
+
