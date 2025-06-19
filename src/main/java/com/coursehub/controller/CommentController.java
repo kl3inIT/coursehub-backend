@@ -50,13 +50,16 @@ public class CommentController {
     }
 
     @PatchMapping("/{commentId}/hide")
-    public ResponseEntity<ResponseGeneral<String>> hideComment(@PathVariable Long commentId) {
-        commentService.hideComment(commentId);
+    public ResponseEntity<ResponseGeneral<String>> setCommentVisibility(
+            @PathVariable Long commentId,
+            @RequestParam(required = false, defaultValue = "true") boolean hide) {
+        commentService.setCommentVisibility(commentId, hide);
         ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage("Comment has been hidden");
-        response.setData("Hidden");
+        response.setMessage(hide ? "Comment has been hidden" : "Comment has been shown");
+        response.setData(hide ? "Hidden" : "Visible");
         return ResponseEntity.ok(response);
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseGeneral<CommentResponseDTO>> updateComment(

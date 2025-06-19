@@ -28,7 +28,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
 
   aws:
@@ -73,4 +73,11 @@ bank:
   bank-code: TPBank
   account-holder: NHU DINH NHAT
 
-
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE

@@ -12,7 +12,6 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     List<CommentEntity> findByLessonEntity_Id(Long lessonId);
-    List<CommentEntity> findByLessonEntity_IdAndIsHidden(Long lessonId, Long isHidden);
     @Query("SELECT c FROM CommentEntity c JOIN FETCH c.userEntity WHERE c.id = :id")
     Optional<CommentEntity> findByIdWithUser(@Param("id") Long id);
 }

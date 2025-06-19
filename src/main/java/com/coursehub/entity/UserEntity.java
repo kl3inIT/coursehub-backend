@@ -90,6 +90,9 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "resolvedBy", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ReportEntity> reportsResolved = new HashSet<>();
 
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<NotificationEntity> notificationEntities = new HashSet<>();
+
     @Column(name = "ban_reason", columnDefinition = "TEXT")
     private String banReason;
 
