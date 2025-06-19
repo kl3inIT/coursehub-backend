@@ -32,19 +32,6 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
 
     List<CourseEntity> findByCategoryEntity_Id(Long categoryId);
 
-    @Query("SELECT c FROM CourseEntity c WHERE " +
-            "(:search IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(c.description) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
-            "(:categoryId IS NULL OR c.categoryEntity.id = :categoryId) AND " +
-            "(:level IS NULL OR c.level = :level) AND " +
-            "(:minPrice IS NULL OR COALESCE(c.price - c.discount, c.price) >= :minPrice) AND " +
-            "(:maxPrice IS NULL OR COALESCE(c.price - c.discount, c.price) <= :maxPrice)")
-    Page<CourseEntity> searchCourses(@Param("search") String search,
-                                     @Param("categoryId") Long categoryId,
-                                     @Param("level") CourseLevel level,
-                                     @Param("minPrice") Double minPrice,
-                                     @Param("maxPrice") Double maxPrice,
-                                     Pageable pageable);
-
     @Query(value = "SELECT * FROM courses ORDER BY RAND() LIMIT 3", nativeQuery = true)
     List<CourseEntity> getCoursesRecommend();
 }

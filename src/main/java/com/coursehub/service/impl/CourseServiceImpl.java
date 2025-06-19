@@ -27,7 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import static com.coursehub.constant.Constant.SearchConstants.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,7 +60,7 @@ public class CourseServiceImpl implements CourseService {
             SecurityContext context = SecurityContextHolder.getContext();
             String email = context.getAuthentication().getName();
             UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-            if(user == null){
+            if (user == null) {
                 throw new UserNotFoundException("User not found with email: " + email);
             }
             courseEntity.setUserEntity(user);
@@ -258,8 +260,6 @@ public class CourseServiceImpl implements CourseService {
     }
 
 
-
-
     @Override
     public List<CourseResponseDTO> findByCategoryId(Long categoryId) {
 
@@ -274,7 +274,7 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponseDTO> findFeaturedCourses(Pageable pageable) {
         log.info("Finding featured courses with pageable: page={}, size={}",
                 pageable.getPageNumber(), pageable.getPageSize());
-        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourse(CourseStatus.PUBLISHED ,pageable);
+        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourse(CourseStatus.PUBLISHED, pageable);
         if (featuredCourses.isEmpty()) {
             log.warn("No featured courses found");
         } else {
@@ -342,7 +342,7 @@ public class CourseServiceImpl implements CourseService {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-        if(user == null){
+        if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
         List<EnrollmentEntity> enrollment = enrollmentService.getEnrollmentsByUserEntityId(user.getId());
@@ -353,7 +353,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private DashboardCourseResponseDTO toDashboardCourseResponseDTO(CourseEntity courseEntity,
-            EnrollmentEntity enrollmentEntity) {
+                                                                    EnrollmentEntity enrollmentEntity) {
         if (courseEntity == null) {
             throw new CourseNotFoundException("Course not found");
         }
