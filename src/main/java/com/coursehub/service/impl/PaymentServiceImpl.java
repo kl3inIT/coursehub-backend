@@ -196,7 +196,13 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Map<String, String> getPaymentOverall(PaymentHistoryRequestDTO paymentHistoryRequestDTO) {
-        List<PaymentHistoryResponseDTO> paymentHistoryList = getPaymentHistory(paymentHistoryRequestDTO).getContent();
+        List<PaymentEntity> paymentEntities = paymentRepository.searchPayments(
+                paymentHistoryRequestDTO.getStartDate(),
+                paymentHistoryRequestDTO.getEndDate(),
+                paymentHistoryRequestDTO.getStatus(),
+                paymentHistoryRequestDTO.getNameSearch()
+        );
+        List<PaymentHistoryResponseDTO> paymentHistoryList = paymentConverter.toPaymentHistoryResponseDTO(paymentEntities);
         double totalAmount = 0;
         int successfulPayments = 0;
         int pendingPayments = 0;
