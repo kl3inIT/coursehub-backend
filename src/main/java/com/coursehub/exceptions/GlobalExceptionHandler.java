@@ -11,6 +11,7 @@ import com.coursehub.exceptions.course.CourseCreationException;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.FileUploadException;
 import com.coursehub.exceptions.course.InvalidFileException;
+import com.coursehub.exceptions.excel.ExcelException;
 import com.coursehub.exceptions.lesson.AccessDeniedException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
@@ -77,6 +78,14 @@ public class GlobalExceptionHandler {
         response.setMessage("Bad request from discount");
         response.setData(ex.getMessage());
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(ExcelException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleExcelException(ExcelException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Internal Server Error");
+        response.setData(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
     @ExceptionHandler(QuantityException.class)

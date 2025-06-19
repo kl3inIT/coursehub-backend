@@ -29,6 +29,9 @@ public class DiscountEntity extends BaseEntity {
     @Column(name = "quantity", nullable = false)
     private Long quantity;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
     @Column(name = "is_active", nullable = false)
     private Long isActive;
 
