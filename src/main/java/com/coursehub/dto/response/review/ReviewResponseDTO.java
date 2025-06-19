@@ -20,6 +20,7 @@ public class ReviewResponseDTO {
     private String categoryName;
     private Integer star;
     private String comment;
+    private Long isHidden;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
 } 

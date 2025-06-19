@@ -1,5 +1,7 @@
 package com.coursehub.controller.admin;
 
+import com.coursehub.dto.request.user.WarnRequestDTO;
+import com.coursehub.enums.ResourceType;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,9 +79,11 @@ public class AdminController {
     }
 
     @PostMapping("/{userId}/warn")
-    public ResponseEntity<ResponseGeneral<Void>> addWarning(@PathVariable Long userId) {
+    public ResponseEntity<ResponseGeneral<Void>> addWarning(
+            @PathVariable Long userId,
+            @RequestBody WarnRequestDTO warnRequestDTO) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.addWarning(userId);
+        userService.addWarning(userId, ResourceType.valueOf(warnRequestDTO.getResourceType()), warnRequestDTO.getResourceId());
         response.setMessage("Warning added successfully");
         return ResponseEntity.ok(response);
     }

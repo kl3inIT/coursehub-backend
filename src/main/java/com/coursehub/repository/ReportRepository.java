@@ -1,6 +1,7 @@
 package com.coursehub.repository;
 
 import com.coursehub.entity.ReportEntity;
+import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
 import com.coursehub.enums.ResourceType;
@@ -28,4 +29,8 @@ public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
             @Param("status") ReportStatus status,
             @Param("search") String search,
             Pageable pageable);
+
+
+    boolean existsByReporterAndResourceIdAndType(UserEntity reporter, Long resourceId, ResourceType type);
+
 }

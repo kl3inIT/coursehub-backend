@@ -18,7 +18,7 @@ import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
 import com.coursehub.exceptions.lesson.PreviousLessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
-import com.coursehub.exceptions.report.ReportNotFoundException;
+import com.coursehub.exceptions.report.*;
 import com.coursehub.exceptions.module.PreviousModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
 import com.coursehub.exceptions.s3.S3PresignUrlException;
@@ -442,6 +442,56 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 
     }
+
+    @ExceptionHandler(ContentAlreadyReportedException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleContentAlreadyReportedException(ContentAlreadyReportedException ex) {
+        log.error("Content already reported: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Content Already Reported");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleTooManyRequestsException(TooManyRequestsException ex) {
+        log.error("You have reported too many times in the past hour. Please try again later: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("You have reported too many times in the past hour. Please try again later.");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
+    }
+
+    @ExceptionHandler(ReasonTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleReasonTooLongException(ReasonTooLongException ex) {
+        log.error("Reason too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Reason must be less than 500 characters.");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ContentAlreadyHiddenException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCommentAlreadyHiddenException(ContentAlreadyHiddenException ex) {
+        log.error("Content already hidden: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Content Already Hidden");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    // Handler for Lesson Exceptions
 
     @ExceptionHandler(LessonProgressNotFoundException.class)
     public ResponseEntity<ResponseGeneral<String>> handleLessonProgressNotFoundException(LessonProgressNotFoundException ex) {
