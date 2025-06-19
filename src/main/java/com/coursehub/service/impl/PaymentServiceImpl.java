@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,12 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserDiscountRepository userDiscountRepository;
     private final OtpUtil otpUtil;
     private final EnrollmentRepository enrollmentRepository;
+
+    @Override
+    public BigDecimal getTotalRevenueByCourseId(Long courseId) {
+        return paymentRepository.getTotalRevenueByCourseId(courseId);
+    }
+
     @Override
     public PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO) {
         PaymentEntity paymentEntity = paymentConverter.toPaymentEntity(paymentRequestDTO);

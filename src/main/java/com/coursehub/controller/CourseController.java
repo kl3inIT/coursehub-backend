@@ -1,10 +1,8 @@
 package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
-import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
 import com.coursehub.dto.response.course.*;
+import com.coursehub.dto.request.course.*;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.enums.CourseStatus;
 import com.coursehub.service.CourseService;

@@ -1,10 +1,7 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
+import com.coursehub.dto.request.course.*;
 import com.coursehub.dto.response.course.*;
-
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseStatus;
 import org.springframework.data.domain.Page;

@@ -24,6 +24,7 @@ import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.exceptions.comment.CommentNotFoundException;
 import com.coursehub.exceptions.comment.CommentTooLongException;
 import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
+import com.coursehub.exceptions.analytics.AnalyticsRetrievalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -549,6 +550,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(AnalyticsRetrievalException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleAnalyticsRetrievalException(AnalyticsRetrievalException ex) {
+        log.error("Error retrieving analytics data: {}", ex.getMessage(), ex);
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Analytics Data Retrieval Error");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 
     // generic phải để cuối vì nếu không sẽ bắt hết các exception khác
     @ExceptionHandler(Exception.class)
@@ -562,6 +574,4 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
-
-
 }
