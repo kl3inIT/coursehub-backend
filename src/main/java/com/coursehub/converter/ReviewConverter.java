@@ -37,9 +37,8 @@ public class ReviewConverter {
             responseDTO.setUserId(entity.getUserEntity().getId());
             responseDTO.setUserName(entity.getUserEntity().getName());
             responseDTO.setUserAvatar(entity.getUserEntity().getAvatar());
-            responseDTO.setIsHidden(entity.getIsHidden());
         }
-        
+        responseDTO.setIsHidden(entity.getIsHidden());
         if (entity.getCourseEntity() != null) {
             responseDTO.setCourseId(entity.getCourseEntity().getId());
             responseDTO.setCourseName(entity.getCourseEntity().getTitle());

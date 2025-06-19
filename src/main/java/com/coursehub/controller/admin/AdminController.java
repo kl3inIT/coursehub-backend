@@ -3,6 +3,7 @@ package com.coursehub.controller.admin;
 import com.coursehub.dto.request.user.WarnRequestDTO;
 import com.coursehub.enums.ResourceType;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +22,7 @@ import com.coursehub.dto.response.user.UserManagementDTO;
 import com.coursehub.service.UserService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -82,9 +84,21 @@ public class AdminController {
     public ResponseEntity<ResponseGeneral<Void>> addWarning(
             @PathVariable Long userId,
             @RequestBody WarnRequestDTO warnRequestDTO) {
+
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.addWarning(userId, ResourceType.valueOf(warnRequestDTO.getResourceType()), warnRequestDTO.getResourceId());
+
+        String resourceTypeStr = warnRequestDTO.getResourceType();
+        ResourceType resourceType;
+
+        try {
+            resourceType = ResourceType.valueOf(resourceTypeStr);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or missing resource type");
+        }
+
+        userService.addWarning(userId, resourceType, warnRequestDTO.getResourceId());
         response.setMessage("Warning added successfully");
         return ResponseEntity.ok(response);
     }
+
 } 
