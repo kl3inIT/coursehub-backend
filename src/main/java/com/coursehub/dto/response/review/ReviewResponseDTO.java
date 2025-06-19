@@ -17,6 +17,7 @@ public class ReviewResponseDTO {
     private String userAvatar;
     private Long courseId;
     private String courseName;
+    private String categoryName;
     private Integer star;
     private String comment;
     private Long isHidden;

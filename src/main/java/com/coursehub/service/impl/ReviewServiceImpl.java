@@ -93,6 +93,7 @@ public class ReviewServiceImpl implements ReviewService {
         ReviewEntity review = reviewRepository.findById(id)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found with id: " + id));
         reviewRepository.delete(review);
+
     }
 
     @Override

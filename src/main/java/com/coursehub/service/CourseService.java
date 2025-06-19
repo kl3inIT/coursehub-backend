@@ -1,14 +1,9 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
-import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
-import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
-import com.coursehub.dto.response.course.CourseResponseDTO;
-
+import com.coursehub.dto.request.course.*;
+import com.coursehub.dto.response.course.*;
 import com.coursehub.entity.CourseEntity;
-import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,20 +12,17 @@ import java.util.List;
 
 public interface CourseService {
 
-    CourseResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO);
+    CourseCreateUpdateResponseDTO createCourse(CourseCreationRequestDTO courseRequestDTO);
 
     String uploadThumbnail(Long courseId, MultipartFile file);
 
     CourseResponseDTO findCourseById(Long courseId);
 
-    Page<CourseResponseDTO> findAllCourse(Pageable pageable);
+    List<ManagerCourseResponseDTO> findAllCourseByStatus(CourseStatus status);
 
     List<CourseResponseDTO> findByCategoryId(Long categoryId);
 
     List<CourseResponseDTO> findFeaturedCourses(Pageable pageable);
-
-    Page<CourseResponseDTO> searchCourses(String search, Long categoryId, CourseLevel level,
-                                        Double minPrice, Double maxPrice, Pageable pageable);
 
     CourseEntity findCourseEntityById(Long courseId);
 
@@ -43,4 +35,15 @@ public interface CourseService {
     Page<CourseResponseDTO> advancedSearch(CourseSearchRequestDTO searchRequest, Pageable pageable);
 
     CourseSearchStatsResponseDTO getSearchStatistics();
+
+    List<CourseResponseDTO> getCoursesRecommend();
+
+    CourseCreateUpdateResponseDTO updateCourse(Long courseId, CourseUpdateRequestDTO courseRequestDTO);
+
+    String archiveCourse(Long courseId, String currentUserGmail);
+
+    String publishCourse(Long courseId, String currentUserGmail);
+
+    String restoreCourse(Long courseId, String currentUserGmail);
+
 }    

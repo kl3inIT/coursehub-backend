@@ -9,4 +9,6 @@ public class PaymentRequestDTO {
     private Long courseId;
     private Long discountId;
     private Double amount;
+    private int page;
+    private int size = 5;
 }
