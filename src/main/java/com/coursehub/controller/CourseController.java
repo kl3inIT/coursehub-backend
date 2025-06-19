@@ -232,6 +232,35 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{id}/publish")
+    public ResponseEntity<ResponseGeneral<String>> publishCourse(
+            @PathVariable Long id,
+            Principal principal) {
+
+        String msg = courseService.publishCourse(id, principal.getName());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setData("PUBLISHED");
+        response.setMessage("SUCCESS");
+        response.setDetail(msg);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<ResponseGeneral<String>> restoreCourse(
+            @PathVariable Long id,
+            Principal principal) {
+
+        String msg = courseService.restoreCourse(id, principal.getName());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setData("RESTORED");
+        response.setMessage("SUCCESS");
+        response.setDetail(msg);
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }

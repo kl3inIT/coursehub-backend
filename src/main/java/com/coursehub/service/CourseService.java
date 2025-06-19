@@ -45,4 +45,8 @@ public interface CourseService {
 
     String archiveCourse(Long courseId, String currentUserGmail);
 
+    String publishCourse(Long courseId, String currentUserGmail);
+
+    String restoreCourse(Long courseId, String currentUserGmail);
+
 }    

@@ -17,8 +17,16 @@ import java.util.List;
 @Repository
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
 
-    @Query("SELECT c FROM CourseEntity c LEFT JOIN c.enrollmentEntities e GROUP BY c.id ORDER BY COUNT(e.id) DESC")
-    List<CourseEntity> findFeaturedCourse(Pageable pageable);
+    @Query("""
+            SELECT c
+            FROM CourseEntity c
+            LEFT JOIN c.enrollmentEntities e
+            WHERE c.status = :status
+            GROUP BY c.id
+            ORDER BY COUNT(e.id) DESC
+            """)
+    List<CourseEntity> findFeaturedCourse(@Param("status") CourseStatus status, Pageable pageable);
+
 
     List<CourseEntity> findAllByStatus(CourseStatus status);
 

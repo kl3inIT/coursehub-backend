@@ -1,4 +1,4 @@
-package com.coursehub.utils.validator;
+package com.coursehub.enums.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

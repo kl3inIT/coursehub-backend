@@ -2,7 +2,7 @@ package com.coursehub.dto.request.course;
 
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.enums.CourseStatus;
-import com.coursehub.utils.validator.EnumValue;
+import com.coursehub.enums.validator.EnumValue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
 import lombok.*;

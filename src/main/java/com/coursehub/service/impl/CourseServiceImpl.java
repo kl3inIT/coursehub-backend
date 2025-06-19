@@ -17,6 +17,7 @@ import com.coursehub.repository.SearchRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.*;
 import com.coursehub.utils.FileValidationUtil;
+import com.coursehub.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -100,23 +101,95 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
-    public String archiveCourse(Long courseId, String currentUserGmail) {
-        log.info("Archiving course with ID: {}", courseId);
+    public String archiveCourse(Long courseId, String userEmail) {
+        CourseEntity course = findCourseEntityById(courseId);
+        UserEntity user = getActiveUserByEmail(userEmail);
 
-        // Validate course exists
-        CourseEntity courseEntity = findCourseEntityById(courseId);
-
-        // Check if current user is the owner of the course
-        if (!courseEntity.getUserEntity().getEmail().equals(currentUserGmail)) {
+        if (!canArchiveCourse(user, course)) {
             throw new UnauthorizedAccessException("You are not allowed to archive this course");
         }
 
-        // Set course status to ARCHIVED
-        courseEntity.setStatus(CourseStatus.ARCHIVED);
-        courseRepository.save(courseEntity);
-        log.info("Successfully archived course with ID: {}", courseId);
+        if (course.getStatus() == CourseStatus.ARCHIVED) {
+            throw new CourseAlreadyArchivedException("Course is already archived.");
+        }
 
-        return "Course archived successfully";
+        course.setStatus(CourseStatus.ARCHIVED);
+        courseRepository.save(course);
+
+        return "Course archived successfully.";
+    }
+
+    public String publishCourse(Long courseId, String userEmail) {
+        CourseEntity course = findCourseEntityById(courseId);
+        UserEntity user = getActiveUserByEmail(userEmail);
+
+        if (!canPublishCourse(user, course)) {
+            throw new UnauthorizedAccessException("You are not allowed to publish this course");
+        }
+
+        if (course.getModuleEntities() == null || course.getModuleEntities().isEmpty()) {
+            throw new CourseInvalidStateException("Course must have at least one module before publishing.");
+        }
+
+        course.setStatus(CourseStatus.PUBLISHED);
+        courseRepository.save(course);
+
+        return "Course published successfully.";
+    }
+
+    public String restoreCourse(Long courseId, String userEmail) {
+        CourseEntity course = findCourseEntityById(courseId);
+        UserEntity user = getActiveUserByEmail(userEmail);
+
+        if (!canRestoreCourse(user, course)) {
+            throw new UnauthorizedAccessException("You are not allowed to restore this course");
+        }
+
+        if (course.getStatus() != CourseStatus.ARCHIVED) {
+            throw new InvalidCourseRestoreStateException("Only archived courses can be restored.");
+        }
+
+        course.setStatus(CourseStatus.DRAFT); // hoặc PUBLISHED nếu muốn khôi phục thẳng
+        courseRepository.save(course);
+
+        return "Course restored successfully.";
+    }
+
+    private UserEntity getActiveUserByEmail(String email) {
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if (user == null) {
+            throw new UserNotFoundException("User not found or inactive: " + email);
+        }
+        return user;
+    }
+
+    private boolean canArchiveCourse(UserEntity user, CourseEntity course) {
+        return UserUtils.isAdmin(user) || UserUtils.isOwner(user, course);
+    }
+
+    private boolean canPublishCourse(UserEntity user, CourseEntity course) {
+        return UserUtils.isAdmin(user) || UserUtils.isOwner(user, course);
+    }
+
+    private boolean canRestoreCourse(UserEntity user, CourseEntity course) {
+        return UserUtils.isAdmin(user) || UserUtils.isOwner(user, course);
+    }
+
+    private Boolean canEditCourse(CourseEntity course) {
+        SecurityContext context = SecurityContextHolder.getContext();
+
+        String email = context.getAuthentication().getName();
+
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        if (userEntity == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        if (userEntity.getRoleEntity().getCode().equals("ADMIN")) {
+            return true;
+        }
+
+        return course.getUserEntity().getId().equals(userEntity.getId());
     }
 
     @Override
@@ -184,22 +257,7 @@ public class CourseServiceImpl implements CourseService {
                 .build();
     }
 
-    private Boolean canEditCourse(CourseEntity course) {
-        SecurityContext context = SecurityContextHolder.getContext();
 
-        String email = context.getAuthentication().getName();
-
-        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
-        if (userEntity == null) {
-            throw new UserNotFoundException("User not found with email: " + email);
-        }
-
-        if (userEntity.getRoleEntity().getCode().equals("ADMIN")) {
-            return true;
-        }
-
-        return course.getUserEntity().getId().equals(userEntity.getId());
-    }
 
 
     @Override
@@ -216,7 +274,7 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponseDTO> findFeaturedCourses(Pageable pageable) {
         log.info("Finding featured courses with pageable: page={}, size={}",
                 pageable.getPageNumber(), pageable.getPageSize());
-        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourse(pageable);
+        List<CourseEntity> featuredCourses = courseRepository.findFeaturedCourse(CourseStatus.PUBLISHED ,pageable);
         if (featuredCourses.isEmpty()) {
             log.warn("No featured courses found");
         } else {

@@ -513,6 +513,42 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(CourseAlreadyArchivedException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCourseAlreadyArchivedException(CourseAlreadyArchivedException ex) {
+        log.error("Course already archived: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Course Already Archived");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(CourseInvalidStateException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCourseInvalidStateException(CourseInvalidStateException ex) {
+        log.error("Course is in an invalid state: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Course Invalid State");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidCourseRestoreStateException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidCourseRestoreStateException(InvalidCourseRestoreStateException ex) {
+        log.error("Invalid course restore state: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Invalid Course Restore State");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 
     // generic phải để cuối vì nếu không sẽ bắt hết các exception khác
     @ExceptionHandler(Exception.class)
