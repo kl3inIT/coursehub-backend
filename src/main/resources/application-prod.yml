@@ -1,0 +1,74 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: https://it4beginner.vercel.app/auth/google/callback
+        provider:
+          google:
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+  datasource:
+    url: jdbc:mysql://mysql:3306/CourseHub
+    username: root
+    password: 123456
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  aws:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+    region: ap-southeast-2
+    s3:
+      bucket: course-hub-resourses
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      database: 0
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: it4beginer@gmail.com
+    password: eywvbyghvnkthibx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+jwt:
+  secret: WaVbZbGzZMYGHUjNYrh87xGyib8ivGWndlsf4bsX2mB47MbdsUTwf2Dsv1TPuBG+
+  expiration: 86400000
+
+sepay:
+  secret-key: ${SEPAY_WEBHOOK_APIKEY}
+
+bank:
+  bank-number: 22226376000
+  bank-code: TPBank
+  account-holder: NHU DINH NHAT
+
+

@@ -1,33 +1,36 @@
+version: '3.8'
+
 services:
   mysql:
     image: mysql:8.0
     container_name: mysql
-    cap_add:
-      - SYS_NICE
+    cap_add: [SYS_NICE]
     restart: always
     environment:
       - MYSQL_DATABASE=CourseHub
-      - MYSQL_ROOT_PASSWORD=dat123456
+      - MYSQL_ROOT_PASSWORD=123456
     ports:
       - '3307:3306'
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - default
+      - coursehub-network
 
-  coursehub-backend:
-    container_name: coursehub-backend
-    build:
-      context: ./
-      dockerfile: Dockerfile
+  redis:
+    image: redis:latest
+    container_name: redis-container
+    restart: always
     ports:
-      - "8080:8080"
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
-      - default
+      - coursehub-network
 
 networks:
-  default:
-    name: coursehub-backend
+  coursehub-network:
+    driver: bridge
 
 volumes:
   mysql_data:
+  redis_data:
