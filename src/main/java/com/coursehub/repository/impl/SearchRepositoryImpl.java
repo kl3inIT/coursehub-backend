@@ -14,7 +14,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
-
+import static com.coursehub.constant.Constant.SearchConstants.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,15 +85,15 @@ public class SearchRepositoryImpl implements SearchRepository {
                             String sortBy, String sortDirection) {
         // Thiết lập mặc định nếu thiếu
         if (!StringUtils.hasText(sortBy)) {
-            sortBy = CourseSearchRequestDTO.DEFAULT_SORT_BY;
+            sortBy = DEFAULT_SORT_BY;
         }
         if (!StringUtils.hasText(sortDirection)) {
-            sortDirection = CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION;
+            sortDirection = DEFAULT_SORT_DIRECTION;
         }
 
         try {
             Path<Object> sortPath = root.get(sortBy);
-            if (CourseSearchRequestDTO.SORT_DESC.equalsIgnoreCase(sortDirection)) {
+            if (SORT_DESC.equalsIgnoreCase(sortDirection)) {
                 query.orderBy(cb.desc(sortPath));
             } else {
                 query.orderBy(cb.asc(sortPath));

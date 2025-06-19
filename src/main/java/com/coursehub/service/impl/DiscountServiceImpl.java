@@ -3,19 +3,15 @@ package com.coursehub.service.impl;
 import com.coursehub.converter.DiscountConverter;
 import com.coursehub.dto.request.discount.DiscountRequestDTO;
 import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
-import com.coursehub.dto.request.discount.UserAvailableDiscountRequestDTO;
 import com.coursehub.dto.response.discount.DiscountResponseDTO;
 import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
-import com.coursehub.dto.response.discount.DiscountVerifyResponseDTO;
-import com.coursehub.entity.*;
+import com.coursehub.entity.DiscountEntity;
+import com.coursehub.entity.UserDiscountEntity;
+import com.coursehub.enums.DiscountStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
-import com.coursehub.exceptions.discount.DiscountDuplicateException;
-import com.coursehub.repository.CategoryDiscountRepository;
-import com.coursehub.repository.CourseDiscountRepository;
 import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.UserDiscountRepository;
-import com.coursehub.service.CourseService;
 import com.coursehub.service.DiscountService;
 import com.coursehub.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -41,15 +38,34 @@ public class DiscountServiceImpl implements DiscountService {
 
 
     @Override
-    public List<DiscountResponseDTO> getMyDiscount(UserAvailableDiscountRequestDTO userAvailableDiscountRequestDTO) {
+    public List<DiscountResponseDTO> getMyDiscountByCourseId(Long courseId) {
         Long userId = userService.getMyInfo().getId();
         LocalDateTime now = LocalDateTime.now();
-        List<DiscountEntity> discountEntities = userDiscountRepository.findActiveDiscountsByUser(userId, 1L,1L, userAvailableDiscountRequestDTO.getCourseId(), now)
+        List<DiscountEntity> discountEntities = userDiscountRepository.findActiveDiscountsByCourseId(userId, 1L,1L, courseId, now)
                 .stream()
                 .map(UserDiscountEntity::getDiscountEntity)
                 .toList();
         return discountConverter.toDtoList(discountEntities);
     }
+
+    @Override
+    public Page<DiscountSearchResponseDTO> searchMyAvailableDiscount(DiscountSearchRequestDTO discountSearchRequestDTO) {
+        Long userId = userService.getMyInfo().getId();
+        Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
+        LocalDateTime now = LocalDateTime.now();
+        Page<DiscountEntity> discountEntities = discountRepository.searchDiscountsOwner(
+                discountSearchRequestDTO.getCategoryId(),
+                discountSearchRequestDTO.getCourseId(),
+                userId,
+                discountSearchRequestDTO.getPercentage(),
+                now,
+                pageable
+        );
+        return discountConverter.toSearchResponseDTO(discountEntities);
+    }
+
+
+
 
     @Override
     public DiscountResponseDTO createDiscount(DiscountRequestDTO discountRequestDTO) {
@@ -58,14 +74,16 @@ public class DiscountServiceImpl implements DiscountService {
         return discountConverter.toDto(discountEntity);
     }
 
+
     @Override
-    public Page<DiscountSearchResponseDTO> searchDiscount(DiscountSearchRequestDTO discountSearchRequestDTO) {
+    public Page<DiscountSearchResponseDTO> searchAvailableDiscount(DiscountSearchRequestDTO discountSearchRequestDTO) {
         Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
-        Page<DiscountEntity> discountEntities = discountRepository.searchDiscounts(
+        Page<DiscountEntity> discountEntities = discountRepository.searchAvailableDiscounts(
                 discountSearchRequestDTO.getIsActive(),
                 discountSearchRequestDTO.getCategoryId(),
                 discountSearchRequestDTO.getCourseId(),
                 discountSearchRequestDTO.getPercentage(),
+                DiscountStatus.AVAILABLE.status(),
                 pageable
         );
         return discountConverter.toSearchResponseDTO(discountEntities);
@@ -84,6 +102,32 @@ public class DiscountServiceImpl implements DiscountService {
         return "Discount deleted successfully";
     }
 
+    @Override
+    public Page<DiscountSearchResponseDTO> searchDiscount(DiscountSearchRequestDTO discountSearchRequestDTO) {
+        Pageable pageable = PageRequest.of(discountSearchRequestDTO.getPage(), discountSearchRequestDTO.getSize());
+        Page<DiscountEntity> discountEntities = discountRepository.searchDiscounts(
+                discountSearchRequestDTO.getCategoryId(),
+                discountSearchRequestDTO.getCourseId(),
+                discountSearchRequestDTO.getPercentage(),
+                discountSearchRequestDTO.getStatus(),
+                pageable
+        );
+        return discountConverter.toSearchResponseDTO(discountEntities);
+    }
+
+    @Override
+    public Map<String, String> getDiscountStatus() {
+        return DiscountStatus.getDiscountStatus();
+    }
+
+    @Override
+    public Map<String, String> getOverall() {
+        Map<String, String> result = new HashMap<>();
+        result.put("totalDiscounts", String.valueOf(discountRepository.count()));
+        result.put("activeDiscounts", String.valueOf(discountRepository.countByIsActive(1L)));
+        result.put("totalUsage", String.valueOf(userDiscountRepository.countByIsActive(0L)));
+        return result;
+    }
 
 
 }

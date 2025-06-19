@@ -23,7 +23,6 @@ public interface UserService {
     UserManagementDTO createManager(ProfileRequestDTO request);
     void changePassword(ChangePasswordRequestDTO request);
     String getDiscount(Long discountId);
-    Page<DiscountSearchResponseDTO> getAllDiscounts(DiscountSearchRequestDTO discountSearchRequestDTO);
     void addWarning(Long userId);
     UserEntity getUserBySecurityContext();
 

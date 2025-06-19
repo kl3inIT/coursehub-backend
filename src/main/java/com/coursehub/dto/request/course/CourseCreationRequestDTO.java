@@ -1,7 +1,7 @@
 package com.coursehub.dto.request.course;
 
 import com.coursehub.enums.CourseLevel;
-import com.coursehub.utils.validator.EnumValue;
+import com.coursehub.enums.validator.EnumValue;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -24,9 +24,6 @@ public class CourseCreationRequestDTO {
 
     @NotNull(message = "Course price is required")
     private BigDecimal price;
-
-    @DecimalMin(value = "0.0", message = "Discount cannot be negative")
-    private BigDecimal discount;
 
     @EnumValue(name = "level", enumClass = CourseLevel.class)
     private String level;
