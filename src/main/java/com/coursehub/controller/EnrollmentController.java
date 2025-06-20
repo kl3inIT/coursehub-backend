@@ -1,6 +1,7 @@
 package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.dto.response.enrollment.DashboardEnrollmentResponseDTO;
 import com.coursehub.dto.response.enrollment.EnrollmentResponseDTO;
 import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.service.EnrollmentService;
@@ -10,11 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/enrollments")
@@ -36,21 +35,25 @@ public class EnrollmentController {
         return ResponseEntity.ok(response);
     }
 
-
-//    @GetMapping("/enrolled")
-//    public ResponseEntity<ResponseGeneral<Page<EnrollmentResponseDTO>>> getByUserEntityId(Pageable pageable) {
-//        Long userId = userService.getMyInfo().getId();
-//        log.info("Get enrolled courses by user id: " + userId);
-//        Page<EnrollmentResponseDTO> enrollmentResponseDTOS = enrollmentService.findByUserEntityId(userId, pageable);
-//        ResponseGeneral<Page<EnrollmentResponseDTO>> response = new ResponseGeneral<>();
-//        response.setData(enrollmentResponseDTOS);
-//        response.setMessage("Successfully count total enrolled courses");
-//        response.setDetail("Total enrolled courses: " + enrollmentResponseDTOS.getContent().size());
-//        return ResponseEntity.ok(response);
-//    }
+    // @GetMapping("/enrolled")
+    // public ResponseEntity<ResponseGeneral<Page<EnrollmentResponseDTO>>>
+    // getByUserEntityId(Pageable pageable) {
+    // Long userId = userService.getMyInfo().getId();
+    // log.info("Get enrolled courses by user id: " + userId);
+    // Page<EnrollmentResponseDTO> enrollmentResponseDTOS =
+    // enrollmentService.findByUserEntityId(userId, pageable);
+    // ResponseGeneral<Page<EnrollmentResponseDTO>> response = new
+    // ResponseGeneral<>();
+    // response.setData(enrollmentResponseDTOS);
+    // response.setMessage("Successfully count total enrolled courses");
+    // response.setDetail("Total enrolled courses: " +
+    // enrollmentResponseDTOS.getContent().size());
+    // return ResponseEntity.ok(response);
+    // }
 
     @GetMapping("/status/{courseId}")
-    public ResponseEntity<ResponseGeneral<EnrollmentStatusResponseDTO>> getEnrollmentStatus(@PathVariable Long courseId) {
+    public ResponseEntity<ResponseGeneral<EnrollmentStatusResponseDTO>> getEnrollmentStatus(
+            @PathVariable Long courseId) {
         log.info("Get enrollment status by course id: " + courseId);
         EnrollmentStatusResponseDTO enrollmentStatus = enrollmentService.getEnrollmentStatus(courseId);
         ResponseGeneral<EnrollmentStatusResponseDTO> response = new ResponseGeneral<>();

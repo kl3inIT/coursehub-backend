@@ -249,7 +249,7 @@ public class CourseServiceImpl implements CourseService {
                 .description(courseEntity.getDescription())
                 .thumbnailUrl(s3Service.generatePermanentUrl(courseEntity.getThumbnail()))
                 .category(courseEntity.getCategoryEntity().getName())
-                .instructorName("CourseHub")
+                .instructorName("iT4beginner")
                 .totalDuration(lessonService.calculateTotalDurationByCourseId(courseEntity.getId()))
                 .totalLessons(lessonService.countLessonsByCourseId(courseEntity.getId()))
                 .completed(enrollmentEntity.getIsCompleted() == 1L)

@@ -222,4 +222,6 @@ public class CourseController {
         response.setDetail("Course recommendations retrieved successfully");
         return ResponseEntity.ok(response);
     }
+
+
 }

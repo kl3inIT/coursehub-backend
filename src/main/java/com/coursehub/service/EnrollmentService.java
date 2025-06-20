@@ -1,5 +1,6 @@
 package com.coursehub.service;
 
+import com.coursehub.dto.response.enrollment.DashboardEnrollmentResponseDTO;
 import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.entity.EnrollmentEntity;
 
@@ -16,4 +17,6 @@ public interface EnrollmentService {
     EnrollmentStatusResponseDTO getEnrollmentStatus(Long courseId);
 
     List<EnrollmentEntity> getEnrollmentsByUserEntityId(Long userId);
+
+
 }

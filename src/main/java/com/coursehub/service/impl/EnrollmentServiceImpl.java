@@ -1,5 +1,6 @@
 package com.coursehub.service.impl;
 
+import com.coursehub.dto.response.enrollment.DashboardEnrollmentResponseDTO;
 import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.UserEntity;
@@ -17,8 +18,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +49,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(userId, courseId);
 
         if (enrollment == null) {
-            throw new EnrollNotFoundException("Enrollment not found for user ID: " + userId + " and course ID: " + courseId);
+            throw new EnrollNotFoundException(
+                    "Enrollment not found for user ID: " + userId + " and course ID: " + courseId);
         }
 
         Long totalLessons = lessonService.countLessonsByCourseId(courseId);
@@ -73,11 +75,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-        if(user == null){
+        if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
         log.info("Checking enrollment status for user ID: {} and course ID: {}", user.getId(), courseId);
-        EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
+        EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(),
+                courseId);
         if (enrollment == null) {
             log.warn("No enrollment found for user ID: {} and course ID: {}", user.getId(), courseId);
             return EnrollmentStatusResponseDTO.builder()
