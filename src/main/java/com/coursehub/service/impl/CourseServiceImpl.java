@@ -61,7 +61,7 @@ public class CourseServiceImpl implements CourseService {
             SecurityContext context = SecurityContextHolder.getContext();
             String email = context.getAuthentication().getName();
             UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-            if(user == null){
+            if (user == null) {
                 throw new UserNotFoundException("User not found with email: " + email);
             }
             courseEntity.setUserEntity(user);
@@ -227,7 +227,7 @@ public class CourseServiceImpl implements CourseService {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-        if(user == null){
+        if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
         List<EnrollmentEntity> enrollment = enrollmentService.getEnrollmentsByUserEntityId(user.getId());
@@ -315,8 +315,7 @@ public class CourseServiceImpl implements CourseService {
         Map<String, Long> levelStats = allCourses.stream()
                 .collect(Collectors.groupingBy(
                         course -> course.getLevel().getLevelName(),
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         CourseSearchStatsResponseDTO stats = CourseSearchStatsResponseDTO.builder()
                 .totalCourses(totalCourses)
@@ -336,6 +335,18 @@ public class CourseServiceImpl implements CourseService {
         List<CourseEntity> courseRecommend = courseRepository.getCoursesRecommend();
 
         return courseConverter.toResponseDTOList(courseRecommend);
+    }
+
+    @Override
+    public List<CourseResponseDTO> getCoursesByPriceASC() {
+        List<CourseEntity> courses = courseRepository.findByOrderByFinalPriceAsc();
+        return courseConverter.toResponseDTOList(courses);
+    }
+
+    @Override
+    public List<CourseResponseDTO> getCoursesByPriceDESC() {
+        List<CourseEntity> courses = courseRepository.findByOrderByFinalPriceDesc();
+        return courseConverter.toResponseDTOList(courses);
     }
 
 }

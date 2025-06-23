@@ -118,7 +118,7 @@ public class CourseController {
     @GetMapping("/search")
     public ResponseEntity<ResponseGeneral<Page<CourseResponseDTO>>> searchCourses(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) Long category,
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) CourseLevel level,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
@@ -130,12 +130,10 @@ public class CourseController {
         // Create search request DTO
         CourseSearchRequestDTO searchRequest = CourseSearchRequestDTO.builder()
                 .searchTerm(search)
-                .categoryId(category)
+                .categoryId(category != null ? Long.parseLong(category) : null)
                 .level(level != null ? level.name() : null)
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
-                .sortBy(CourseSearchRequestDTO.DEFAULT_SORT_BY)
-                .sortDirection(CourseSearchRequestDTO.DEFAULT_SORT_DIRECTION)
                 .build();
 
         // Validate price range
@@ -223,5 +221,26 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/priceAsc")
+    public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> getCourseByPriceASC() {
+        log.info("Getting course by price ASC");
+        List<CourseResponseDTO> dtos = courseService.getCoursesByPriceASC();
+        ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(dtos);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course by price ASC retrieved successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/priceDesc")
+    public ResponseEntity<ResponseGeneral<List<CourseResponseDTO>>> getCourseByPriceDESC() {
+        log.info("Getting course by price DESC");
+        List<CourseResponseDTO> dtos = courseService.getCoursesByPriceDESC();
+        ResponseGeneral<List<CourseResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(dtos);
+        response.setMessage(SUCCESS);
+        response.setDetail("Course by price DESC retrieved successfully");
+        return ResponseEntity.ok(response);
+    }
 
 }

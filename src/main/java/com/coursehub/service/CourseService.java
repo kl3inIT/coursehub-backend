@@ -45,4 +45,8 @@ public interface CourseService {
     CourseSearchStatsResponseDTO getSearchStatistics();
 
     List<CourseResponseDTO> getCoursesRecommend();
+
+    List<CourseResponseDTO> getCoursesByPriceASC();
+
+    List<CourseResponseDTO> getCoursesByPriceDESC();
 }    
