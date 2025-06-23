@@ -35,6 +35,7 @@ public class SecurityConfig {
             "/api/users/register/verify",
             "/api/auth/login",
             "/api/auth/logout",
+            "/api/courses/status/courses"
     };
 
     // cac api public gui token hay khong gui token deu cho phep truy cap
