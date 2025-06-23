@@ -134,7 +134,7 @@ public class ReviewController {
             @RequestParam(required = false, defaultValue = "true") boolean hide) {
         reviewService.setReviewVisibility(reviewId, hide);
         ResponseGeneral<String> response = new ResponseGeneral<>();
-        response.setMessage(hide ? "Comment has been hidden" : "Comment has been shown");
+        response.setMessage(hide ? "Review has been hidden" : "review has been shown");
         response.setData(hide ? "Hidden" : "Visible");
         return ResponseEntity.ok(response);
     }

@@ -1,27 +1,18 @@
 package com.coursehub.controller;
 
-import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
-
+import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.dto.request.report.ReportRequestDTO;
 import com.coursehub.dto.request.report.ReportSearchRequestDTO;
+import com.coursehub.dto.request.report.ReportStatusDTO;
+import com.coursehub.dto.response.report.ReportResponseDTO;
 import com.coursehub.dto.response.report.ResourceLocationDTO;
-import com.coursehub.entity.ReportEntity;
-import com.coursehub.enums.ReportSeverity;
-import com.coursehub.enums.ReportStatus;
-import com.coursehub.enums.ResourceType;
-import org.springframework.data.crossstore.ChangeSetPersister;
+import com.coursehub.service.ReportService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.coursehub.dto.ResponseGeneral;
-import com.coursehub.dto.request.report.ReportRequestDTO;
-import com.coursehub.dto.request.report.ReportStatusDTO;
-import com.coursehub.dto.response.report.ReportResponseDTO;
-import com.coursehub.service.ReportService;
-
-import lombok.RequiredArgsConstructor;
+import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
 
 @RestController
 @RequestMapping("/api/reports")

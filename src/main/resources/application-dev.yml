@@ -23,8 +23,8 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: update   # hoặc validate/create/create-drop tùy môi trường
+    show-sql: true
     properties:
       hibernate:
         format_sql: false
