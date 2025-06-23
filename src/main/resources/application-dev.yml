@@ -71,11 +71,3 @@ bank:
   bank-code: TPBank
   account-holder: NHU DINH NHAT
 
-logging:
-  level:
-    org:
-      hibernate:
-        SQL: DEBUG
-        type:
-          descriptor:
-            sql: TRACE
