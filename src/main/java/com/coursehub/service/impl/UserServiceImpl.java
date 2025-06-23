@@ -1,13 +1,29 @@
 package com.coursehub.service.impl;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.coursehub.components.DiscountScheduler;
-import com.coursehub.converter.DiscountConverter;
 import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
-import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
-import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
 import com.coursehub.dto.response.user.UserManagementDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.DiscountEntity;
@@ -15,8 +31,14 @@ import com.coursehub.entity.RoleEntity;
 import com.coursehub.entity.UserDiscountEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
-import com.coursehub.exceptions.user.*;
+import com.coursehub.exceptions.user.AvatarNotFoundException;
+import com.coursehub.exceptions.user.AvatarUploadException;
+import com.coursehub.exceptions.user.IncorrectPasswordException;
+import com.coursehub.exceptions.user.SamePasswordException;
+import com.coursehub.exceptions.user.UserAlreadyOwnsDiscountException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.RoleRepository;
 import com.coursehub.repository.UserDiscountRepository;
@@ -25,26 +47,8 @@ import com.coursehub.service.NotificationService;
 import com.coursehub.service.S3Service;
 import com.coursehub.service.UserService;
 import com.coursehub.utils.FileValidationUtil;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +71,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO getMyInfo() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(userEntity == null){
             throw new DataNotFoundException("Data not found");
         }
@@ -89,7 +93,7 @@ public class UserServiceImpl implements UserService {
     private UserEntity getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, 1L);
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     private Date validateAndParseDateOfBirth(String dateOfBirthStr) {
@@ -165,7 +169,7 @@ public class UserServiceImpl implements UserService {
     public void deleteProfile() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(user == null) {
             throw new DataNotFoundException(USER_NOT_FOUND);
         }
@@ -174,7 +178,7 @@ public class UserServiceImpl implements UserService {
             s3Service.deleteObject(user.getAvatar());
         }
 
-        user.setIsActive(0L);
+        user.setIsActive(UserStatus.BANNED);
         userRepository.save(user);
     }
 
@@ -185,7 +189,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, String status) {
+    public Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, UserStatus status) {
         if (pageSize == null) pageSize = 10;
         if (pageNo == null) pageNo = 0;
 
@@ -195,22 +199,18 @@ public class UserServiceImpl implements UserService {
         }
 
         Page<UserEntity> userPage;
-        if (status != null && !status.isEmpty() && !status.equals("all")) {
-            // Map status to isActive
-            Long isActive = status.equals("active") ? 1L : 0L;
+        if (status != null) {
             userPage = userRepository.findByRoleEntity_CodeInAndIsActive(
                 roles,
-                isActive,
+                status,
                 Pageable.ofSize(pageSize).withPage(pageNo)
             );
         } else {
-            // Get all users regardless of status
             userPage = userRepository.findByRoleEntity_CodeIn(
                 roles,
                 Pageable.ofSize(pageSize).withPage(pageNo)
             );
         }
-        
         return userPage.map(userConverter::convertToUserManagementDTO);
     }
 
@@ -223,14 +223,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateUserStatus(Long userId, String status) {
+    public void updateUserStatus(Long userId, UserStatus status) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
-        if ("ACTIVE".equalsIgnoreCase(status)) {
-            user.setIsActive(1L);
+        if ("Active".equalsIgnoreCase(status.getStatus())) {
+            user.setIsActive(UserStatus.ACTIVE);
             notificationService.notifyUnban(userId);
-        } else if ("BANNED".equalsIgnoreCase(status)) {
-            user.setIsActive(0L);
+        } else if ("Banned".equalsIgnoreCase(status.getStatus())) {
+            user.setIsActive(UserStatus.BANNED);
+            notificationService.notifyBan(userId);
+        } else {
+            user.setIsActive(UserStatus.INACTIVE);
             notificationService.notifyBan(userId);
         }
         userRepository.save(user);
@@ -238,25 +241,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteManager(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-
-        if (user.getAvatar() != null) {
-            try {
-                s3Service.deleteObject(user.getAvatar());
-            } catch (Exception e) {
-                throw new AvatarNotFoundException("Failed to delete avatar: " + e.getMessage());
-            }
-        }
-
-        userRepository.delete(user);
-    }
-
-    @Override
-    @Transactional
     public UserManagementDTO createManager(ProfileRequestDTO request) {
-        if (userRepository.existsByEmailAndIsActive(request.getEmail(), 1L)) {
+        if (userRepository.existsByEmailAndIsActive(request.getEmail(), UserStatus.ACTIVE)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
@@ -268,7 +254,7 @@ public class UserServiceImpl implements UserService {
         UserEntity user = new UserEntity();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setIsActive(1L);
+        user.setIsActive(UserStatus.ACTIVE);
         user.setPassword(passwordEncoder.encode(tempPassword));
         user.setRoleEntity(learnerRole);
 
@@ -300,7 +286,7 @@ public class UserServiceImpl implements UserService {
         notificationService.notifyWarn(userId, resourceId, String.valueOf(resourceType));
 
         if (user.getWarningCount() >= 5) {
-            user.setIsActive(0L);
+            user.setIsActive(UserStatus.BANNED);
             notificationService.notifyBan(userId);
         }
 
@@ -345,7 +331,7 @@ public class UserServiceImpl implements UserService {
     public UserEntity getUserBySecurityContext() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(userEntity == null){
             throw new UserNotFoundException("User not found with email: " + email);
         }

@@ -1,7 +1,5 @@
 package com.coursehub.controller.admin;
 
-import com.coursehub.dto.request.user.WarnRequestDTO;
-import com.coursehub.enums.ResourceType;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +13,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
+import com.coursehub.dto.request.user.WarnRequestDTO;
 import com.coursehub.dto.response.user.UserManagementDTO;
+import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.service.UserService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -37,7 +38,7 @@ public class AdminController {
         @RequestParam(required = false, defaultValue = "10") Integer pageSize,
         @RequestParam(required = false, defaultValue = "0") Integer pageNo,
         @RequestParam(required = false) String role,
-        @RequestParam(required = false) String status
+        @RequestParam(required = false) UserStatus status
     ) {
         ResponseGeneral<Page<UserManagementDTO>> response = new ResponseGeneral<>();
         response.setData(userService.getAllUsers(pageSize, pageNo, role, status));
@@ -53,6 +54,23 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{userId}/course-stats")
+    public ResponseEntity<ResponseGeneral<Integer>> getUserCourseStats(@PathVariable Long userId) {
+        ResponseGeneral<Integer> response = new ResponseGeneral<>();
+        UserManagementDTO userDetails = userService.getUserDetails(userId);
+        
+        Integer courseCount = 0;
+        if ("learner".equalsIgnoreCase(userDetails.getRole())) {
+            courseCount = userDetails.getEnrolledCoursesCount();
+        } else if ("manager".equalsIgnoreCase(userDetails.getRole())) {
+            courseCount = userDetails.getManagedCoursesCount();
+        }
+        
+        response.setData(courseCount);
+        response.setMessage("Get user course statistics successfully");
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/create-manager")
     public ResponseEntity<ResponseGeneral<UserManagementDTO>> createManager(@RequestBody ProfileRequestDTO request) {
         ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
@@ -64,7 +82,7 @@ public class AdminController {
     @PutMapping("/{userId}/status")
     public ResponseEntity<ResponseGeneral<Void>> updateUserStatus(
         @PathVariable Long userId,
-        @RequestParam String status
+        @RequestParam UserStatus status
     ) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
         userService.updateUserStatus(userId, status);
@@ -75,7 +93,7 @@ public class AdminController {
     @DeleteMapping("/{managerId}")
     public ResponseEntity<ResponseGeneral<Void>> deleteManager(@PathVariable Long managerId) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.deleteManager(managerId);
+        userService.updateUserStatus(managerId, UserStatus.INACTIVE);
         response.setMessage("Delete user successfully");
         return ResponseEntity.ok(response);
     }

@@ -10,6 +10,7 @@ import com.coursehub.entity.*;
 import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
 import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.comment.CommentNotFoundException;
 import com.coursehub.exceptions.report.*;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
@@ -141,7 +142,7 @@ public class ReportServiceImpl implements ReportService {
     private UserEntity getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, 1L);
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     @Override

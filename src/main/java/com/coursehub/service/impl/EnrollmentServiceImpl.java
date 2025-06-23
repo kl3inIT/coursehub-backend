@@ -3,6 +3,7 @@ package com.coursehub.service.impl;
 import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.EnrollmentRepository;
@@ -72,7 +73,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public EnrollmentStatusResponseDTO getEnrollmentStatus(Long courseId) {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(user == null){
             throw new UserNotFoundException("User not found with email: " + email);
         }

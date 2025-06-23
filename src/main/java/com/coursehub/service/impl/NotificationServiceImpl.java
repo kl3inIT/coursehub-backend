@@ -2,6 +2,7 @@ package com.coursehub.service.impl;
 
 import java.util.List;
 
+import com.coursehub.enums.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -172,7 +173,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Page<NotificationDTO> getUserNotificationsByEmail(String email, Pageable pageable) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) throw new UserNotFoundException("User not found");
         return notificationRepository
                 .findByUserEntity_IdOrderByCreatedDateDesc(user.getId(), pageable)
@@ -181,7 +182,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Long getUnreadCount(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         return notificationRepository.countUnreadByUserId(user.getId());
     }
 
@@ -197,7 +198,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void markAllAsRead(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         notificationRepository.findByUserEntity_IdOrderByCreatedDateDesc(user.getId(), Pageable.unpaged()).forEach(notification -> {
             notification.setIsRead(1L);
             notificationRepository.save(notification);
@@ -213,7 +214,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void deleteAllNotifications(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user != null) {
             notificationRepository.deleteByUserEntity_Id(user.getId());
         }

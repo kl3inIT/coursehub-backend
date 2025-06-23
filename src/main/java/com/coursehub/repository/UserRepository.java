@@ -3,6 +3,7 @@ package com.coursehub.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.coursehub.enums.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,15 +13,15 @@ import com.coursehub.entity.UserEntity;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    UserEntity findByEmailAndIsActive(String email, Long status);
+    UserEntity findByEmailAndIsActive(String email, UserStatus status);
 
-    UserEntity findByGoogleAccountIdAndIsActive(String googleAccountId, Long status);
+    UserEntity findByGoogleAccountIdAndIsActive(String googleAccountId, UserStatus status);
 
-    boolean existsByEmailAndIsActive(String email, Long status);
+    boolean existsByEmailAndIsActive(String email, UserStatus status);
 
     Page<UserEntity> findByRoleEntity_CodeIn(List<String> roles, Pageable pageable);
 
-    Page<UserEntity> findByRoleEntity_CodeInAndIsActive(List<String> roles, Long status, Pageable pageable);
+    Page<UserEntity> findByRoleEntity_CodeInAndIsActive(List<String> roles, UserStatus status, Pageable pageable);
 
     Optional<UserEntity> findByEmail(String email);
 

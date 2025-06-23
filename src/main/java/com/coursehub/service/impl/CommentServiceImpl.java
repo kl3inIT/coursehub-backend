@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.comment.CommentNotFoundException;
 import com.coursehub.exceptions.comment.CommentTooLongException;
 import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
@@ -47,7 +48,7 @@ public class CommentServiceImpl implements CommentService {
 
     private UserEntity getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, 1L);
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     @Override
@@ -221,7 +222,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public boolean toggleLikeComment(Long commentId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) throw new UserNotFoundException("User not found");
         CommentEntity comment = getCommentOrThrow(commentId);
 

@@ -1,9 +1,8 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
-import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
 import org.springframework.data.domain.Page;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
@@ -17,10 +16,9 @@ public interface UserService {
     void deleteProfile();
     
     // User Management methods
-    Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, String status);
+    Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, UserStatus status);
     UserManagementDTO getUserDetails(Long userId);
-    void updateUserStatus(Long userId, String status);
-    void deleteManager(Long userId);
+    void updateUserStatus(Long userId, UserStatus status);
     UserManagementDTO createManager(ProfileRequestDTO request);
     void changePassword(ChangePasswordRequestDTO request);
     String getDiscount(Long discountId);
