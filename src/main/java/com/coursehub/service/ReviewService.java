@@ -22,5 +22,11 @@ public interface ReviewService {
 
     Long getTotalReviews(Long courseId);
 
+    Long getTotalVisibleReviews();
+
+    Double getOverallAverageRating();
+
+    Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable);
+
     void setReviewVisibility(Long reviewId, boolean hide);
 } 

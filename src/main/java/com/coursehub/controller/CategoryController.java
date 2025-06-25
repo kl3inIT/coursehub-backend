@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<ResponseGeneral<Page<CategoryResponseDTO>>> getAllOrNameCategorise(
             @RequestParam(required = false) String name,
-            Pageable pageable) {
+            @PageableDefault(size = 6, sort = "id") Pageable pageable) {
         Page<CategoryResponseDTO> categoryResponseDTOS = categoryService.findAllOrNameCategories(name, pageable);
         ResponseGeneral<Page<CategoryResponseDTO>> response = new ResponseGeneral<>();
         response.setData(categoryResponseDTOS);

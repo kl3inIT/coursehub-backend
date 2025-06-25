@@ -7,6 +7,7 @@ import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.ReviewEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.exceptions.course.CourseNotFoundException;
+import com.coursehub.exceptions.review.ReviewAlreadyExistsException;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CourseRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,22 +59,22 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with id: " + requestDTO.getCourseId()));
 
         // Check if user has already reviewed this course
-        // if (reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, requestDTO.getCourseId())) {
-        //     throw new ReviewAlreadyExistsException("User has already reviewed this course");
-        // }
+         if (reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, requestDTO.getCourseId())) {
+             throw new ReviewAlreadyExistsException("User has already reviewed this course");
+         }
 
-        // // Check if user has purchased the course
-        // if (!course.getEnrollmentEntities().stream()
-        //         .anyMatch(enrollment -> enrollment.getUserEntity().getId().equals(userId))) {
-        //     throw new IllegalStateException("User has not purchased this course");
-        // }
+         // Check if user has purchased the course
+         if (!course.getEnrollmentEntities().stream()
+                 .anyMatch(enrollment -> enrollment.getUserEntity().getId().equals(userId))) {
+             throw new IllegalStateException("User has not purchased this course");
+         }
 
         // Create and save review
         ReviewEntity review = reviewConverter.toEntity(requestDTO);
         review.setUserEntity(user);
         review.setCourseEntity(course);
 
-        ReviewEntity savedReview = reviewRepository.saveAndFlush(review);
+        ReviewEntity savedReview = reviewRepository.save(review);
         return reviewConverter.toResponseDTO(savedReview);
     }
 
@@ -123,6 +125,36 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         return reviewRepository.countByCourseEntityId(courseId);
+    }
+
+    @Override
+    public Long getTotalVisibleReviews() {
+        return reviewRepository.count();
+    }
+
+    @Override
+    public Double getOverallAverageRating() {
+        double average = reviewRepository.findAll()
+                .stream()
+                .mapToInt(ReviewEntity::getStar)
+                .average()
+                .orElse(0.0);
+        
+        // Round to 2 decimal places
+        return Math.round(average * 100.0) / 100.0;
+    }
+
+    @Override
+    public Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable) {
+        if (visibilityStatus != 0 && visibilityStatus != 1) {
+            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+        }
+        
+        Page<ReviewEntity> reviews = visibilityStatus == 0 
+            ? reviewRepository.findVisibleReviews(pageable)
+            : reviewRepository.findHiddenReviews(pageable);
+            
+        return reviews.map(reviewConverter::toResponseDTO);
     }
 
     @Override

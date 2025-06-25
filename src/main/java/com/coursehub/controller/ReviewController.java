@@ -128,6 +128,45 @@ public class ReviewController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/total-visible")
+    public ResponseEntity<ResponseGeneral<Long>> getTotalVisibleReviews() {
+        Long totalReviews = reviewService.getTotalVisibleReviews();
+        ResponseGeneral<Long> response = new ResponseGeneral<>();
+        response.setData(totalReviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Total visible reviews retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/overall-average")
+    public ResponseEntity<ResponseGeneral<Double>> getOverallAverageRating() {
+        Double averageRating = reviewService.getOverallAverageRating();
+        ResponseGeneral<Double> response = new ResponseGeneral<>();
+        response.setData(averageRating);
+        response.setMessage(SUCCESS);
+        response.setDetail("Overall average rating retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/by-visibility")
+    public ResponseEntity<ResponseGeneral<Page<ReviewResponseDTO>>> getReviewsByVisibility(
+            @RequestParam Integer visibilityStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdDate") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<ReviewResponseDTO> reviews = reviewService.findReviewsByVisibility(visibilityStatus, pageRequest);
+        ResponseGeneral<Page<ReviewResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(reviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Reviews by visibility retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PatchMapping("/{reviewId}/hide")
     public ResponseEntity<ResponseGeneral<String>> setReviewVisibility(
             @PathVariable Long reviewId,

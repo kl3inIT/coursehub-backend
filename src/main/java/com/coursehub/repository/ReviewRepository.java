@@ -28,4 +28,11 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
     @Query("SELECT r FROM ReviewEntity r JOIN FETCH r.userEntity WHERE r.id = :id")
     Optional<ReviewEntity> findByIdWithUser(@Param("id") Long id);
+
+    // New methods for visibility filtering
+    @Query("SELECT r FROM ReviewEntity r WHERE r.isHidden IS NULL OR r.isHidden = 0")
+    Page<ReviewEntity> findVisibleReviews(Pageable pageable);
+
+    @Query("SELECT r FROM ReviewEntity r WHERE r.isHidden = 1")
+    Page<ReviewEntity> findHiddenReviews(Pageable pageable);
 } 
