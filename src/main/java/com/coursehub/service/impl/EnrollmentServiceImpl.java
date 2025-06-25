@@ -62,7 +62,6 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Double percentage = ((double) completedLessons / totalLessons) * 100;
         enrollment.setProgressPercentage(percentage);
 
-        // Đánh dấu hoàn thành nếu đã học hết
         enrollment.setIsCompleted(completedLessons.equals(totalLessons) ? 1L : 0L);
 
         enrollmentRepository.save(enrollment);

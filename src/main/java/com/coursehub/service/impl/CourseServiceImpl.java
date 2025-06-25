@@ -205,6 +205,18 @@ public class CourseServiceImpl implements CourseService {
         FileValidationUtil.validateImageFile(file);
 
         try {
+            // Delete old thumbnail if exists
+            String oldThumbnailKey = courseEntity.getThumbnail();
+            if (oldThumbnailKey != null && !oldThumbnailKey.isEmpty()) {
+                try {
+                    s3Service.deleteObject(oldThumbnailKey);
+                    log.info("Successfully deleted old thumbnail: {}", oldThumbnailKey);
+                } catch (Exception e) {
+                    // Log warning but don't fail the upload
+                    log.warn("Failed to delete old thumbnail {}: {}", oldThumbnailKey, e.getMessage());
+                }
+            }
+
             String objectKey = String.format("public/thumbnails/%d/%s", courseId, file.getOriginalFilename());
             // Upload to S3
             String thumbnailKey = s3Service.uploadFile(objectKey, file.getContentType(), file.getBytes());
