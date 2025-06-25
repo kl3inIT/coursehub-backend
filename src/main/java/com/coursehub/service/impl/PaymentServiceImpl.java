@@ -12,15 +12,21 @@ import com.coursehub.entity.*;
 import com.coursehub.enums.PaymentStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.exceptions.excel.ExcelException;
+import com.coursehub.exceptions.pdf.PdfException;
 import com.coursehub.repository.EnrollmentRepository;
 import com.coursehub.repository.PaymentRepository;
 import com.coursehub.repository.UserDiscountRepository;
 import com.coursehub.service.PaymentService;
 import com.coursehub.service.UserService;
+import com.itextpdf.forms.PdfAcroForm;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.PdfWriter;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +65,41 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public byte[] generateOrderPdf(String transactionCode) {
+
+        PaymentEntity payment = paymentRepository.findByTransactionCode(transactionCode.toUpperCase().trim());
+        if(payment == null){
+            throw new DataNotFoundException("Payment not found for transaction code: " + transactionCode);
+        }
+
+        // Read template from resources
+        try{
+            ClassPathResource templateResource = new ClassPathResource("templates/invoice_template_coursehub.pdf");
+            PdfReader reader = new PdfReader(templateResource.getInputStream());
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PdfWriter writer = new PdfWriter(baos);
+            PdfDocument pdf = new PdfDocument(reader, writer);
+
+            // Get form from PDF
+            PdfAcroForm form = PdfAcroForm.getAcroForm(pdf, true);
+            // Fill data into fields
+            form.getField("field_courseName").setValue(payment.getCourseEntity().getTitle());
+            form.getField("field_transactionCode").setValue(payment.getTransactionCode());
+            form.getField("field_time").setValue(payment.getModifiedDate().toString());
+            form.getField("field_paymentMethod").setValue(payment.getMethod() == null ? "Bank Transfer" : payment.getMethod());
+            form.getField("field_totalAmount").setValue(String.format("%.2f USD", payment.getAmount()));
+
+            // Flatten form to lock fields
+            form.flattenFields();
+
+            pdf.close();
+            return baos.toByteArray();
+        } catch(Exception e) {
+            throw new PdfException("Error generating PDF: " + e.getMessage());
+        }
+    }
+
+    @Override
     public PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO) {
         PaymentEntity paymentEntity = paymentConverter.toPaymentEntity(paymentRequestDTO);
         paymentRepository.save(paymentEntity);
@@ -93,9 +134,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
 
-
     @Override
-    public void sendInvoiceToEmail(Map<String, Object> invoiceData, String transactionCode) {
+    public void sendInvoiceToEmail(Map<String, Object> invoiceData, String transactionCode, String downloadLink) {
         Map<String, String> result = new HashMap<>();
         PaymentEntity paymentEntity = paymentRepository.findByTransactionCode(transactionCode);
         CourseEntity courseEntity = paymentEntity.getCourseEntity();
@@ -105,7 +145,7 @@ public class PaymentServiceImpl implements PaymentService {
         result.put("totalAmount", invoiceData.get("transferAmount").toString());
         result.put("email", paymentEntity.getUserEntity().getEmail());
         result.put("paymentMethod", invoiceData.get("gateway").toString());
-        otpUtil.sendInvoiceToEmail(result);
+        otpUtil.sendInvoiceToEmail(result, downloadLink);
     }
 
     @Override

@@ -55,7 +55,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(withDefaults()) // ✅ Cách mới chuẩn 6.1+
+                .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )

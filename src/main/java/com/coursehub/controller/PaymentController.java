@@ -9,6 +9,7 @@ import com.coursehub.dto.response.payment.PaymentStatusResponseDTO;
 import com.coursehub.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,9 @@ public class PaymentController {
     @Value("${SEPAY_WEBHOOK_APIKEY}")
     private String sepaySecretKey;
 
+    @Value("${domain}")
+    private String domain;
+
     private final PaymentService paymentService;
 
     @PostMapping("/sepay/hook")
@@ -50,10 +54,25 @@ public class PaymentController {
             throw new IllegalArgumentException("Not Found transaction code");
         }
         paymentService.completePayment(transactionCode);
-        paymentService.sendInvoiceToEmail(payload, transactionCode);
+
+        String downloadLink = domain + "/api/payments/download/invoice/" + transactionCode;
+        paymentService.sendInvoiceToEmail(payload, transactionCode, downloadLink);
         return null;
     }
 
+
+
+    @GetMapping("/download/invoice/{transactionCode}")
+    public ResponseEntity<ByteArrayResource> downloadOrderPdf(@PathVariable String transactionCode) {
+
+        byte[] pdfBytes = paymentService.generateOrderPdf(transactionCode);
+        ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=order_" + transactionCode + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdfBytes.length)
+                .body(resource);
+    }
 
     @PostMapping("/init")
     public ResponseEntity<ResponseGeneral<PaymentResponseDTO>> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
