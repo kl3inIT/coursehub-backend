@@ -10,6 +10,8 @@ import com.coursehub.enums.ReportStatus;
 import com.coursehub.enums.ResourceType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.coursehub.dto.response.report.AggregatedReportDTO;
+import java.util.List;
 
 public interface ReportService {
     ReportResponseDTO createReport(ReportRequestDTO reportRequestDTO);
@@ -27,4 +29,7 @@ public interface ReportService {
     ResourceLocationDTO getResourceLocationByReportId(Long reportId);
 
     boolean isAllowedToReport(Long userId);
+
+    // Lấy danh sách report tổng hợp theo resource
+    List<AggregatedReportDTO> getAggregatedReports();
 }

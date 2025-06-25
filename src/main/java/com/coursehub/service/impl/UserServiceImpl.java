@@ -1,16 +1,19 @@
 package com.coursehub.service.impl;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,8 +27,9 @@ import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
-import com.coursehub.dto.response.user.UserManagementDTO;
+import com.coursehub.dto.response.user.UserDetailDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
+import com.coursehub.dto.response.user.UserSummaryDTO;
 import com.coursehub.entity.DiscountEntity;
 import com.coursehub.entity.RoleEntity;
 import com.coursehub.entity.UserDiscountEntity;
@@ -37,6 +41,7 @@ import com.coursehub.exceptions.user.AvatarNotFoundException;
 import com.coursehub.exceptions.user.AvatarUploadException;
 import com.coursehub.exceptions.user.IncorrectPasswordException;
 import com.coursehub.exceptions.user.SamePasswordException;
+import com.coursehub.exceptions.user.UserAlreadyExistsException;
 import com.coursehub.exceptions.user.UserAlreadyOwnsDiscountException;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.DiscountRepository;
@@ -189,36 +194,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, UserStatus status) {
-        if (pageSize == null) pageSize = 10;
-        if (pageNo == null) pageNo = 0;
+    public Page<UserSummaryDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, UserStatus status) {
+        if (pageNo == null || pageNo < 0) pageNo = 0;
+        if (pageSize == null || pageSize <= 0) pageSize = 10;
+        
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
 
-        List<String> roles = Arrays.asList("LEARNER", "MANAGER");
-        if (role != null && !role.isEmpty() && !role.equals("all")) {
-            roles = List.of(role.toUpperCase());
-        }
-
-        Page<UserEntity> userPage;
-        if (status != null) {
-            userPage = userRepository.findByRoleEntity_CodeInAndIsActive(
-                roles,
-                status,
-                Pageable.ofSize(pageSize).withPage(pageNo)
-            );
+        List<String> roles = new ArrayList<>();
+        if (role == null || role.equalsIgnoreCase("all")) {
+            roles.add("LEARNER");
+            roles.add("MANAGER");
         } else {
-            userPage = userRepository.findByRoleEntity_CodeIn(
-                roles,
-                Pageable.ofSize(pageSize).withPage(pageNo)
-            );
+            roles.add(role.toUpperCase());
         }
-        return userPage.map(userConverter::convertToUserManagementDTO);
+
+        if (status == null || "all".equalsIgnoreCase(String.valueOf(status))) {
+            return userRepository.findUserSummaries(roles, pageable);
+        } else {
+            return userRepository.findUserSummariesWithStatus(roles, status, pageable);
+        }
     }
 
     @Override
-    public UserManagementDTO getUserDetails(Long userId) {
+    public UserDetailDTO getUserDetails(Long userId) {
         UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-        return userConverter.convertToUserManagementDTO(user);
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return userConverter.toUserDetailDTO(user);
     }
 
     @Override
@@ -241,26 +242,36 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserManagementDTO createManager(ProfileRequestDTO request) {
+    public UserDetailDTO createManager(ProfileRequestDTO request) {
         if (userRepository.existsByEmailAndIsActive(request.getEmail(), UserStatus.ACTIVE)) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new UserAlreadyExistsException("Email already exists");
         }
 
-        RoleEntity learnerRole = roleRepository.findByCode("MANAGER");
-        if (learnerRole == null) {
-            throw new DataNotFoundException("Default role not found");
+        RoleEntity managerRole = roleRepository.findByCode("MANAGER");
+        if (managerRole == null) {
+            throw new DataNotFoundException("Default role 'MANAGER' not found");
         }
-        String tempPassword = generateTemporaryPassword(8);
+        
+        // Generate a random 8-character password
+        String temporaryPassword = generateTemporaryPassword(8);
+        
         UserEntity user = new UserEntity();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setIsActive(UserStatus.ACTIVE);
-        user.setPassword(passwordEncoder.encode(tempPassword));
-        user.setRoleEntity(learnerRole);
+        user.setPassword(passwordEncoder.encode(temporaryPassword)); // Use the generated password
+        user.setRoleEntity(managerRole);
+        
+        // Optional fields
+        user.setPhone(request.getPhone());
+        user.setBio(request.getBio());
 
         UserEntity savedUser = userRepository.save(user);
-        otpUtil.sendPasswordToManager(savedUser.getEmail(), tempPassword);
-        return userConverter.convertToUserManagementDTO(savedUser);
+        
+        // Send welcome email with temporary password
+        otpUtil.sendPasswordToManager(savedUser.getEmail(), temporaryPassword);
+
+        return userConverter.toUserDetailDTO(savedUser);
     }
 
     private String generateTemporaryPassword(int length) {
@@ -272,7 +283,6 @@ public class UserServiceImpl implements UserService {
         }
         return sb.toString();
     }
-
 
     @Override
     @Transactional

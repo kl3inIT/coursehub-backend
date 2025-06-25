@@ -6,6 +6,8 @@ import com.coursehub.dto.request.report.ReportSearchRequestDTO;
 import com.coursehub.dto.request.report.ReportStatusDTO;
 import com.coursehub.dto.response.report.ReportResponseDTO;
 import com.coursehub.dto.response.report.ResourceLocationDTO;
+import com.coursehub.dto.response.report.AggregatedReportDTO;
+import com.coursehub.dto.response.report.ReportDetailDTO;
 import com.coursehub.entity.*;
 import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
@@ -28,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -205,5 +211,60 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+    @Override
+    public List<AggregatedReportDTO> getAggregatedReports() {
+        List<ReportEntity> allReports = reportRepository.findAll();
+        Map<String, List<ReportEntity>> grouped = allReports.stream()
+            .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
+
+        List<AggregatedReportDTO> result = new ArrayList<>();
+        for (List<ReportEntity> group : grouped.values()) {
+            ReportEntity first = group.get(0);
+            AggregatedReportDTO dto = new AggregatedReportDTO();
+            dto.setResourceId(first.getResourceId());
+            dto.setResourceType(first.getType().name());
+
+            // Lấy nội dung và chủ sở hữu resource
+            if (first.getType() == ResourceType.COMMENT) {
+                CommentEntity comment = commentRepository.findById(first.getResourceId()).orElse(null);
+                if (comment != null) {
+                    dto.setResourceContent(comment.getComment());
+                    dto.setResourceOwner(comment.getUserEntity().getName());
+                    dto.setResourceOwnerId(comment.getUserEntity().getId());
+                    dto.setResourceOwnerAvatar(comment.getUserEntity().getAvatar());
+                    dto.setResourceOwnerStatus(comment.getUserEntity().getIsActive().name());
+                    dto.setResourceOwnerMemberSince(comment.getUserEntity().getCreatedDate().toString());
+                    dto.setHidden(comment.getIsHidden() == 1);
+                }
+            } else if (first.getType() == ResourceType.REVIEW) {
+                ReviewEntity review = reviewRepository.findById(first.getResourceId()).orElse(null);
+                if (review != null) {
+                    dto.setResourceContent(review.getComment());
+                    dto.setResourceOwner(review.getUserEntity().getName());
+                    dto.setResourceOwnerId(review.getUserEntity().getId());
+                    dto.setResourceOwnerAvatar(review.getUserEntity().getAvatar());
+                    dto.setResourceOwnerStatus(review.getUserEntity().getIsActive().name());
+                    dto.setResourceOwnerMemberSince(review.getUserEntity().getCreatedDate().toString());
+                    dto.setHidden(review.getIsHidden() == 1);
+                }
+            }
+
+            // Map các report con
+            List<ReportDetailDTO> details = group.stream().map(r -> {
+                ReportDetailDTO d = new ReportDetailDTO();
+                d.setReportId(r.getId());
+                d.setReporterName(r.getReporter().getName());
+                d.setReason(r.getReason());
+                d.setCreatedAt(r.getCreatedDate());
+                d.setReporterId(r.getReporter().getId());
+                d.setReporterAvatar(r.getReporter().getAvatar());
+                d.setSeverity(r.getSeverity());
+                return d;
+            }).collect(Collectors.toList());
+            dto.setReports(details);
+            result.add(dto);
+        }
+        return result;
+    }
 
 }

@@ -6,6 +6,7 @@ import com.coursehub.dto.request.report.ReportSearchRequestDTO;
 import com.coursehub.dto.request.report.ReportStatusDTO;
 import com.coursehub.dto.response.report.ReportResponseDTO;
 import com.coursehub.dto.response.report.ResourceLocationDTO;
+import com.coursehub.dto.response.report.AggregatedReportDTO;
 import com.coursehub.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -74,6 +77,16 @@ public class ReportController {
         ResourceLocationDTO dto = reportService.getResourceLocationByReportId(reportId);
         response.setData(dto);
         response.setMessage(SUCCESS);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/aggregated")
+    public ResponseEntity<ResponseGeneral<List<AggregatedReportDTO>>> getAggregatedReports() {
+        List<AggregatedReportDTO> reports = reportService.getAggregatedReports();
+        ResponseGeneral<List<AggregatedReportDTO>> response = new ResponseGeneral<>();
+        response.setData(reports);
+        response.setMessage(SUCCESS);
+        response.setDetail("Aggregated reports retrieved successfully");
         return ResponseEntity.ok(response);
     }
 

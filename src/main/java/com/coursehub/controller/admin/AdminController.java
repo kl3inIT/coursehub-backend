@@ -18,7 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
 import com.coursehub.dto.request.user.WarnRequestDTO;
-import com.coursehub.dto.response.user.UserManagementDTO;
+import com.coursehub.dto.response.user.UserDetailDTO;
+import com.coursehub.dto.response.user.UserSummaryDTO;
 import com.coursehub.enums.ResourceType;
 import com.coursehub.enums.UserStatus;
 import com.coursehub.service.UserService;
@@ -34,55 +35,59 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ResponseGeneral<Page<UserManagementDTO>>> getAllUsers(
-        @RequestParam(required = false, defaultValue = "10") Integer pageSize,
-        @RequestParam(required = false, defaultValue = "0") Integer pageNo,
-        @RequestParam(required = false) String role,
-        @RequestParam(required = false) UserStatus status
+    public ResponseEntity<ResponseGeneral<Page<UserSummaryDTO>>> getAllUsers(
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(defaultValue = "0") Integer pageNo,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) UserStatus status
     ) {
-        ResponseGeneral<Page<UserManagementDTO>> response = new ResponseGeneral<>();
-        response.setData(userService.getAllUsers(pageSize, pageNo, role, status));
-        response.setMessage("Get all users successfully");
+        ResponseGeneral<Page<UserSummaryDTO>> response = new ResponseGeneral<>();
+        Page<UserSummaryDTO> users = userService.getAllUsers(pageSize, pageNo, role, status);
+        response.setData(users);
+        response.setMessage("Users retrieved successfully");
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}/detail")
-    public ResponseEntity<ResponseGeneral<UserManagementDTO>> getUserDetails(@PathVariable Long userId) {
-        ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
-        response.setData(userService.getUserDetails(userId));
-        response.setMessage("Get user details successfully");
+    public ResponseEntity<ResponseGeneral<UserDetailDTO>> getUserDetails(@PathVariable Long userId) {
+        ResponseGeneral<UserDetailDTO> response = new ResponseGeneral<>();
+        UserDetailDTO userDetails = userService.getUserDetails(userId);
+        response.setData(userDetails);
+        response.setMessage("User details retrieved successfully");
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}/course-stats")
     public ResponseEntity<ResponseGeneral<Integer>> getUserCourseStats(@PathVariable Long userId) {
         ResponseGeneral<Integer> response = new ResponseGeneral<>();
-        UserManagementDTO userDetails = userService.getUserDetails(userId);
+        UserDetailDTO userDetails = userService.getUserDetails(userId);
         
         Integer courseCount = 0;
-        if ("learner".equalsIgnoreCase(userDetails.getRole())) {
-            courseCount = userDetails.getEnrolledCoursesCount();
-        } else if ("manager".equalsIgnoreCase(userDetails.getRole())) {
-            courseCount = userDetails.getManagedCoursesCount();
+        if (userDetails.getEnrolledCourses() != null) {
+            courseCount += userDetails.getEnrolledCourses().size();
         }
-        
+        if (userDetails.getManagedCourses() != null) {
+            courseCount += userDetails.getManagedCourses().size();
+        }
+
         response.setData(courseCount);
-        response.setMessage("Get user course statistics successfully");
+        response.setMessage("Course stats retrieved successfully");
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/create-manager")
-    public ResponseEntity<ResponseGeneral<UserManagementDTO>> createManager(@RequestBody ProfileRequestDTO request) {
-        ResponseGeneral<UserManagementDTO> response = new ResponseGeneral<>();
-        response.setData(userService.createManager(request));
-        response.setMessage("Create user successfully");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ResponseGeneral<UserDetailDTO>> createManager(@RequestBody ProfileRequestDTO request) {
+        ResponseGeneral<UserDetailDTO> response = new ResponseGeneral<>();
+        UserDetailDTO newManager = userService.createManager(request);
+        response.setData(newManager);
+        response.setMessage("Manager created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{userId}/status")
     public ResponseEntity<ResponseGeneral<Void>> updateUserStatus(
-        @PathVariable Long userId,
-        @RequestParam UserStatus status
+            @PathVariable Long userId,
+            @RequestParam UserStatus status
     ) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
         userService.updateUserStatus(userId, status);
