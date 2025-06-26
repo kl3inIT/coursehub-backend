@@ -1,10 +1,15 @@
 package com.coursehub.service.impl;
 
 import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
+import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.exceptions.course.CourseNotFoundException;
+import com.coursehub.exceptions.course.CourseNotFreeException;
+import com.coursehub.exceptions.enrollment.AlreadyEnrolledException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
+import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.EnrollmentRepository;
 import com.coursehub.repository.UserLessonRepository;
 import com.coursehub.repository.UserRepository;
@@ -17,6 +22,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -29,6 +35,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final LessonService lessonService;
     private final UserLessonRepository userLessonRepository;
     private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
 
     @Override
     public Long countByUserEntityId(Long userId) {
@@ -98,6 +105,45 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public List<EnrollmentEntity> getEnrollmentsByUserEntityId(Long userId) {
 
         return enrollmentRepository.findEnrollmentEntitiesByUserEntity_Id(userId);
+    }
+
+    @Override
+    public String enrollInFreeCourse(Long courseId) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+
+        EnrollmentEntity existingEnrollment = enrollmentRepository
+            .findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
+        
+        if (existingEnrollment != null) {
+            throw new AlreadyEnrolledException("You are already enrolled in this course");
+        }
+
+        CourseEntity course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        
+        if (course.getPrice().compareTo(BigDecimal.ZERO) != 0) {
+            throw new CourseNotFreeException("This course is not free. Please use payment to enroll.");
+        }
+        
+        // Create enrollment
+        EnrollmentEntity enrollment = EnrollmentEntity.builder()
+            .userEntity(user)
+            .courseEntity(course)
+            .isCompleted(0L)
+            .progressPercentage(0.0)
+            .build();
+        
+        enrollmentRepository.save(enrollment);
+        
+        log.info("User {} successfully enrolled in free course {}", user.getEmail(), course.getTitle());
+        
+        return "Successfully enrolled in free course";
     }
 
 

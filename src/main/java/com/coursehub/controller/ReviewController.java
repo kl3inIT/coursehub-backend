@@ -13,7 +13,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 
 import static com.coursehub.constant.Constant.CommonConstants.*;
 
@@ -58,10 +60,9 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> createReview(
-            @RequestParam Long userId,
-            @Valid @RequestBody ReviewRequestDTO requestDTO) {
+            @Valid @RequestBody ReviewRequestDTO requestDTO, Principal principal) {
 
-        ReviewResponseDTO review = reviewService.createReview(userId, requestDTO);
+        ReviewResponseDTO review = reviewService.createReview(principal.getName(), requestDTO);
         ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
         response.setData(review);
         response.setMessage(SUCCESS);

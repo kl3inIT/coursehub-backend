@@ -6,6 +6,7 @@ import com.coursehub.dto.request.course.*;
 import com.coursehub.enums.CourseLevel;
 import com.coursehub.enums.CourseStatus;
 import com.coursehub.service.CourseService;
+import com.coursehub.service.EnrollmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import static com.coursehub.constant.Constant.CommonConstants.*;
 public class CourseController {
 
     private final CourseService courseService;
+    private final EnrollmentService enrollmentService;
 
     @PostMapping
     public ResponseEntity<ResponseGeneral<CourseCreateUpdateResponseDTO>> createCourse(
@@ -257,6 +259,20 @@ public class CourseController {
         response.setMessage("SUCCESS");
         response.setDetail(msg);
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{courseId}/enroll")
+    public ResponseEntity<ResponseGeneral<String>> enrollInFreeCourse(@PathVariable Long courseId) {
+        log.info("Enrolling user in free course with ID: {}", courseId);
+        
+        String result = enrollmentService.enrollInFreeCourse(courseId);
+        
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setData(result);
+        response.setMessage(SUCCESS);
+        response.setDetail("Successfully enrolled in free course");
+        
         return ResponseEntity.ok(response);
     }
 

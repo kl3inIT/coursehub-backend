@@ -5,6 +5,7 @@ import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
 import com.coursehub.exceptions.discount.DiscountDuplicateException;
 import com.coursehub.exceptions.discount.QuantityException;
+import com.coursehub.exceptions.enrollment.AlreadyEnrolledException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.exceptions.category.CategoryNotFoundException;
@@ -623,6 +624,31 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    // Enrollment Exception Handlers
+    @ExceptionHandler(AlreadyEnrolledException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleAlreadyEnrolledException(AlreadyEnrolledException ex) {
+        log.error("User already enrolled: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Already Enrolled");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(CourseNotFreeException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleCourseNotFreeException(CourseNotFreeException ex) {
+        log.error("Course is not free: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Course Not Free");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // generic phải để cuối vì nếu không sẽ bắt hết các exception khác
