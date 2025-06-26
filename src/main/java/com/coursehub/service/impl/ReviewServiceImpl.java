@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -178,5 +177,21 @@ public class ReviewServiceImpl implements ReviewService {
                     "REVIEW"
             );
         }
+    }
+
+    @Override
+    public Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable) {
+        // Validate visibilityStatus
+        if (visibilityStatus != 0 && visibilityStatus != 1) {
+            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+        }
+        
+        // Trim search string if not null
+        String trimmedSearch = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+        
+        Page<ReviewEntity> reviews = reviewRepository.findByVisibilityWithFilters(
+                visibilityStatus, star, categoryId, courseId, trimmedSearch, pageable);
+        
+        return reviews.map(reviewConverter::toResponseDTO);
     }
 } 

@@ -2,7 +2,6 @@ package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.review.ReviewRequestDTO;
-import com.coursehub.dto.response.comment.CommentResponseDTO;
 import com.coursehub.dto.response.review.ReviewResponseDTO;
 import com.coursehub.service.ReviewService;
 import jakarta.validation.Valid;
@@ -31,7 +30,7 @@ public class ReviewController {
             @RequestParam(required = false) Integer star,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdDate") String sortBy,
+            @RequestParam(defaultValue = "modifiedDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
@@ -153,7 +152,7 @@ public class ReviewController {
             @RequestParam Integer visibilityStatus,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdDate") String sortBy,
+            @RequestParam(defaultValue = "modifiedDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
@@ -164,6 +163,30 @@ public class ReviewController {
         response.setData(reviews);
         response.setMessage(SUCCESS);
         response.setDetail("Reviews by visibility retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/by-visibility-with-filters")
+    public ResponseEntity<ResponseGeneral<Page<ReviewResponseDTO>>> getReviewsByVisibilityWithFilters(
+            @RequestParam Integer visibilityStatus,
+            @RequestParam(required = false) Integer star,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "modifiedDate") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<ReviewResponseDTO> reviews = reviewService.findReviewsByVisibilityWithFilters(
+                visibilityStatus, star, categoryId, courseId, search, pageRequest);
+        ResponseGeneral<Page<ReviewResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(reviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Reviews with filters retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

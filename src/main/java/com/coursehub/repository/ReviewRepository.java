@@ -35,4 +35,21 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
     @Query("SELECT r FROM ReviewEntity r WHERE r.isHidden = 1")
     Page<ReviewEntity> findHiddenReviews(Pageable pageable);
+
+    // New method for advanced filtering with visibility, star, category, course and search
+    @Query("SELECT r FROM ReviewEntity r " +
+           "JOIN r.courseEntity c " +
+           "WHERE ((:visibilityStatus = 0 AND (r.isHidden IS NULL OR r.isHidden = 0)) OR " +
+           "       (:visibilityStatus = 1 AND r.isHidden = 1)) AND " +
+           "(:star IS NULL OR r.star = :star) AND " +
+           "(:categoryId IS NULL OR c.categoryEntity.id = :categoryId) AND " +
+           "(:courseId IS NULL OR r.courseEntity.id = :courseId) AND " +
+           "(:search IS NULL OR :search = '' OR LOWER(r.comment) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<ReviewEntity> findByVisibilityWithFilters(
+            @Param("visibilityStatus") Integer visibilityStatus,
+            @Param("star") Integer star,
+            @Param("categoryId") Long categoryId,
+            @Param("courseId") Long courseId,
+            @Param("search") String search,
+            Pageable pageable);
 } 

@@ -29,4 +29,6 @@ public interface ReviewService {
     Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable);
 
     void setReviewVisibility(Long reviewId, boolean hide);
+
+    Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable);
 } 
