@@ -15,6 +15,8 @@ public interface EnrollmentService {
 
     EnrollmentStatusResponseDTO getEnrollmentStatus(Long courseId);
 
+    EnrollmentStatusResponseDTO getEnhancedEnrollmentStatus(Long courseId);
+
     List<EnrollmentEntity> getEnrollmentsByUserEntityId(Long userId);
 
     String enrollInFreeCourse(Long courseId);

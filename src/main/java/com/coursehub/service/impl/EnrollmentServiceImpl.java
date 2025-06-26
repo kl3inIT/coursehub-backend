@@ -16,6 +16,7 @@ import com.coursehub.repository.UserRepository;
 import com.coursehub.service.EnrollmentService;
 import com.coursehub.service.LessonService;
 import com.coursehub.service.UserService;
+import com.coursehub.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContext;
@@ -83,6 +84,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw new UserNotFoundException("User not found with email: " + email);
         }
         log.info("Checking enrollment status for user ID: {} and course ID: {}", user.getId(), courseId);
+        
         EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
         if (enrollment == null) {
             log.warn("No enrollment found for user ID: {} and course ID: {}", user.getId(), courseId);
@@ -90,6 +92,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     .enrolled(false)
                     .completed(false)
                     .enrollDate(null)
+                    .progress(0.0)
+                    .canAccess(false)
+                    .accessReason("Not enrolled in this course")
                     .build();
         }
         Boolean isCompleted = enrollment.getIsCompleted() != null && enrollment.getIsCompleted() == 1L;
@@ -98,6 +103,59 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .completed(isCompleted)
                 .enrollDate(enrollment.getCreatedDate())
                 .progress(enrollment.getProgressPercentage())
+                .canAccess(true)
+                .accessReason("Enrolled in course")
+                .build();
+    }
+
+    @Override
+    public EnrollmentStatusResponseDTO getEnhancedEnrollmentStatus(Long courseId) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if(user == null){
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        
+        log.info("Checking enhanced enrollment status for user ID: {} (role: {}) and course ID: {}", 
+                user.getId(), user.getRoleEntity().getCode(), courseId);
+        
+        // Check if user is Manager or Admin - they have automatic access
+        if (UserUtils.isManager(user) || UserUtils.isAdmin(user)) {
+            log.info("User {} has {} role - granting automatic access to course {}", 
+                    user.getEmail(), user.getRoleEntity().getCode(), courseId);
+            return EnrollmentStatusResponseDTO.builder()
+                    .enrolled(true) // Virtual enrollment for managers/admins
+                    .completed(false)
+                    .enrollDate(null)
+                    .progress(0.0)
+                    .canAccess(true)
+                    .accessReason("Access granted via " + user.getRoleEntity().getCode() + " role")
+                    .build();
+        }
+        
+        // For regular users (LEARNER), check actual enrollment
+        EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
+        if (enrollment == null) {
+            log.warn("No enrollment found for learner user ID: {} and course ID: {}", user.getId(), courseId);
+            return EnrollmentStatusResponseDTO.builder()
+                    .enrolled(false)
+                    .completed(false)
+                    .enrollDate(null)
+                    .progress(0.0)
+                    .canAccess(false)
+                    .accessReason("Not enrolled in this course")
+                    .build();
+        }
+        
+        Boolean isCompleted = enrollment.getIsCompleted() != null && enrollment.getIsCompleted() == 1L;
+        return EnrollmentStatusResponseDTO.builder()
+                .enrolled(true)
+                .completed(isCompleted)
+                .enrollDate(enrollment.getCreatedDate())
+                .progress(enrollment.getProgressPercentage())
+                .canAccess(true)
+                .accessReason("Enrolled in course")
                 .build();
     }
 
