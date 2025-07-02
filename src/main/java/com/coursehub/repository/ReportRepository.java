@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
 
@@ -32,5 +34,7 @@ public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
 
 
     boolean existsByReporterAndResourceIdAndType(UserEntity reporter, Long resourceId, ResourceType type);
+
+    List<ReportEntity> findByResourceId(Long resourceId);
 
 }

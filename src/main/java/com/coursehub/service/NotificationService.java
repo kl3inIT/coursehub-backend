@@ -5,6 +5,8 @@ import org.springframework.data.domain.Pageable;
 
 import com.coursehub.dto.response.notification.NotificationDTO;
 import com.coursehub.enums.NotificationType;
+import com.coursehub.enums.ReportStatus;
+import com.coursehub.enums.ResourceType;
 
 public interface NotificationService {
 
@@ -19,10 +21,11 @@ public interface NotificationService {
     void notifyReplyComment(Long userId, Long actorId, Long commentId);
     void notifyHideResource(Long userId, Long resourceId, String resourceType);
     void notifyShowResource(Long userId, Long resourceId, String resourceType);
-    void notifyBan(Long userId);
-    void notifyUnban(Long userId);
+    void notifyBan(Long userId, String reason);
+    void notifyUnban(Long userId, String reason);
     void notifyWarn(Long userId, Long resourceId, String resourceType);
     void notifySystem(NotificationType type, String message);
+    void notifyReportStatusUpdate(Long reporterId, ResourceType resourceType, Long resourceId, ReportStatus status, String actionNote);
 
 
 

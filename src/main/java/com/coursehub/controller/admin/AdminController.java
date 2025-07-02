@@ -17,12 +17,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
+import com.coursehub.dto.request.user.UpdateStatusRequest;
 import com.coursehub.dto.request.user.WarnRequestDTO;
 import com.coursehub.dto.response.user.UserDetailDTO;
 import com.coursehub.dto.response.user.UserSummaryDTO;
 import com.coursehub.enums.ResourceType;
 import com.coursehub.enums.UserStatus;
-import com.coursehub.service.UserService;
+import com.coursehub.service.AdminService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final UserService userService;
+    private final AdminService adminService;
 
     @GetMapping
     public ResponseEntity<ResponseGeneral<Page<UserSummaryDTO>>> getAllUsers(
@@ -42,7 +43,7 @@ public class AdminController {
             @RequestParam(required = false) UserStatus status
     ) {
         ResponseGeneral<Page<UserSummaryDTO>> response = new ResponseGeneral<>();
-        Page<UserSummaryDTO> users = userService.getAllUsers(pageSize, pageNo, role, status);
+        Page<UserSummaryDTO> users = adminService.getAllUsers(pageSize, pageNo, role, status);
         response.setData(users);
         response.setMessage("Users retrieved successfully");
         return ResponseEntity.ok(response);
@@ -51,7 +52,7 @@ public class AdminController {
     @GetMapping("/{userId}/detail")
     public ResponseEntity<ResponseGeneral<UserDetailDTO>> getUserDetails(@PathVariable Long userId) {
         ResponseGeneral<UserDetailDTO> response = new ResponseGeneral<>();
-        UserDetailDTO userDetails = userService.getUserDetails(userId);
+        UserDetailDTO userDetails = adminService.getUserDetails(userId);
         response.setData(userDetails);
         response.setMessage("User details retrieved successfully");
         return ResponseEntity.ok(response);
@@ -60,7 +61,7 @@ public class AdminController {
     @GetMapping("/{userId}/course-stats")
     public ResponseEntity<ResponseGeneral<Integer>> getUserCourseStats(@PathVariable Long userId) {
         ResponseGeneral<Integer> response = new ResponseGeneral<>();
-        UserDetailDTO userDetails = userService.getUserDetails(userId);
+        UserDetailDTO userDetails = adminService.getUserDetails(userId);
         
         Integer courseCount = 0;
         if (userDetails.getEnrolledCourses() != null) {
@@ -78,7 +79,7 @@ public class AdminController {
     @PostMapping("/create-manager")
     public ResponseEntity<ResponseGeneral<UserDetailDTO>> createManager(@RequestBody ProfileRequestDTO request) {
         ResponseGeneral<UserDetailDTO> response = new ResponseGeneral<>();
-        UserDetailDTO newManager = userService.createManager(request);
+        UserDetailDTO newManager = adminService.createManager(request);
         response.setData(newManager);
         response.setMessage("Manager created successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -87,10 +88,10 @@ public class AdminController {
     @PutMapping("/{userId}/status")
     public ResponseEntity<ResponseGeneral<Void>> updateUserStatus(
             @PathVariable Long userId,
-            @RequestParam UserStatus status
+            @RequestBody UpdateStatusRequest request
     ) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.updateUserStatus(userId, status);
+        adminService.updateUserStatus(userId, request.getStatus(), request.getReason());
         response.setMessage("Update user status successfully");
         return ResponseEntity.ok(response);
     }
@@ -98,7 +99,7 @@ public class AdminController {
     @DeleteMapping("/{managerId}")
     public ResponseEntity<ResponseGeneral<Void>> deleteManager(@PathVariable Long managerId) {
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-        userService.updateUserStatus(managerId, UserStatus.INACTIVE);
+        adminService.updateUserStatus(managerId, UserStatus.INACTIVE, "");
         response.setMessage("Delete user successfully");
         return ResponseEntity.ok(response);
     }
@@ -119,7 +120,7 @@ public class AdminController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or missing resource type");
         }
 
-        userService.addWarning(userId, resourceType, warnRequestDTO.getResourceId());
+        adminService.addWarning(userId, resourceType, warnRequestDTO.getResourceId());
         response.setMessage("Warning added successfully");
         return ResponseEntity.ok(response);
     }

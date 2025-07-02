@@ -88,11 +88,11 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NotificationEntity> notificationEntities = new HashSet<>();
 
-    @Column(name = "ban_reason", columnDefinition = "TEXT")
-    private String banReason;
+    @Column(name = "action_reason", columnDefinition = "TEXT")
+    private String actionReason;
 
-    @Column(name = "banned_at")
-    private Date bannedAt;
+    @Column(name = "last_action_at")
+    private Date lastActionAt;
 
     @Column(name = "warning_count")
     private Long warningCount = 0L;

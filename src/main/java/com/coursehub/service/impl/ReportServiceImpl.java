@@ -1,25 +1,15 @@
 package com.coursehub.service.impl;
 
-import com.coursehub.converter.ReportConverter;
-import com.coursehub.dto.request.report.ReportRequestDTO;
-import com.coursehub.dto.request.report.ReportSearchRequestDTO;
-import com.coursehub.dto.request.report.ReportStatusDTO;
-import com.coursehub.dto.response.report.ReportResponseDTO;
-import com.coursehub.dto.response.report.ResourceLocationDTO;
-import com.coursehub.dto.response.report.AggregatedReportDTO;
-import com.coursehub.dto.response.report.ReportDetailDTO;
-import com.coursehub.entity.*;
-import com.coursehub.enums.ReportSeverity;
-import com.coursehub.enums.ReportStatus;
-import com.coursehub.enums.ResourceType;
-import com.coursehub.enums.UserStatus;
-import com.coursehub.exceptions.comment.CommentNotFoundException;
-import com.coursehub.exceptions.report.*;
-import com.coursehub.exceptions.review.ReviewNotFoundException;
-import com.coursehub.repository.*;
-import com.coursehub.service.ReportService;
-import lombok.RequiredArgsConstructor;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -28,12 +18,40 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
+import com.coursehub.converter.ReportConverter;
+import com.coursehub.dto.request.report.ReportRequestDTO;
+import com.coursehub.dto.request.report.ReportSearchRequestDTO;
+import com.coursehub.dto.request.report.ReportStatusDTO;
+import com.coursehub.dto.response.report.AggregatedReportDTO;
+import com.coursehub.dto.response.report.ReportDetailDTO;
+import com.coursehub.dto.response.report.ReportResponseDTO;
+import com.coursehub.dto.response.report.ResourceLocationDTO;
+import com.coursehub.entity.CommentEntity;
+import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.LessonEntity;
+import com.coursehub.entity.ModuleEntity;
+import com.coursehub.entity.ReportEntity;
+import com.coursehub.entity.ReviewEntity;
+import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.ReportSeverity;
+import com.coursehub.enums.ReportStatus;
+import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
+import com.coursehub.exceptions.comment.CommentNotFoundException;
+import com.coursehub.exceptions.report.ContentAlreadyHiddenException;
+import com.coursehub.exceptions.report.ContentAlreadyReportedException;
+import com.coursehub.exceptions.report.ReasonTooLongException;
+import com.coursehub.exceptions.report.ReportNotFoundException;
+import com.coursehub.exceptions.report.TooManyRequestsException;
+import com.coursehub.exceptions.review.ReviewNotFoundException;
+import com.coursehub.repository.CommentRepository;
+import com.coursehub.repository.ReportRepository;
+import com.coursehub.repository.ReviewRepository;
+import com.coursehub.repository.UserRepository;
+import com.coursehub.service.NotificationService;
+import com.coursehub.service.ReportService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +62,7 @@ public class ReportServiceImpl implements ReportService {
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
     private final StringRedisTemplate redisTemplate;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -138,6 +157,39 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional
+    public void updateAllReportsStatusByResourceId(Long resourceId, ReportStatusDTO statusDTO) {
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+        
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+
+        UserEntity currentUser = getCurrentUser();
+        Date now = new Date();
+
+        for (ReportEntity report : reports) {
+            if (report.getStatus().equals(ReportStatus.PENDING)) {
+                report.setStatus(statusDTO.getStatus());
+                report.setActionNote(statusDTO.getActionNote());
+                report.setResolvedBy(currentUser);
+                report.setModifiedDate(now);
+                
+                // Gửi notification cho reporter
+                notificationService.notifyReportStatusUpdate(
+                    report.getReporter().getId(),
+                    report.getType(),
+                    resourceId,
+                    statusDTO.getStatus(),
+                    statusDTO.getActionNote()
+                );
+            }
+        }
+        
+        reportRepository.saveAll(reports);
+    }
+
+    @Override
+    @Transactional
     public void deleteReport(Long reportId) {
         if (!reportRepository.existsById(reportId)) {
             throw new ReportNotFoundException("Report not found with ID: " + reportId);
@@ -155,6 +207,18 @@ public class ReportServiceImpl implements ReportService {
     public ResourceLocationDTO getResourceLocationByReportId(Long reportId) {
         ReportEntity report = findReportById(reportId);
         return getResourceLocation(report.getType(), report.getResourceId());
+    }
+
+    @Override
+    public ResourceLocationDTO getResourceLocationByResourceId(Long resourceId) {
+        // Tìm report đầu tiên có resourceId này để xác định type
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+        
+        ReportEntity firstReport = reports.get(0);
+        return getResourceLocation(firstReport.getType(), resourceId);
     }
 
     @Override
@@ -212,11 +276,50 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public List<AggregatedReportDTO> getAggregatedReports() {
+    public Page<AggregatedReportDTO> getAggregatedReports(ReportSearchRequestDTO searchRequest) {
+        // Lấy tất cả reports và áp dụng filter
         List<ReportEntity> allReports = reportRepository.findAll();
+        
+        // Áp dụng filter theo type
+        if (searchRequest.getType() != null) {
+            allReports = allReports.stream()
+                .filter(r -> r.getType() == searchRequest.getType())
+                .collect(Collectors.toList());
+        }
+        
+        // Áp dụng filter theo status
+        if (searchRequest.getStatus() != null) {
+            allReports = allReports.stream()
+                .filter(r -> r.getStatus() == searchRequest.getStatus())
+                .collect(Collectors.toList());
+        }
+        
+        // Áp dụng filter theo severity
+        if (searchRequest.getSeverity() != null) {
+            allReports = allReports.stream()
+                .filter(r -> r.getSeverity() == searchRequest.getSeverity())
+                .collect(Collectors.toList());
+        }
+        
+        // Áp dụng filter theo search (tìm trong content của comment/review)
+        if (searchRequest.getSearch() != null && !searchRequest.getSearch().trim().isEmpty()) {
+            String searchTerm = searchRequest.getSearch().toLowerCase().trim();
+            allReports = allReports.stream()
+                .filter(r -> {
+                    if (r.getType() == ResourceType.COMMENT) {
+                        CommentEntity comment = commentRepository.findById(r.getResourceId()).orElse(null);
+                        return comment != null && comment.getComment().toLowerCase().contains(searchTerm);
+                    } else if (r.getType() == ResourceType.REVIEW) {
+                        ReviewEntity review = reviewRepository.findById(r.getResourceId()).orElse(null);
+                        return review != null && review.getComment().toLowerCase().contains(searchTerm);
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+        }
+        
         Map<String, List<ReportEntity>> grouped = allReports.stream()
             .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
-
         List<AggregatedReportDTO> result = new ArrayList<>();
         for (List<ReportEntity> group : grouped.values()) {
             ReportEntity first = group.get(0);
@@ -234,7 +337,11 @@ public class ReportServiceImpl implements ReportService {
                     dto.setResourceOwnerAvatar(comment.getUserEntity().getAvatar());
                     dto.setResourceOwnerStatus(comment.getUserEntity().getIsActive().name());
                     dto.setResourceOwnerMemberSince(comment.getUserEntity().getCreatedDate().toString());
+                    dto.setSeverity(first.getSeverity());
+                    dto.setStatus(first.getStatus());
                     dto.setHidden(comment.getIsHidden() == 1);
+                    dto.setCreatedAt(first.getCreatedDate());
+                    dto.setTotalReports((long) group.size());
                 }
             } else if (first.getType() == ResourceType.REVIEW) {
                 ReviewEntity review = reviewRepository.findById(first.getResourceId()).orElse(null);
@@ -245,7 +352,11 @@ public class ReportServiceImpl implements ReportService {
                     dto.setResourceOwnerAvatar(review.getUserEntity().getAvatar());
                     dto.setResourceOwnerStatus(review.getUserEntity().getIsActive().name());
                     dto.setResourceOwnerMemberSince(review.getUserEntity().getCreatedDate().toString());
+                    dto.setSeverity(first.getSeverity());
+                    dto.setStatus(first.getStatus());
                     dto.setHidden(review.getIsHidden() == 1);
+                    dto.setCreatedAt(first.getCreatedDate());
+                    dto.setTotalReports((long) group.size());
                 }
             }
 
@@ -264,7 +375,110 @@ public class ReportServiceImpl implements ReportService {
             dto.setReports(details);
             result.add(dto);
         }
-        return result;
+        // Sort
+        String sortBy = searchRequest.getSortBy();
+        String sortDir = searchRequest.getSortDir();
+        Comparator<AggregatedReportDTO> comparator;
+        switch (sortBy) {
+            case "severity":
+                comparator = Comparator.comparing(AggregatedReportDTO::getSeverity, Comparator.nullsLast(Enum::compareTo));
+                break;
+            case "status":
+                comparator = Comparator.comparing(AggregatedReportDTO::getStatus, Comparator.nullsLast(Enum::compareTo));
+                break;
+            case "totalReports":
+                comparator = Comparator.comparing(AggregatedReportDTO::getTotalReports, Comparator.nullsLast(Long::compareTo));
+                break;
+            case "resourceContent":
+                comparator = Comparator.comparing(AggregatedReportDTO::getResourceContent, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+            case "resourceOwner":
+                comparator = Comparator.comparing(AggregatedReportDTO::getResourceOwner, Comparator.nullsLast(String::compareToIgnoreCase));
+                break;
+            case "hidden":
+                comparator = Comparator.comparing(AggregatedReportDTO::isHidden);
+                break;
+            case "createdAt":
+            default:
+                comparator = Comparator.comparing(AggregatedReportDTO::getCreatedAt, Comparator.nullsLast(Date::compareTo));
+                break;
+        }
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            comparator = comparator.reversed();
+        }
+        result.sort(comparator);
+
+        // Paging
+        int page = searchRequest.getPage() != null ? searchRequest.getPage() : 0;
+        int size = searchRequest.getSize() != null ? searchRequest.getSize() : 10;
+        int start = page * size;
+        int end = Math.min(start + size, result.size());
+        List<AggregatedReportDTO> pageContent = (start < end) ? result.subList(start, end) : new ArrayList<>();
+        return new PageImpl<>(pageContent, PageRequest.of(page, size), result.size());
+    }
+
+    @Override
+    public AggregatedReportDTO getAggregatedReportByResourceId(Long resourceId) {
+        // Tìm tất cả reports cho resourceId này
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+        
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+        
+        ReportEntity first = reports.get(0);
+        AggregatedReportDTO dto = new AggregatedReportDTO();
+        dto.setResourceId(first.getResourceId());
+        dto.setResourceType(first.getType().name());
+
+        // Lấy nội dung và chủ sở hữu resource
+        if (first.getType() == ResourceType.COMMENT) {
+            CommentEntity comment = commentRepository.findById(first.getResourceId()).orElse(null);
+            if (comment != null) {
+                dto.setResourceContent(comment.getComment());
+                dto.setResourceOwner(comment.getUserEntity().getName());
+                dto.setResourceOwnerId(comment.getUserEntity().getId());
+                dto.setResourceOwnerAvatar(comment.getUserEntity().getAvatar());
+                dto.setResourceOwnerStatus(comment.getUserEntity().getIsActive().name());
+                dto.setResourceOwnerMemberSince(comment.getUserEntity().getCreatedDate().toString());
+                dto.setSeverity(first.getSeverity());
+                dto.setStatus(first.getStatus());
+                dto.setHidden(comment.getIsHidden() == 1);
+                dto.setCreatedAt(first.getCreatedDate());
+                dto.setTotalReports((long) reports.size());
+            }
+        } else if (first.getType() == ResourceType.REVIEW) {
+            ReviewEntity review = reviewRepository.findById(first.getResourceId()).orElse(null);
+            if (review != null) {
+                dto.setResourceContent(review.getComment());
+                dto.setResourceOwner(review.getUserEntity().getName());
+                dto.setResourceOwnerId(review.getUserEntity().getId());
+                dto.setResourceOwnerAvatar(review.getUserEntity().getAvatar());
+                dto.setResourceOwnerStatus(review.getUserEntity().getIsActive().name());
+                dto.setResourceOwnerMemberSince(review.getUserEntity().getCreatedDate().toString());
+                dto.setSeverity(first.getSeverity());
+                dto.setStatus(first.getStatus());
+                dto.setHidden(review.getIsHidden() == 1);
+                dto.setCreatedAt(first.getCreatedDate());
+                dto.setTotalReports((long) reports.size());
+            }
+        }
+
+        // Map các report con
+        List<ReportDetailDTO> details = reports.stream().map(r -> {
+            ReportDetailDTO d = new ReportDetailDTO();
+            d.setReportId(r.getId());
+            d.setReporterName(r.getReporter().getName());
+            d.setReason(r.getReason());
+            d.setCreatedAt(r.getCreatedDate());
+            d.setReporterId(r.getReporter().getId());
+            d.setReporterAvatar(r.getReporter().getAvatar());
+            d.setSeverity(r.getSeverity());
+            return d;
+        }).collect(Collectors.toList());
+        dto.setReports(details);
+        
+        return dto;
     }
 
 }

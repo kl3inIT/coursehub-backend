@@ -1,27 +1,5 @@
 package com.coursehub.service.impl;
 
-import java.io.IOException;
-import java.security.SecureRandom;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.coursehub.components.DiscountScheduler;
 import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
@@ -29,21 +7,12 @@ import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
 import com.coursehub.dto.response.user.UserDetailDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
-import com.coursehub.dto.response.user.UserSummaryDTO;
 import com.coursehub.entity.DiscountEntity;
-import com.coursehub.entity.RoleEntity;
 import com.coursehub.entity.UserDiscountEntity;
 import com.coursehub.entity.UserEntity;
-import com.coursehub.enums.ResourceType;
 import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
-import com.coursehub.exceptions.user.AvatarNotFoundException;
-import com.coursehub.exceptions.user.AvatarUploadException;
-import com.coursehub.exceptions.user.IncorrectPasswordException;
-import com.coursehub.exceptions.user.SamePasswordException;
-import com.coursehub.exceptions.user.UserAlreadyExistsException;
-import com.coursehub.exceptions.user.UserAlreadyOwnsDiscountException;
-import com.coursehub.exceptions.user.UserNotFoundException;
+import com.coursehub.exceptions.user.*;
 import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.RoleRepository;
 import com.coursehub.repository.UserDiscountRepository;
@@ -52,8 +21,20 @@ import com.coursehub.service.NotificationService;
 import com.coursehub.service.S3Service;
 import com.coursehub.service.UserService;
 import com.coursehub.utils.FileValidationUtil;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,15 +43,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserConverter userConverter;
     private final S3Service s3Service;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final DiscountRepository discountRepository;
     private final UserDiscountRepository userDiscountRepository;
     private final DiscountScheduler discountScheduler;
-    private final OtpUtil otpUtil;
-
-    private static final String USER_NOT_FOUND = "User not found";
-    private final NotificationService notificationService;
 
     @Override
     public UserResponseDTO getMyInfo() {
@@ -169,24 +145,6 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(avatarUrl);
     }
 
-    @Override
-    @Transactional
-    public void deleteProfile() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
-        if(user == null) {
-            throw new DataNotFoundException(USER_NOT_FOUND);
-        }
-
-        if (user.getAvatar() != null) {
-            s3Service.deleteObject(user.getAvatar());
-        }
-
-        user.setIsActive(UserStatus.BANNED);
-        userRepository.save(user);
-    }
-
     private String getFileExtension(String filename) {
         if (filename == null) return "";
         int lastDotIndex = filename.lastIndexOf('.');
@@ -194,113 +152,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserSummaryDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, UserStatus status) {
-        if (pageNo == null || pageNo < 0) pageNo = 0;
-        if (pageSize == null || pageSize <= 0) pageSize = 10;
-        
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("createdDate").descending());
-
-        List<String> roles = new ArrayList<>();
-        if (role == null || role.equalsIgnoreCase("all")) {
-            roles.add("LEARNER");
-            roles.add("MANAGER");
-        } else {
-            roles.add(role.toUpperCase());
-        }
-
-        if (status == null || "all".equalsIgnoreCase(String.valueOf(status))) {
-            return userRepository.findUserSummaries(roles, pageable);
-        } else {
-            return userRepository.findUserSummariesWithStatus(roles, status, pageable);
-        }
-    }
-
-    @Override
     public UserDetailDTO getUserDetails(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
         return userConverter.toUserDetailDTO(user);
-    }
-
-    @Override
-    @Transactional
-    public void updateUserStatus(Long userId, UserStatus status) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
-        if ("Active".equalsIgnoreCase(status.getStatus())) {
-            user.setIsActive(UserStatus.ACTIVE);
-            notificationService.notifyUnban(userId);
-        } else if ("Banned".equalsIgnoreCase(status.getStatus())) {
-            user.setIsActive(UserStatus.BANNED);
-            notificationService.notifyBan(userId);
-        } else {
-            user.setIsActive(UserStatus.INACTIVE);
-            notificationService.notifyBan(userId);
-        }
-        userRepository.save(user);
-    }
-
-    @Override
-    @Transactional
-    public UserDetailDTO createManager(ProfileRequestDTO request) {
-        if (userRepository.existsByEmailAndIsActive(request.getEmail(), UserStatus.ACTIVE)) {
-            throw new UserAlreadyExistsException("Email already exists");
-        }
-
-        RoleEntity managerRole = roleRepository.findByCode("MANAGER");
-        if (managerRole == null) {
-            throw new DataNotFoundException("Default role 'MANAGER' not found");
-        }
-        
-        // Generate a random 8-character password
-        String temporaryPassword = generateTemporaryPassword(8);
-        
-        UserEntity user = new UserEntity();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setIsActive(UserStatus.ACTIVE);
-        user.setPassword(passwordEncoder.encode(temporaryPassword)); // Use the generated password
-        user.setRoleEntity(managerRole);
-        
-        // Optional fields
-        user.setPhone(request.getPhone());
-        user.setBio(request.getBio());
-
-        UserEntity savedUser = userRepository.save(user);
-        
-        // Send welcome email with temporary password
-        otpUtil.sendPasswordToManager(savedUser.getEmail(), temporaryPassword);
-
-        return userConverter.toUserDetailDTO(savedUser);
-    }
-
-    private String generateTemporaryPassword(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
-    @Override
-    @Transactional
-    public void addWarning(Long userId, ResourceType resourceType, Long resourceId) {
-        UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-
-        long currentWarnings = user.getWarningCount() != null ? user.getWarningCount() : 0L;
-        user.setWarningCount(currentWarnings + 1);
-
-        notificationService.notifyWarn(userId, resourceId, String.valueOf(resourceType));
-
-        if (user.getWarningCount() >= 5) {
-            user.setIsActive(UserStatus.BANNED);
-            notificationService.notifyBan(userId);
-        }
-
-        userRepository.save(user);
     }
 
     @Override
