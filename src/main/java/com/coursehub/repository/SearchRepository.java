@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 
-@Repository
 public interface SearchRepository {
 
     Page<CourseEntity> advancedSearch(CourseSearchRequestDTO searchRequest, Pageable pageable);
