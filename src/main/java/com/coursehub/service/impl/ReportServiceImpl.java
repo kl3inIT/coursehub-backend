@@ -23,7 +23,6 @@ import com.coursehub.dto.request.report.ReportRequestDTO;
 import com.coursehub.dto.request.report.ReportSearchRequestDTO;
 import com.coursehub.dto.request.report.ReportStatusDTO;
 import com.coursehub.dto.response.report.AggregatedReportDTO;
-import com.coursehub.dto.response.report.ReportDetailDTO;
 import com.coursehub.dto.response.report.ReportResponseDTO;
 import com.coursehub.dto.response.report.ResourceLocationDTO;
 import com.coursehub.entity.CommentEntity;
@@ -217,7 +216,7 @@ public class ReportServiceImpl implements ReportService {
             throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
         }
         
-        ReportEntity firstReport = reports.get(0);
+        ReportEntity firstReport = reports.getFirst();
         return getResourceLocation(firstReport.getType(), resourceId);
     }
 
@@ -277,133 +276,18 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public Page<AggregatedReportDTO> getAggregatedReports(ReportSearchRequestDTO searchRequest) {
-        // Lấy tất cả reports và áp dụng filter
         List<ReportEntity> allReports = reportRepository.findAll();
-        
-        // Áp dụng filter theo type
-        if (searchRequest.getType() != null) {
-            allReports = allReports.stream()
-                .filter(r -> r.getType() == searchRequest.getType())
-                .collect(Collectors.toList());
-        }
-        
-        // Áp dụng filter theo status
-        if (searchRequest.getStatus() != null) {
-            allReports = allReports.stream()
-                .filter(r -> r.getStatus() == searchRequest.getStatus())
-                .collect(Collectors.toList());
-        }
-        
-        // Áp dụng filter theo severity
-        if (searchRequest.getSeverity() != null) {
-            allReports = allReports.stream()
-                .filter(r -> r.getSeverity() == searchRequest.getSeverity())
-                .collect(Collectors.toList());
-        }
-        
-        // Áp dụng filter theo search (tìm trong content của comment/review)
-        if (searchRequest.getSearch() != null && !searchRequest.getSearch().trim().isEmpty()) {
-            String searchTerm = searchRequest.getSearch().toLowerCase().trim();
-            allReports = allReports.stream()
-                .filter(r -> {
-                    if (r.getType() == ResourceType.COMMENT) {
-                        CommentEntity comment = commentRepository.findById(r.getResourceId()).orElse(null);
-                        return comment != null && comment.getComment().toLowerCase().contains(searchTerm);
-                    } else if (r.getType() == ResourceType.REVIEW) {
-                        ReviewEntity review = reviewRepository.findById(r.getResourceId()).orElse(null);
-                        return review != null && review.getComment().toLowerCase().contains(searchTerm);
-                    }
-                    return false;
-                })
-                .collect(Collectors.toList());
-        }
-        
-        Map<String, List<ReportEntity>> grouped = allReports.stream()
-            .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
-        List<AggregatedReportDTO> result = new ArrayList<>();
-        for (List<ReportEntity> group : grouped.values()) {
-            ReportEntity first = group.get(0);
-            AggregatedReportDTO dto = new AggregatedReportDTO();
-            dto.setResourceId(first.getResourceId());
-            dto.setResourceType(first.getType().name());
+        List<ReportEntity> filteredReports = applyFilters(allReports, searchRequest);
 
-            // Lấy nội dung và chủ sở hữu resource
-            if (first.getType() == ResourceType.COMMENT) {
-                CommentEntity comment = commentRepository.findById(first.getResourceId()).orElse(null);
-                if (comment != null) {
-                    dto.setResourceContent(comment.getComment());
-                    dto.setResourceOwner(comment.getUserEntity().getName());
-                    dto.setResourceOwnerId(comment.getUserEntity().getId());
-                    dto.setResourceOwnerAvatar(comment.getUserEntity().getAvatar());
-                    dto.setResourceOwnerStatus(comment.getUserEntity().getIsActive().name());
-                    dto.setResourceOwnerMemberSince(comment.getUserEntity().getCreatedDate().toString());
-                    dto.setSeverity(first.getSeverity());
-                    dto.setStatus(first.getStatus());
-                    dto.setHidden(comment.getIsHidden() == 1);
-                    dto.setCreatedAt(first.getCreatedDate());
-                    dto.setTotalReports((long) group.size());
-                }
-            } else if (first.getType() == ResourceType.REVIEW) {
-                ReviewEntity review = reviewRepository.findById(first.getResourceId()).orElse(null);
-                if (review != null) {
-                    dto.setResourceContent(review.getComment());
-                    dto.setResourceOwner(review.getUserEntity().getName());
-                    dto.setResourceOwnerId(review.getUserEntity().getId());
-                    dto.setResourceOwnerAvatar(review.getUserEntity().getAvatar());
-                    dto.setResourceOwnerStatus(review.getUserEntity().getIsActive().name());
-                    dto.setResourceOwnerMemberSince(review.getUserEntity().getCreatedDate().toString());
-                    dto.setSeverity(first.getSeverity());
-                    dto.setStatus(first.getStatus());
-                    dto.setHidden(review.getIsHidden() == 1);
-                    dto.setCreatedAt(first.getCreatedDate());
-                    dto.setTotalReports((long) group.size());
-                }
-            }
+        Map<String, List<ReportEntity>> grouped = filteredReports.stream()
+                .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
 
-            // Map các report con
-            List<ReportDetailDTO> details = group.stream().map(r -> {
-                ReportDetailDTO d = new ReportDetailDTO();
-                d.setReportId(r.getId());
-                d.setReporterName(r.getReporter().getName());
-                d.setReason(r.getReason());
-                d.setCreatedAt(r.getCreatedDate());
-                d.setReporterId(r.getReporter().getId());
-                d.setReporterAvatar(r.getReporter().getAvatar());
-                d.setSeverity(r.getSeverity());
-                return d;
-            }).collect(Collectors.toList());
-            dto.setReports(details);
-            result.add(dto);
-        }
-        // Sort
-        String sortBy = searchRequest.getSortBy();
-        String sortDir = searchRequest.getSortDir();
-        Comparator<AggregatedReportDTO> comparator;
-        switch (sortBy) {
-            case "severity":
-                comparator = Comparator.comparing(AggregatedReportDTO::getSeverity, Comparator.nullsLast(Enum::compareTo));
-                break;
-            case "status":
-                comparator = Comparator.comparing(AggregatedReportDTO::getStatus, Comparator.nullsLast(Enum::compareTo));
-                break;
-            case "totalReports":
-                comparator = Comparator.comparing(AggregatedReportDTO::getTotalReports, Comparator.nullsLast(Long::compareTo));
-                break;
-            case "resourceContent":
-                comparator = Comparator.comparing(AggregatedReportDTO::getResourceContent, Comparator.nullsLast(String::compareToIgnoreCase));
-                break;
-            case "resourceOwner":
-                comparator = Comparator.comparing(AggregatedReportDTO::getResourceOwner, Comparator.nullsLast(String::compareToIgnoreCase));
-                break;
-            case "hidden":
-                comparator = Comparator.comparing(AggregatedReportDTO::isHidden);
-                break;
-            case "createdAt":
-            default:
-                comparator = Comparator.comparing(AggregatedReportDTO::getCreatedAt, Comparator.nullsLast(Date::compareTo));
-                break;
-        }
-        if ("desc".equalsIgnoreCase(sortDir)) {
+        List<AggregatedReportDTO> result = new ArrayList<>(grouped.values().stream()
+                .map(this::mapToAggregatedReport)
+                .toList());
+
+        Comparator<AggregatedReportDTO> comparator = getReportComparator(searchRequest.getSortBy());
+        if ("desc".equalsIgnoreCase(searchRequest.getSortDir())) {
             comparator = comparator.reversed();
         }
         result.sort(comparator);
@@ -417,67 +301,70 @@ public class ReportServiceImpl implements ReportService {
         return new PageImpl<>(pageContent, PageRequest.of(page, size), result.size());
     }
 
+
+    private List<ReportEntity> applyFilters(List<ReportEntity> reports, ReportSearchRequestDTO searchRequest) {
+        List<ReportEntity> filtered = reports;
+        if (searchRequest.getType() != null) {
+            filtered = filtered.stream().filter(r -> r.getType() == searchRequest.getType()).toList();
+        }
+        if (searchRequest.getStatus() != null) {
+            filtered = filtered.stream().filter(r -> r.getStatus() == searchRequest.getStatus()).toList();
+        }
+        if (searchRequest.getSeverity() != null) {
+            filtered = filtered.stream().filter(r -> r.getSeverity() == searchRequest.getSeverity()).toList();
+        }
+        if (searchRequest.getSearch() != null && !searchRequest.getSearch().trim().isEmpty()) {
+            String searchTerm = searchRequest.getSearch().toLowerCase().trim();
+            filtered = filtered.stream()
+                    .filter(r -> {
+                        if (r.getType() == ResourceType.COMMENT) {
+                            CommentEntity comment = commentRepository.findById(r.getResourceId()).orElse(null);
+                            return comment != null && comment.getComment().toLowerCase().contains(searchTerm);
+                        } else if (r.getType() == ResourceType.REVIEW) {
+                            ReviewEntity review = reviewRepository.findById(r.getResourceId()).orElse(null);
+                            return review != null && review.getComment().toLowerCase().contains(searchTerm);
+                        }
+                        return false;
+                    }).toList();
+        }
+        return filtered;
+    }
+
+    private Comparator<AggregatedReportDTO> getReportComparator(String sortBy) {
+        return switch (sortBy) {
+            case "severity" -> Comparator.comparing(AggregatedReportDTO::getSeverity, Comparator.nullsLast(Enum::compareTo));
+            case "status" -> Comparator.comparing(AggregatedReportDTO::getStatus, Comparator.nullsLast(Enum::compareTo));
+            case "totalReports" -> Comparator.comparing(AggregatedReportDTO::getTotalReports, Comparator.nullsLast(Long::compareTo));
+            case "resourceContent" -> Comparator.comparing(AggregatedReportDTO::getResourceContent, Comparator.nullsLast(String::compareToIgnoreCase));
+            case "resourceOwner" -> Comparator.comparing(AggregatedReportDTO::getResourceOwner, Comparator.nullsLast(String::compareToIgnoreCase));
+            case "hidden" -> Comparator.comparing(AggregatedReportDTO::isHidden);
+            default -> Comparator.comparing(AggregatedReportDTO::getCreatedAt, Comparator.nullsLast(Date::compareTo));
+        };
+    }
+
+    private AggregatedReportDTO mapToAggregatedReport(List<ReportEntity> group) {
+        ReportEntity first = group.getFirst();
+        AggregatedReportDTO dto = new AggregatedReportDTO();
+        reportConverter.mapResourceInfo(dto, first, group.size());
+        dto.setReports(reportConverter.toReportDetailList(group));
+        return dto;
+    }
+
     @Override
     public AggregatedReportDTO getAggregatedReportByResourceId(Long resourceId) {
         // Tìm tất cả reports cho resourceId này
         List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
-        
+
         if (reports.isEmpty()) {
             throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
         }
-        
-        ReportEntity first = reports.get(0);
-        AggregatedReportDTO dto = new AggregatedReportDTO();
-        dto.setResourceId(first.getResourceId());
-        dto.setResourceType(first.getType().name());
 
-        // Lấy nội dung và chủ sở hữu resource
-        if (first.getType() == ResourceType.COMMENT) {
-            CommentEntity comment = commentRepository.findById(first.getResourceId()).orElse(null);
-            if (comment != null) {
-                dto.setResourceContent(comment.getComment());
-                dto.setResourceOwner(comment.getUserEntity().getName());
-                dto.setResourceOwnerId(comment.getUserEntity().getId());
-                dto.setResourceOwnerAvatar(comment.getUserEntity().getAvatar());
-                dto.setResourceOwnerStatus(comment.getUserEntity().getIsActive().name());
-                dto.setResourceOwnerMemberSince(comment.getUserEntity().getCreatedDate().toString());
-                dto.setSeverity(first.getSeverity());
-                dto.setStatus(first.getStatus());
-                dto.setHidden(comment.getIsHidden() == 1);
-                dto.setCreatedAt(first.getCreatedDate());
-                dto.setTotalReports((long) reports.size());
-            }
-        } else if (first.getType() == ResourceType.REVIEW) {
-            ReviewEntity review = reviewRepository.findById(first.getResourceId()).orElse(null);
-            if (review != null) {
-                dto.setResourceContent(review.getComment());
-                dto.setResourceOwner(review.getUserEntity().getName());
-                dto.setResourceOwnerId(review.getUserEntity().getId());
-                dto.setResourceOwnerAvatar(review.getUserEntity().getAvatar());
-                dto.setResourceOwnerStatus(review.getUserEntity().getIsActive().name());
-                dto.setResourceOwnerMemberSince(review.getUserEntity().getCreatedDate().toString());
-                dto.setSeverity(first.getSeverity());
-                dto.setStatus(first.getStatus());
-                dto.setHidden(review.getIsHidden() == 1);
-                dto.setCreatedAt(first.getCreatedDate());
-                dto.setTotalReports((long) reports.size());
-            }
-        }
+        ReportEntity first = reports.getFirst();
+        AggregatedReportDTO dto = new AggregatedReportDTO();
+        reportConverter.mapResourceInfo(dto, first, reports.size());
 
         // Map các report con
-        List<ReportDetailDTO> details = reports.stream().map(r -> {
-            ReportDetailDTO d = new ReportDetailDTO();
-            d.setReportId(r.getId());
-            d.setReporterName(r.getReporter().getName());
-            d.setReason(r.getReason());
-            d.setCreatedAt(r.getCreatedDate());
-            d.setReporterId(r.getReporter().getId());
-            d.setReporterAvatar(r.getReporter().getAvatar());
-            d.setSeverity(r.getSeverity());
-            return d;
-        }).collect(Collectors.toList());
-        dto.setReports(details);
-        
+        dto.setReports(reportConverter.toReportDetailList(reports));
         return dto;
     }
 

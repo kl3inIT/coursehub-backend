@@ -83,7 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyHideResource(Long userId, Long resourceId, String resourceType) {
         UserEntity user = getUserById(userId);
         Object entity = getResourceEntity(resourceId, resourceType);
-        NotificationEntity notification = buildResourceNotification(user, NotificationType.NOTIFICATION_HIDDEN, "hidden", entity, resourceType);
+        NotificationEntity notification = buildResourceNotification(user, NotificationType.CONTENT_HIDDEN, "hidden", entity, resourceType);
         saveAndSendToUser(notification, null, ADMIN);
     }
 
@@ -91,7 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyShowResource(Long userId, Long resourceId, String resourceType) {
         UserEntity user = getUserById(userId);
         Object entity = getResourceEntity(resourceId, resourceType);
-        NotificationEntity notification = buildResourceNotification(user, NotificationType.NOTIFICATION_SHOWN, "restored", entity, resourceType);
+        NotificationEntity notification = buildResourceNotification(user, NotificationType.CONTENT_SHOWN, "restored", entity, resourceType);
         saveAndSendToUser(notification, null, ADMIN);
     }
 
@@ -105,13 +105,18 @@ public class NotificationServiceImpl implements NotificationService {
         throw new IllegalArgumentException("Invalid resourceType: " + resourceType);
     }
 
-    @Override
-    public void notifyBan(Long userId, String reason) {
+    private void notifyUserBanOrUnban(
+            Long userId,
+            NotificationType type,
+            String baseMessage,
+            String reason
+    ) {
         UserEntity user = getUserById(userId);
         NotificationEntity notification = new NotificationEntity();
         notification.setUserEntity(user);
-        notification.setType(NotificationType.USER_BANNED);
-        String message = "Your account has been banned by ADMIN for violating community guidelines.";
+        notification.setType(type);
+
+        String message = baseMessage;
         if (reason != null && !reason.trim().isEmpty()) {
             message += " Reason: " + reason;
         }
@@ -122,22 +127,27 @@ public class NotificationServiceImpl implements NotificationService {
         saveAndSendToUser(notification, null, ADMIN);
     }
 
+
+    @Override
+    public void notifyBan(Long userId, String reason) {
+        notifyUserBanOrUnban(
+            userId,
+            NotificationType.USER_BANNED,
+            "Your account has been banned by ADMIN for violating community guidelines.",
+            reason
+        );
+    }
+
     @Override
     public void notifyUnban(Long userId, String reason) {
-        UserEntity user = getUserById(userId);
-        NotificationEntity notification = new NotificationEntity();
-        notification.setUserEntity(user);
-        notification.setType(NotificationType.USER_UNBANNED);
-        String message = "Your account has been restored by ADMIN.";
-        if (reason != null && !reason.trim().isEmpty()) {
-            message += " Reason: " + reason;
-        }
-        notification.setMessage(message);
-        notification.setIsRead(0L);
-        notification.setResourceId(null);
-        notification.setResourceType(null);
-        saveAndSendToUser(notification, null, ADMIN);
+        notifyUserBanOrUnban(
+            userId,
+            NotificationType.USER_UNBANNED,
+            "Your account has been restored by ADMIN.",
+            reason
+        );
     }
+
 
     @Override
     public void notifyWarn(Long userId, Long resourceId, String resourceType) {
