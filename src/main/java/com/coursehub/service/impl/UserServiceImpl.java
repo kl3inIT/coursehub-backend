@@ -1,7 +1,6 @@
 package com.coursehub.service.impl;
 
 import com.coursehub.components.DiscountScheduler;
-import com.coursehub.components.OtpUtil;
 import com.coursehub.converter.UserConverter;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
@@ -14,10 +13,8 @@ import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
 import com.coursehub.exceptions.user.*;
 import com.coursehub.repository.DiscountRepository;
-import com.coursehub.repository.RoleRepository;
 import com.coursehub.repository.UserDiscountRepository;
 import com.coursehub.repository.UserRepository;
-import com.coursehub.service.NotificationService;
 import com.coursehub.service.S3Service;
 import com.coursehub.service.UserService;
 import com.coursehub.utils.FileValidationUtil;
@@ -71,7 +68,8 @@ public class UserServiceImpl implements UserService {
         return userConverter.toProfileRequestDTO(savedUser);
     }
 
-    private UserEntity getCurrentUser() {
+    @Override
+    public UserEntity getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
         return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);

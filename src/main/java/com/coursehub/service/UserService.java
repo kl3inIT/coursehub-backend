@@ -11,7 +11,7 @@ public interface UserService {
 
     UserResponseDTO getMyInfo();
     ProfileRequestDTO updateProfile(ProfileRequestDTO request);
-    
+    UserEntity getCurrentUser();
     // User Management methods
     UserDetailDTO getUserDetails(Long userId);
     void changePassword(ChangePasswordRequestDTO request);

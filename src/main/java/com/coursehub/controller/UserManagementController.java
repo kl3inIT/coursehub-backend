@@ -1,4 +1,4 @@
-package com.coursehub.controller.admin;
+package com.coursehub.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-public class AdminController {
+public class UserManagementController {
 
     private final AdminService adminService;
 

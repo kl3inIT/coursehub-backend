@@ -16,5 +16,7 @@ public class AnnouncementUserReadEntity extends  BaseEntity {
 
     private Long userId;
 
-    private Long isRead;
+    private Long isRead = 0L;
+
+    private Long isDeleted = 0L;
 }

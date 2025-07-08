@@ -8,10 +8,12 @@ import com.coursehub.enums.TargetGroup;
 import java.util.List;
 
 public interface AnnouncementService {
-    AnnouncementResponseDTO createAnnouncement(AnnouncementCreateRequestDTO dto, String adminId);
+    AnnouncementResponseDTO createAnnouncement(AnnouncementCreateRequestDTO dto);
     List<AnnouncementResponseDTO> getAnnouncements(TargetGroup targetGroup);
     AnnouncementResponseDTO getAnnouncement(Long id);
     void deleteAnnouncement(Long id);
-    void markAsRead(Long announcementId, Long userId);
+    void markAsRead(Long announcementId);
     List<TargetGroupDTO> getAllTargetGroups();
+    void markAsDeleted(Long announcementId);
+    List<AnnouncementResponseDTO> getAnnouncementsForCurrentUser();
 }

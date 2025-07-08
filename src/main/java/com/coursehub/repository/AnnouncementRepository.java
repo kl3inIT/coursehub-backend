@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface AnnouncementRepository extends JpaRepository<AnnouncementEntity, Long> {
     List<AnnouncementEntity> findByTargetGroupIn(List<TargetGroup> list);
+
 }

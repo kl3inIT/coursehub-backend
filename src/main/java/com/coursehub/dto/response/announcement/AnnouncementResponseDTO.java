@@ -20,4 +20,6 @@ public class AnnouncementResponseDTO {
     private String targetGroupDescription;
     private String link;
     private String createdAt;
+    private Long isRead;
+    private Long isDeleted;
 }
