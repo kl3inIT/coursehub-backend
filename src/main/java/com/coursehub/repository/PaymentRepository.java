@@ -95,4 +95,6 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM PaymentEntity p WHERE p.status = 'Completed' AND p.modifiedDate BETWEEN :startDate AND :endDate")
     BigDecimal sumCompletedPayments(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
+    @Query("SELECT MONTH(p.createdDate) as month, SUM(p.amount) as total FROM PaymentEntity p WHERE YEAR(p.createdDate) = :year AND p.status = 'COMPLETED' GROUP BY MONTH(p.createdDate)")
+    List<Object[]> sumRevenueByMonth(@Param("year") int year);
 }

@@ -32,6 +32,7 @@ public class DashboardManagerResponseDTO {
 
     private List<Double> monthlyRevenue; // 12 giá trị, mỗi giá trị là doanh thu từng tháng
     private List<Long> monthlyNewCourses; // 12 giá trị, mỗi giá trị là số khoá học mới từng tháng
+    private List<Long> monthlyStudentEnrollments;
 
     @Data
     @AllArgsConstructor

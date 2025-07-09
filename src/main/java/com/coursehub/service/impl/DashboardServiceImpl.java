@@ -15,8 +15,9 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.math.RoundingMode;
 import java.util.Optional;
-import java.util.Collections;
 import com.coursehub.dto.response.dashboard.DashboardManagerResponseDTO;
+import java.util.Arrays;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -139,17 +140,58 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<Double> getMonthlyRevenue() {
-        return Collections.emptyList();
+        int year = LocalDate.now().getYear();
+        List<Object[]> results = paymentRepository.sumRevenueByMonth(year);
+        Double[] monthly = new Double[12];
+        Arrays.fill(monthly, 0.0);
+        for (Object[] row : results) {
+            int month = ((Integer) row[0]) - 1;
+            Double total = ((Number) row[1]).doubleValue();
+            monthly[month] = total;
+        }
+        return Arrays.asList(monthly);
     }
 
     @Override
     public List<Long> getMonthlyNewCourses() {
-        return Collections.emptyList();
+        int year = LocalDate.now().getYear();
+        List<Object[]> results = courseRepository.countNewCoursesByMonth(year);
+        Long[] monthly = new Long[12];
+        Arrays.fill(monthly, 0L);
+        for (Object[] row : results) {
+            int month = ((Integer) row[0]) - 1;
+            Long total = ((Number) row[1]).longValue();
+            monthly[month] = total;
+        }
+        return Arrays.asList(monthly);
+    }
+
+    @Override
+    public List<Long> getMonthlyStudentEnrollments() {
+        int year = LocalDate.now().getYear();
+        List<Object[]> results = enrollmentRepository.countStudentEnrollmentsByMonth(year);
+        Long[] monthly = new Long[12];
+        Arrays.fill(monthly, 0L);
+        for (Object[] row : results) {
+            int month = ((Integer) row[0]) - 1;
+            Long total = ((Number) row[1]).longValue();
+            monthly[month] = total;
+        }
+        return Arrays.asList(monthly);
     }
 
     @Override
     public List<TopCourse> getTopCourses() {
-        return Collections.emptyList();
+        int year = LocalDate.now().getYear();
+        List<Object[]> results = enrollmentRepository.findTopCoursesByEnrollments(year);
+        List<TopCourse> topCourses = new ArrayList<>();
+        for (Object[] row : results) {
+            String name = (String) row[1];
+            Long students = ((Number) row[2]).longValue();
+            topCourses.add(new TopCourse(name, students));
+        }
+        // Lấy top 3 nếu có nhiều hơn 3
+        return topCourses.size() > 3 ? topCourses.subList(0, 3) : topCourses;
     }
 
     @Override
@@ -169,6 +211,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .threeMonthsAgoRevenueGrowth(getThreeMonthsAgoRevenueGrowth())
                 .monthlyRevenue(getMonthlyRevenue())
                 .monthlyNewCourses(getMonthlyNewCourses())
+                .monthlyStudentEnrollments(getMonthlyStudentEnrollments())
                 .topCourses(getTopCourses())
                 .build();
     }

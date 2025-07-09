@@ -21,6 +21,7 @@ public interface DashboardService {
     Float getThreeMonthsAgoRevenueGrowth();
     List<Double> getMonthlyRevenue();
     List<Long> getMonthlyNewCourses();
+    List<Long> getMonthlyStudentEnrollments();
     List<TopCourse> getTopCourses();
     DashboardManagerResponseDTO getManagerDashboard();
 }
