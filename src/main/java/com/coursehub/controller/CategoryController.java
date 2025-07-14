@@ -3,6 +3,7 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
+import com.coursehub.entity.CategoryEntity;
 import com.coursehub.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,16 @@ public class CategoryController {
         response.setData(categoryResponseDTOS);
         response.setMessage(SUCCESS);
         response.setDetail("Categories retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseGeneral<CategoryResponseDTO>> getCategoryById(@PathVariable Long id) {
+        CategoryResponseDTO categoryResponseDTO = categoryService.findDTOById(id);
+        ResponseGeneral<CategoryResponseDTO> response = new ResponseGeneral<>();
+        response.setData(categoryResponseDTO);
+        response.setMessage(SUCCESS);
+        response.setDetail("Category retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

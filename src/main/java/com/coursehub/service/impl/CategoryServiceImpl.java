@@ -63,4 +63,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + id));
     }
 
+    @Override
+    public CategoryResponseDTO findDTOById(Long id) {
+        CategoryEntity entity = categoryRepository.findById(id)
+            .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + id));
+        return categoryConverter.toResponseDTO(entity);
+    }
 }

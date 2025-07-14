@@ -13,4 +13,5 @@ public interface CategoryService {
     void deleteCategory(Long id);
 
     CategoryEntity findById(Long id);
+    CategoryResponseDTO findDTOById(Long id);
 }
