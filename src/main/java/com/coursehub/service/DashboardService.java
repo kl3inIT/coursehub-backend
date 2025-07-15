@@ -24,4 +24,10 @@ public interface DashboardService {
     List<Long> getMonthlyStudentEnrollments();
     List<TopCourse> getTopCourses();
     DashboardManagerResponseDTO getManagerDashboard();
+    DashboardManagerResponseDTO getManagerDashboardStats(int month, int year);
+    List<Double> getMonthlyRevenueByYear(int year);
+    List<Long> getMonthlyNewCoursesByYear(int year);
+    List<Long> getMonthlyStudentEnrollmentsByYear(int year);
+    List<TopCourse> getTopCoursesByMonthYear(int month, int year);
+    DashboardManagerResponseDTO getRevenueInsightsByMonthYear(int month, int year);
 }
