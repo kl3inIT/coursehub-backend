@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
@@ -110,16 +109,8 @@ public class UserManagementController {
             @RequestBody WarnRequestDTO warnRequestDTO) {
 
         ResponseGeneral<Void> response = new ResponseGeneral<>();
-
         String resourceTypeStr = warnRequestDTO.getResourceType();
-        ResourceType resourceType;
-
-        try {
-            resourceType = ResourceType.valueOf(resourceTypeStr);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or missing resource type");
-        }
-
+        ResourceType resourceType = ResourceType.valueOf(resourceTypeStr);
         adminService.addWarning(userId, resourceType, warnRequestDTO.getResourceId());
         response.setMessage("Warning added successfully");
         return ResponseEntity.ok(response);

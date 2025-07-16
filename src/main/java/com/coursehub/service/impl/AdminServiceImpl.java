@@ -79,17 +79,15 @@ public class AdminServiceImpl implements AdminService {
             throw new DataNotFoundException("Default role 'MANAGER' not found");
         }
 
-        // Generate a random 8-character password
         String temporaryPassword = generateTemporaryPassword(8);
 
         UserEntity user = new UserEntity();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setIsActive(UserStatus.ACTIVE);
-        user.setPassword(passwordEncoder.encode(temporaryPassword)); // Use the generated password
+        user.setPassword(passwordEncoder.encode(temporaryPassword));
         user.setRoleEntity(managerRole);
 
-        // Optional fields
         user.setPhone(request.getPhone());
         user.setBio(request.getBio());
 

@@ -97,4 +97,7 @@ public class UserEntity extends BaseEntity {
     @Column(name = "warning_count")
     private Long warningCount = 0L;
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AnnouncementUserReadEntity> announcementUserReadEntities = new HashSet<>();
+
 }

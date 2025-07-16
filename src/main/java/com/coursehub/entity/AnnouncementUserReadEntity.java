@@ -14,7 +14,9 @@ public class AnnouncementUserReadEntity extends  BaseEntity {
     @JoinColumn(name = "announcement_id")
     private AnnouncementEntity announcement;
 
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     private Long isRead = 0L;
 

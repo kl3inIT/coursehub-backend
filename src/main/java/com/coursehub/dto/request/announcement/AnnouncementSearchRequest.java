@@ -1,25 +1,22 @@
 package com.coursehub.dto.request.announcement;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.coursehub.enums.AnnouncementStatus;
 import com.coursehub.enums.AnnouncementType;
 import com.coursehub.enums.TargetGroup;
-
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class AnnouncementCreateRequestDTO {
-    private String title;
-    private String content;
+public class AnnouncementSearchRequest {
     private AnnouncementType type;
     private TargetGroup targetGroup;
+    private String search;
+    private Integer page = 0;
+    private Integer size = 10;
+    private String sortBy = "createdDate";
+    private String direction = "DESC";
+    private String mode;
     private AnnouncementStatus status;
-    private String link;
-    private LocalDateTime scheduledTime;
-    private List<Long> courseIds;
-    private List<Long> userIds;
-}
+    private Long isDeleted; // Đổi sang Long
+} 

@@ -1,5 +1,19 @@
 package com.coursehub.service.impl;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.coursehub.components.DiscountScheduler;
 import com.coursehub.converter.UserConverter;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
@@ -11,27 +25,20 @@ import com.coursehub.entity.UserDiscountEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.auth.DataNotFoundException;
-import com.coursehub.exceptions.user.*;
+import com.coursehub.exceptions.user.AvatarNotFoundException;
+import com.coursehub.exceptions.user.AvatarUploadException;
+import com.coursehub.exceptions.user.IncorrectPasswordException;
+import com.coursehub.exceptions.user.SamePasswordException;
+import com.coursehub.exceptions.user.UserAlreadyOwnsDiscountException;
+import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.DiscountRepository;
 import com.coursehub.repository.UserDiscountRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.S3Service;
 import com.coursehub.service.UserService;
 import com.coursehub.utils.FileValidationUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

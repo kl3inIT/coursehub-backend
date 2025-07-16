@@ -1,11 +1,12 @@
 package com.coursehub.service;
 
+import org.springframework.data.domain.Page;
+
 import com.coursehub.dto.request.user.ProfileRequestDTO;
 import com.coursehub.dto.response.user.UserDetailDTO;
 import com.coursehub.dto.response.user.UserSummaryDTO;
 import com.coursehub.enums.ResourceType;
 import com.coursehub.enums.UserStatus;
-import org.springframework.data.domain.Page;
 
 public interface AdminService {
     Page<UserSummaryDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, UserStatus status);

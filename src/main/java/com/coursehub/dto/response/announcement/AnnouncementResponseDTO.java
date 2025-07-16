@@ -1,8 +1,12 @@
 package com.coursehub.dto.response.announcement;
 
-import com.coursehub.enums.NotificationType;
+import java.time.LocalDateTime;
+import java.util.Date;
+
+import com.coursehub.enums.AnnouncementStatus;
+import com.coursehub.enums.AnnouncementType;
 import com.coursehub.enums.TargetGroup;
-import lombok.AllArgsConstructor;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,16 +14,18 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class AnnouncementResponseDTO {
     private Long id;
     private String title;
     private String content;
-    private NotificationType type;
+    private AnnouncementType type;
     private TargetGroup targetGroup;
     private String targetGroupDescription;
+    private AnnouncementStatus status;
     private String link;
-    private String createdAt;
+    private LocalDateTime scheduledTime;
+    private LocalDateTime sentTime;
+    private Date createdAt;
     private Long isRead;
-    private Long isDeleted;
+    private String createdByName;
 }

@@ -1,26 +1,9 @@
 package com.coursehub.service.impl;
 
-import com.coursehub.converter.CourseConverter;
-import com.coursehub.dto.request.course.CourseCreationRequestDTO;
-import com.coursehub.dto.request.course.CourseSearchRequestDTO;
-import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
-import com.coursehub.dto.response.course.*;
-import com.coursehub.entity.CourseEntity;
-import com.coursehub.entity.EnrollmentEntity;
-import com.coursehub.entity.LessonEntity;
-import com.coursehub.entity.UserEntity;
-import com.coursehub.enums.CourseStatus;
-import com.coursehub.enums.UserStatus;
-import com.coursehub.exceptions.course.*;
-import com.coursehub.exceptions.user.UserNotFoundException;
-import com.coursehub.repository.CourseRepository;
-import com.coursehub.repository.SearchRepository;
-import com.coursehub.repository.UserRepository;
-import com.coursehub.service.*;
-import com.coursehub.utils.FileValidationUtil;
-import com.coursehub.utils.UserUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContext;
@@ -29,11 +12,47 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.coursehub.constant.Constant.SearchConstants.*;
+import static com.coursehub.constant.Constant.SearchConstants.DEFAULT_SORT_BY;
+import static com.coursehub.constant.Constant.SearchConstants.DEFAULT_SORT_DIRECTION;
+import com.coursehub.converter.CourseConverter;
+import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseSearchRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
+import com.coursehub.dto.response.course.CourseCreateUpdateResponseDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
+import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
+import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
+import com.coursehub.dto.response.course.ManagerCourseResponseDTO;
+import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.EnrollmentEntity;
+import com.coursehub.entity.LessonEntity;
+import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.CourseStatus;
+import com.coursehub.enums.UserStatus;
+import com.coursehub.exceptions.course.CourseAlreadyArchivedException;
+import com.coursehub.exceptions.course.CourseCreationException;
+import com.coursehub.exceptions.course.CourseInvalidStateException;
+import com.coursehub.exceptions.course.CourseNotFoundException;
+import com.coursehub.exceptions.course.CourseUpdateException;
+import com.coursehub.exceptions.course.FileUploadException;
+import com.coursehub.exceptions.course.InvalidCourseRestoreStateException;
+import com.coursehub.exceptions.course.UnauthorizedAccessException;
+import com.coursehub.exceptions.user.UserNotFoundException;
+import com.coursehub.repository.CourseRepository;
+import com.coursehub.repository.SearchRepository;
+import com.coursehub.repository.UserRepository;
+import com.coursehub.service.CourseService;
+import com.coursehub.service.EnrollmentService;
+import com.coursehub.service.LessonService;
+import com.coursehub.service.ModuleService;
+import com.coursehub.service.ReviewService;
+import com.coursehub.service.S3Service;
+import com.coursehub.utils.FileValidationUtil;
+import com.coursehub.utils.UserUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor

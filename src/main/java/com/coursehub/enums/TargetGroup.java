@@ -1,9 +1,9 @@
 package com.coursehub.enums;
 
 public enum TargetGroup {
-    ALL("All users"),
-    LEARNER("Learners"),
-    MANAGER("Managers");
+    ALL_USERS("All users"),
+    LEARNERS_ONLY("Learners only"),
+    MANAGERS_ONLY("Managers only");
 
     private final String description;
 
