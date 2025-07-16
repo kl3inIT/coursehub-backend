@@ -437,7 +437,6 @@ public class CourseServiceImpl implements CourseService {
             }
 
         } catch (Exception ex) {
-            // Wrap unexpected exceptions
             throw new SearchOperationException("Error validating search parameters", ex);
         }
     }

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.coursehub.constant.Constant.CommonConstants.*;
+import com.coursehub.dto.response.course.CourseEnrollmentResponseDTO;
+import com.coursehub.dto.response.course.CourseEnrollmentStatsResponseDTO;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -273,6 +275,36 @@ public class CourseController {
         response.setMessage(SUCCESS);
         response.setDetail("Successfully enrolled in free course");
         
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{courseId}/enrollments")
+    public ResponseEntity<ResponseGeneral<List<CourseEnrollmentResponseDTO>>> getCourseEnrollments(@PathVariable Long courseId) {
+        List<CourseEnrollmentResponseDTO> enrollments = enrollmentService.getCourseEnrollments(courseId);
+        ResponseGeneral<List<CourseEnrollmentResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(enrollments);
+        response.setMessage("Fetched enrollments successfully");
+        response.setDetail("Enrollments for course " + courseId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{courseId}/enrollments/stats")
+    public ResponseEntity<ResponseGeneral<CourseEnrollmentStatsResponseDTO>> getCourseEnrollmentStats(@PathVariable Long courseId) {
+        CourseEnrollmentStatsResponseDTO stats = enrollmentService.getCourseEnrollmentStats(courseId);
+        ResponseGeneral<CourseEnrollmentStatsResponseDTO> response = new ResponseGeneral<>();
+        response.setData(stats);
+        response.setMessage("Fetched enrollment stats successfully");
+        response.setDetail("Enrollment statistics for course " + courseId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{courseId}/enrollments/{studentId}")
+    public ResponseEntity<ResponseGeneral<String>> unenrollStudent(@PathVariable Long courseId, @PathVariable Long studentId) {
+        enrollmentService.unenrollStudent(courseId, studentId);
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setData("Student unenrolled successfully");
+        response.setMessage("Unenrollment successful");
+        response.setDetail("Student " + studentId + " removed from course " + courseId);
         return ResponseEntity.ok(response);
     }
 

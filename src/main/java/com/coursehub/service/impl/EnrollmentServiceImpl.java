@@ -1,8 +1,11 @@
 package com.coursehub.service.impl;
 
 import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
+import com.coursehub.dto.response.course.CourseEnrollmentResponseDTO;
+import com.coursehub.dto.response.course.CourseEnrollmentStatsResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
+import com.coursehub.entity.ReviewEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.CourseNotFreeException;
@@ -13,9 +16,12 @@ import com.coursehub.repository.CourseRepository;
 import com.coursehub.repository.EnrollmentRepository;
 import com.coursehub.repository.UserLessonRepository;
 import com.coursehub.repository.UserRepository;
+import com.coursehub.repository.ReviewRepository;
+import com.coursehub.repository.CertificateRepository;
 import com.coursehub.service.EnrollmentService;
 import com.coursehub.service.LessonService;
-import com.coursehub.service.UserService;
+import com.coursehub.service.ReviewService;
+import com.coursehub.service.S3Service;
 import com.coursehub.utils.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -37,6 +44,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private final UserLessonRepository userLessonRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final ReviewRepository reviewRepository;
+    private final CertificateRepository certificateRepository;
+    private final S3Service s3Service;
+    private final ReviewService reviewService;
 
     @Override
     public Long countByUserEntityId(Long userId) {
@@ -202,6 +213,117 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         log.info("User {} successfully enrolled in free course {}", user.getEmail(), course.getTitle());
         
         return "Successfully enrolled in free course";
+    }
+
+    @Override
+    public List<CourseEnrollmentResponseDTO> getCourseEnrollments(Long courseId) {
+        List<EnrollmentEntity> enrollments = enrollmentRepository.findEnrollmentEntitiesByCourseEntity_Id(courseId);
+        return enrollments.stream().map(this::toCourseEnrollmentResponseDTO).toList();
+    }
+
+    private CourseEnrollmentResponseDTO toCourseEnrollmentResponseDTO(EnrollmentEntity enrollment) {
+        UserEntity user = enrollment.getUserEntity();
+        CourseEntity course = enrollment.getCourseEntity();
+
+        Integer completedLessons = userLessonRepository.countCompletedLessonsByUserAndCourse(
+            user.getId(), course.getId()).intValue();
+
+        Integer totalLessons = lessonService.countLessonsByCourseId(course.getId()).intValue();
+
+        Long totalWatchedSeconds = userLessonRepository.getTotalWatchedTimeByUserAndCourse(
+            user.getId(), course.getId());
+        Integer timeSpent = totalWatchedSeconds != null ? (int)(totalWatchedSeconds / 60) : 0;
+
+        String status = "active";
+        if (enrollment.getIsCompleted() == 1L) {
+            status = "completed";
+        }
+
+        Boolean certificateIssued = false;
+        try {
+            certificateIssued = certificateRepository.existsByUserEntityIdAndCourseEntityId(
+                user.getId(), course.getId());
+        } catch (Exception e) {
+            certificateIssued = false;
+        }
+
+        // Get review rating for this enrollment (do not use map)
+        double rating = 0.0;
+        try {
+            Optional<ReviewEntity> review = reviewRepository.findByCourseEntityIdAndUserEntityId(course.getId(), user.getId());
+            if (review.isPresent() && review.get().getStar() != null) {
+                rating = review.get().getStar().doubleValue();
+            }
+        } catch (Exception e) {
+            rating = 0.0;
+        }
+
+        return CourseEnrollmentResponseDTO.builder()
+            .id(enrollment.getId())
+            .studentId(user.getId())
+            .studentName(user.getName())
+            .studentEmail(user.getEmail())
+            .studentAvatar(user.getAvatar())
+            .enrollmentDate(enrollment.getCreatedDate())
+            .lastAccessed(enrollment.getModifiedDate())
+            .progress(enrollment.getProgressPercentage())
+            .completedLessons(completedLessons)
+            .totalLessons(totalLessons)
+            .timeSpent(timeSpent)
+            .status(status)
+            .certificateIssued(certificateIssued)
+            .completionDate(enrollment.getCompletedDate())
+            .rating(rating)
+            .build();
+    }
+
+    @Override
+    public CourseEnrollmentStatsResponseDTO getCourseEnrollmentStats(Long courseId) {
+        List<EnrollmentEntity> enrollments = enrollmentRepository.findEnrollmentEntitiesByCourseEntity_Id(courseId);
+
+        int totalEnrollments = enrollments.size();
+        int activeEnrollments = (int) enrollments.stream().filter(e -> e.getIsCompleted() == 0L).count();
+        int completedEnrollments = (int) enrollments.stream().filter(e -> e.getIsCompleted() == 1L).count();
+
+        double averageProgress = enrollments.stream()
+            .mapToDouble(e -> e.getProgressPercentage() != null ? e.getProgressPercentage() : 0.0)
+            .average().orElse(0.0);
+
+        // Tính average time spent từ UserLessonEntity
+        double averageTimeSpent = enrollments.stream()
+            .mapToLong(e -> {
+                Long totalWatchedTime = userLessonRepository.getTotalWatchedTimeByUserAndCourse(
+                    e.getUserEntity().getId(), courseId);
+                return totalWatchedTime != null ? totalWatchedTime / 60 : 0; // Convert to minutes
+            })
+            .average().orElse(0.0);
+
+        double completionRate = totalEnrollments > 0 ? (completedEnrollments * 100.0 / totalEnrollments) : 0.0;
+
+        // Tính average rating từ ReviewEntity
+        double averageRating = reviewService.getAverageRating(courseId);
+
+        return CourseEnrollmentStatsResponseDTO.builder()
+            .totalEnrollments(totalEnrollments)
+            .activeEnrollments(activeEnrollments)
+            .completedEnrollments(completedEnrollments)
+            .averageProgress(averageProgress)
+            .averageTimeSpent(averageTimeSpent)
+            .completionRate(completionRate)
+            .averageRating(averageRating)
+            .build();
+    }
+
+    @Override
+    public void unenrollStudent(Long courseId, Long studentId) {
+        EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(studentId, courseId);
+        if (enrollment == null) {
+            throw new EnrollNotFoundException("Enrollment not found for student " + studentId + " in course " + courseId);
+        }
+
+        enrollmentRepository.delete(enrollment);
+
+        log.info("Student {} has been unenrolled from course {}", studentId, courseId);
     }
 
 
