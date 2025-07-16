@@ -3,7 +3,6 @@ package com.coursehub.service;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
 import com.coursehub.entity.CategoryEntity;
-import jdk.jfr.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,4 +13,5 @@ public interface CategoryService {
     void deleteCategory(Long id);
 
     CategoryEntity findById(Long id);
+    CategoryResponseDTO findDTOById(Long id);
 }

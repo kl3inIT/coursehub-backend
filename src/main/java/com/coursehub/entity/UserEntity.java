@@ -90,6 +90,11 @@ public class UserEntity extends BaseEntity {
 
     @Column(name = "action_reason", columnDefinition = "TEXT")
     private String actionReason;
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<FeedbackEntity> feedbackEntities = new HashSet<>();
+
+    @Column(name = "ban_reason", columnDefinition = "TEXT")
+    private String banReason;
 
     @Column(name = "last_action_at")
     private Date lastActionAt;

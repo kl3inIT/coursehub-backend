@@ -10,7 +10,7 @@ public interface ReviewService {
 
     ReviewResponseDTO findReviewById(Long id);
 
-    ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
+    ReviewResponseDTO createReview(String email, ReviewRequestDTO requestDTO);
 
     ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
 
@@ -22,5 +22,13 @@ public interface ReviewService {
 
     Long getTotalReviews(Long courseId);
 
+    Long getTotalVisibleReviews();
+
+    Double getOverallAverageRating();
+
+    Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable);
+
     void setReviewVisibility(Long reviewId, boolean hide);
+
+    Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable);
 } 

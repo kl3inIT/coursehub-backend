@@ -2,7 +2,6 @@ package com.coursehub.controller;
 
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.review.ReviewRequestDTO;
-import com.coursehub.dto.response.comment.CommentResponseDTO;
 import com.coursehub.dto.response.review.ReviewResponseDTO;
 import com.coursehub.service.ReviewService;
 import jakarta.validation.Valid;
@@ -13,7 +12,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 
 import static com.coursehub.constant.Constant.CommonConstants.*;
 
@@ -31,7 +32,7 @@ public class ReviewController {
             @RequestParam(required = false) Integer star,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createDate") String sortBy,
+            @RequestParam(defaultValue = "modifiedDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
@@ -58,10 +59,9 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> createReview(
-            @RequestParam Long userId,
-            @Valid @RequestBody ReviewRequestDTO requestDTO) {
+            @Valid @RequestBody ReviewRequestDTO requestDTO, Principal principal) {
 
-        ReviewResponseDTO review = reviewService.createReview(userId, requestDTO);
+        ReviewResponseDTO review = reviewService.createReview(principal.getName(), requestDTO);
         ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
         response.setData(review);
         response.setMessage(SUCCESS);
@@ -125,6 +125,69 @@ public class ReviewController {
         response.setData(totalReviews);
         response.setMessage(SUCCESS);
         response.setDetail("Total reviews retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/total-visible")
+    public ResponseEntity<ResponseGeneral<Long>> getTotalVisibleReviews() {
+        Long totalReviews = reviewService.getTotalVisibleReviews();
+        ResponseGeneral<Long> response = new ResponseGeneral<>();
+        response.setData(totalReviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Total visible reviews retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/overall-average")
+    public ResponseEntity<ResponseGeneral<Double>> getOverallAverageRating() {
+        Double averageRating = reviewService.getOverallAverageRating();
+        ResponseGeneral<Double> response = new ResponseGeneral<>();
+        response.setData(averageRating);
+        response.setMessage(SUCCESS);
+        response.setDetail("Overall average rating retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/by-visibility")
+    public ResponseEntity<ResponseGeneral<Page<ReviewResponseDTO>>> getReviewsByVisibility(
+            @RequestParam Integer visibilityStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "modifiedDate") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<ReviewResponseDTO> reviews = reviewService.findReviewsByVisibility(visibilityStatus, pageRequest);
+        ResponseGeneral<Page<ReviewResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(reviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Reviews by visibility retrieved successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/by-visibility-with-filters")
+    public ResponseEntity<ResponseGeneral<Page<ReviewResponseDTO>>> getReviewsByVisibilityWithFilters(
+            @RequestParam Integer visibilityStatus,
+            @RequestParam(required = false) Integer star,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "modifiedDate") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<ReviewResponseDTO> reviews = reviewService.findReviewsByVisibilityWithFilters(
+                visibilityStatus, star, categoryId, courseId, search, pageRequest);
+        ResponseGeneral<Page<ReviewResponseDTO>> response = new ResponseGeneral<>();
+        response.setData(reviews);
+        response.setMessage(SUCCESS);
+        response.setDetail("Reviews with filters retrieved successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

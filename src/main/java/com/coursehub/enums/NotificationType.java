@@ -17,5 +17,7 @@ public enum NotificationType {
     USER_BANNED,
     USER_UNBANNED,
     ADMIN_ANNOUNCEMENT,
-    PASSWORD_CHANGED
+    PASSWORD_CHANGED,
+    FEEDBACK_REPLIED
 }
+

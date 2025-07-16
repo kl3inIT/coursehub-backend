@@ -22,10 +22,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     boolean existsByEmailAndIsActive(String email, UserStatus status);
 
-    Page<UserEntity> findByRoleEntity_CodeIn(List<String> roles, Pageable pageable);
-
-    Page<UserEntity> findByRoleEntity_CodeInAndIsActive(List<String> roles, UserStatus status, Pageable pageable);
-
     @Query("SELECT new com.coursehub.dto.response.user.UserSummaryDTO(" +
            "u.id, u.name, u.email, u.avatar, r.code, u.isActive, u.createdDate, " +
            "CAST(SIZE(u.enrollmentEntities) AS long), " +
@@ -39,7 +35,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
            "CAST(SIZE(u.courseEntities) AS long)) " +
            "FROM UserEntity u JOIN u.roleEntity r WHERE r.code IN :roles AND u.isActive = :status")
     Page<UserSummaryDTO> findUserSummariesWithStatus(@Param("roles") List<String> roles, @Param("status") UserStatus status, Pageable pageable);
-
-    Optional<UserEntity> findByEmail(String email);
 
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseStatus;
+import java.util.Date;
 
 @Repository
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
@@ -32,4 +33,11 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
 
     @Query(value = "SELECT * FROM courses ORDER BY RAND() LIMIT 3", nativeQuery = true)
     List<CourseEntity> getCoursesRecommend();
+
+    @Query("SELECT COUNT(c) FROM CourseEntity c WHERE c.createdDate BETWEEN :startDate AND :endDate")
+    Long countCoursesByCreatedAtBetween(@Param("startDate") Date startDate,
+                                        @Param("endDate") Date endDate);
+
+    @Query("SELECT MONTH(c.createdDate) as month, COUNT(c.id) as total FROM CourseEntity c WHERE YEAR(c.createdDate) = :year GROUP BY MONTH(c.createdDate)")
+    List<Object[]> countNewCoursesByMonth(@Param("year") int year);
 }

@@ -5,6 +5,7 @@ import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.request.lesson.LessonUpdateRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
+import com.coursehub.dto.response.lesson.LessonVideoUpdateResponseDTO;
 import com.coursehub.entity.LessonEntity;
 
 import java.util.List;
@@ -23,6 +24,8 @@ public interface LessonService {
     List<LessonResponseDTO> getLessonsByModuleId(Long moduleId);
 
     void deleteLesson(Long lessonId);
+
+    LessonVideoUpdateResponseDTO updateLessonVideo(Long lessonId, LessonPreparedUploadRequestDTO requestDTO);
 
     Long calculateTotalDurationByCourseId(Long courseId);
 

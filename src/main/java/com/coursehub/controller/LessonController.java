@@ -5,6 +5,7 @@ import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.request.lesson.LessonUpdateRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
+import com.coursehub.dto.response.lesson.LessonVideoUpdateResponseDTO;
 import com.coursehub.service.CourseService;
 import com.coursehub.service.LessonService;
 import jakarta.validation.Valid;
@@ -123,6 +124,23 @@ public class LessonController {
         response.setData(updatedLesson);
         response.setMessage(SUCCESS);
         response.setDetail("Lesson updated successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{lessonId}/video")
+    public ResponseEntity<ResponseGeneral<LessonVideoUpdateResponseDTO>> updateLessonVideo(
+            @PathVariable Long lessonId,
+            @Valid @RequestBody LessonPreparedUploadRequestDTO requestDTO) {
+        log.info("Updating video for lesson ID: {}", lessonId);
+
+        // This will delete old video and prepare for new upload
+        LessonVideoUpdateResponseDTO uploadDetails = lessonService.updateLessonVideo(lessonId, requestDTO);
+
+        ResponseGeneral<LessonVideoUpdateResponseDTO> response = new ResponseGeneral<>();
+        response.setData(uploadDetails);
+        response.setMessage(SUCCESS);
+        response.setDetail("Lesson video update prepared successfully");
+
         return ResponseEntity.ok(response);
     }
 }
