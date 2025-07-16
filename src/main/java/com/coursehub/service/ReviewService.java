@@ -10,7 +10,7 @@ public interface ReviewService {
 
     ReviewResponseDTO findReviewById(Long id);
 
-    ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO);
+    ReviewResponseDTO createReview(String email, ReviewRequestDTO requestDTO);
 
     ReviewResponseDTO updateReview(Long id, ReviewRequestDTO requestDTO);
 

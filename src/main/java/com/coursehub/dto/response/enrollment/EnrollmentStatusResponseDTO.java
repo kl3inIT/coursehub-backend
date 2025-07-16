@@ -12,7 +12,9 @@ import java.util.Date;
 public class EnrollmentStatusResponseDTO {
 
     private Boolean enrolled;
-    private Boolean completed;// Đã đăng ký hay chưa
+    private Boolean completed;
     private Date enrollDate;
     private Double progress;
+    private Boolean canAccess; 
+    private String accessReason; 
 }

@@ -48,32 +48,23 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ReviewResponseDTO createReview(Long userId, ReviewRequestDTO requestDTO) {
+    public ReviewResponseDTO createReview(String email, ReviewRequestDTO requestDTO) {
         // Check if user exists
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
 
         // Check if course exists
         CourseEntity course = courseRepository.findById(requestDTO.getCourseId())
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with id: " + requestDTO.getCourseId()));
-
-        // Check if user has already reviewed this course
-         if (reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, requestDTO.getCourseId())) {
-             throw new ReviewAlreadyExistsException("User has already reviewed this course");
-         }
-
-         // Check if user has purchased the course
-         if (!course.getEnrollmentEntities().stream()
-                 .anyMatch(enrollment -> enrollment.getUserEntity().getId().equals(userId))) {
-             throw new IllegalStateException("User has not purchased this course");
-         }
 
         // Create and save review
         ReviewEntity review = reviewConverter.toEntity(requestDTO);
         review.setUserEntity(user);
         review.setCourseEntity(course);
 
-        ReviewEntity savedReview = reviewRepository.save(review);
+        ReviewEntity savedReview = reviewRepository.saveAndFlush(review);
         return reviewConverter.toResponseDTO(savedReview);
     }
 

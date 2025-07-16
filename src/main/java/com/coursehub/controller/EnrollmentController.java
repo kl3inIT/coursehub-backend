@@ -60,5 +60,15 @@ public class EnrollmentController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/enhanced-status/{courseId}")
+    public ResponseEntity<ResponseGeneral<EnrollmentStatusResponseDTO>> getEnhancedEnrollmentStatus(@PathVariable Long courseId) {
+        log.info("Get enhanced enrollment status by course id: " + courseId);
+        EnrollmentStatusResponseDTO enrollmentStatus = enrollmentService.getEnhancedEnrollmentStatus(courseId);
+        ResponseGeneral<EnrollmentStatusResponseDTO> response = new ResponseGeneral<>();
+        response.setData(enrollmentStatus);
+        response.setMessage("Successfully retrieved enhanced enrollment status");
+        response.setDetail("Enhanced enrollment status with role-based access for course ID: " + courseId);
+        return ResponseEntity.ok(response);
+    }
 
 }

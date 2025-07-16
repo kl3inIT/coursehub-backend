@@ -10,4 +10,6 @@ public interface CertificateRepository extends JpaRepository<CertificateEntity, 
 
     Long countByUserEntity_Id(Long userId);
 
+    Boolean existsByUserEntityIdAndCourseEntityId(Long userId, Long courseID);
+
 }

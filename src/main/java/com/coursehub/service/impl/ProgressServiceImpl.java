@@ -9,6 +9,7 @@ import com.coursehub.repository.UserLessonRepository;
 import com.coursehub.repository.LessonRepository;
 import com.coursehub.repository.ModuleRepository;
 import com.coursehub.service.*;
+import com.coursehub.utils.UserUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +115,13 @@ public class ProgressServiceImpl implements ProgressService {
         LessonEntity currentLesson = lessonService.getLessonEntityById(lessonId);
         ModuleEntity currentModule = currentLesson.getModuleEntity();
         UserEntity currentUser = userService.getUserBySecurityContext();
+
+        // Manager and Admin can access any lesson without restriction
+        if (UserUtils.isManager(currentUser) || UserUtils.isAdmin(currentUser)) {
+            log.info("User {} has {} role - granting access to lesson {}", 
+                    currentUser.getEmail(), currentUser.getRoleEntity().getCode(), lessonId);
+            return true;
+        }
 
         // If it's the first lesson in the first module, allow access
         if (currentLesson.getOrderNumber() == 1 && currentModule.getOrderNumber() == 1) {

@@ -3,6 +3,9 @@ package com.coursehub.repository.impl;
 import com.coursehub.dto.request.course.CourseSearchRequestDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.enums.CourseLevel;
+import com.coursehub.enums.CourseStatus;
+import com.coursehub.exceptions.course.InvalidSearchParametersException;
+import com.coursehub.exceptions.course.SearchOperationException;
 import com.coursehub.repository.SearchRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -14,7 +17,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
+
 import static com.coursehub.constant.Constant.SearchConstants.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,28 +34,33 @@ public class SearchRepositoryImpl implements SearchRepository {
     public Page<CourseEntity> advancedSearch(CourseSearchRequestDTO searchRequest, Pageable pageable) {
         log.debug("Performing search with criteria: {}", searchRequest);
 
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<CourseEntity> query = cb.createQuery(CourseEntity.class);
-        Root<CourseEntity> root = query.from(CourseEntity.class);
+        try {
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+            CriteriaQuery<CourseEntity> query = cb.createQuery(CourseEntity.class);
+            Root<CourseEntity> root = query.from(CourseEntity.class);
 
-        List<Predicate> predicates = buildSearchPredicates(cb, root, searchRequest);
-        query.where(predicates.toArray(new Predicate[0]));
+            List<Predicate> predicates = buildSearchPredicates(cb, root, searchRequest);
+            query.where(predicates.toArray(new Predicate[0]));
 
-        // Add sorting
-        addSorting(cb, query, root, searchRequest.getSortBy(), searchRequest.getSortDirection());
+            // Add sorting
+            addSorting(cb, query, root, searchRequest.getSortBy(), searchRequest.getSortDirection());
 
-        Long total = getTotalCount(cb, searchRequest);
+            Long total = getTotalCount(cb, searchRequest);
 
-        // Execute main query with pagination
-        List<CourseEntity> results = executeQuery(query, pageable);
+            // Execute main query with pagination
+            List<CourseEntity> results = executeQuery(query, pageable);
 
-        return new PageImpl<>(results, pageable, total);
+            return new PageImpl<>(results, pageable, total);
+
+        } catch (Exception ex) {
+            log.error("Error performing advanced search: {}", ex.getMessage(), ex);
+            throw new SearchOperationException("Failed to execute search query", ex);
+        }
     }
 
     private List<Predicate> buildSearchPredicates(CriteriaBuilder cb, Root<CourseEntity> root, CourseSearchRequestDTO searchRequest) {
         List<Predicate> predicates = new ArrayList<>();
 
-        // Tìm theo từ khóa (title hoặc description)
         if (StringUtils.hasText(searchRequest.getSearchTerm())) {
             String searchTerm = searchRequest.getSearchTerm().toLowerCase();
             predicates.add(cb.or(
@@ -78,6 +88,21 @@ public class SearchRepositoryImpl implements SearchRepository {
             predicates.add(cb.lessThanOrEqualTo(root.get("price"), searchRequest.getMaxPrice()));
         }
 
+        // Lọc theo free courses
+        if (searchRequest.getIsFree() != null && searchRequest.getIsFree()) {
+            predicates.add(cb.equal(root.get("price"), 0.0));
+        }
+
+        // Lọc theo discounted courses
+        if (searchRequest.getIsDiscounted() != null && searchRequest.getIsDiscounted()) {
+            predicates.add(cb.and(
+                    cb.isNotNull(root.get("discount")),
+                    cb.greaterThan(root.get("discount"), 0.0)
+            ));
+        }
+
+        predicates.add(cb.equal(root.get("status"), CourseStatus.PUBLISHED));
+
         return predicates;
     }
 
@@ -99,8 +124,8 @@ public class SearchRepositoryImpl implements SearchRepository {
                 query.orderBy(cb.asc(sortPath));
             }
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid sortBy field: {}", sortBy);
-            // Không áp dụng sort nếu field không hợp lệ
+            log.error("Invalid sortBy field: {}", sortBy);
+            throw new InvalidSearchParametersException("Invalid sort field: " + sortBy, e);
         }
     }
 

@@ -52,4 +52,5 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
             @Param("courseId") Long courseId,
             @Param("search") String search,
             Pageable pageable);
-} 
+    Optional<ReviewEntity> findByCourseEntityIdAndUserEntityId(Long courseId, Long userId);
+}

@@ -44,4 +44,5 @@ public interface EnrollmentRepository extends JpaRepository<EnrollmentEntity, Lo
            "ORDER BY COUNT(DISTINCT e.userEntity.id) DESC")
     List<Object[]> findTopCoursesByEnrollmentsAndCreatedAtBetween(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
+    List<EnrollmentEntity> findEnrollmentEntitiesByCourseEntity_Id(Long courseEntityId);
 }
