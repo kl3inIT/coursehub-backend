@@ -323,9 +323,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     }
 
-    public void deleteFromRedis(String key) {
-        redisTemplate.delete(key);
-    }
+    
 
 
 }

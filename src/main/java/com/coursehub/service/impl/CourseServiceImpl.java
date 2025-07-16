@@ -188,7 +188,7 @@ public class CourseServiceImpl implements CourseService {
 
         UserEntity userEntity = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (userEntity == null) {
-            throw new UserNotFoundException("User not found with email: " + email);
+            return false;
         }
 
         if (userEntity.getRoleEntity().getCode().equals("ADMIN")) {

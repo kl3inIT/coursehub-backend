@@ -35,6 +35,7 @@ public class SecurityConfig {
             "/api/users/register/verify",
             "/api/auth/login",
             "/api/auth/logout",
+            "/api/courses/status/courses"
     };
 
     // cac api public gui token hay khong gui token deu cho phep truy cap
@@ -54,7 +55,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(withDefaults()) // ✅ Cách mới chuẩn 6.1+
+                .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )

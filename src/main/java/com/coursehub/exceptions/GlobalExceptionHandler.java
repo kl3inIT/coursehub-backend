@@ -20,6 +20,7 @@ import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.lesson.LessonProgressNotFoundException;
 import com.coursehub.exceptions.lesson.PreviousLessonNotFoundException;
 import com.coursehub.exceptions.module.ModuleNotFoundException;
+import com.coursehub.exceptions.pdf.PdfException;
 import com.coursehub.exceptions.report.*;
 import com.coursehub.exceptions.module.PreviousModuleNotFoundException;
 import com.coursehub.exceptions.s3.S3DeleteObjectException;
@@ -627,6 +628,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(PdfException.class)
+    public ResponseEntity<ResponseGeneral<String>> handlePdfException(PdfException ex) {
+        log.error("PDF processing error: {}", ex.getMessage(), ex);
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("PDF Processing Error");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
     // Enrollment Exception Handlers
     @ExceptionHandler(AlreadyEnrolledException.class)
     public ResponseEntity<ResponseGeneral<String>> handleAlreadyEnrolledException(AlreadyEnrolledException ex) {
@@ -701,6 +712,7 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
 
     @ExceptionHandler(InternalServerException.class)
     public ResponseEntity<ResponseGeneral<String>> handleInternalServerException(InternalServerException ex) {

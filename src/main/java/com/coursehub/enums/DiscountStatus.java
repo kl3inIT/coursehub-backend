@@ -25,4 +25,5 @@ public enum DiscountStatus {
                 .collect(Collectors.toMap(DiscountStatus::toString, DiscountStatus::status));
     }
 
+
 }
