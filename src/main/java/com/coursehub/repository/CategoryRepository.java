@@ -31,4 +31,6 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
            "GROUP BY c.id, c.name, c.description, c.createdDate, c.modifiedDate")
     List<Object[]> getCategoryDetail(@Param("categoryId") Long categoryId);
 
+    @Query("SELECT COUNT(c) FROM CategoryEntity c WHERE c.createdDate BETWEEN :startDate AND :endDate")
+    Long countCategoriesByCreatedAtBetween(@Param("startDate") java.util.Date startDate, @Param("endDate") java.util.Date endDate);
 }

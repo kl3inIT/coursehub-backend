@@ -1,6 +1,7 @@
 package com.coursehub.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
@@ -23,6 +24,7 @@ public class ReviewEntity extends BaseEntity {
     private Integer star;
 
     @Column(columnDefinition = "TEXT")
+    @Size(max = 200, message = "Comment must be at most 200 characters")
     private String comment;
 
     @Column(name = "is_hidden")

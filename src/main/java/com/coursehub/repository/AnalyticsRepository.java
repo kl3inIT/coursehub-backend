@@ -224,7 +224,8 @@ public interface AnalyticsRepository extends JpaRepository<CategoryEntity, Long>
             "FROM ReviewEntity r " +
             "WHERE r.courseEntity.id = :courseId " +
             "AND (:startDate IS NULL OR r.createdDate >= :startDate) " +
-            "AND (:endDate IS NULL OR r.createdDate < :endDate)")
+            "AND (:endDate IS NULL OR r.createdDate < :endDate) " +
+            "AND r.star > 0")
     Integer getReviewsCountByCourse(@Param("courseId") Long courseId,
                                    @Param("startDate") Date startDate,
                                    @Param("endDate") Date endDate);
@@ -236,7 +237,8 @@ public interface AnalyticsRepository extends JpaRepository<CategoryEntity, Long>
             "FROM ReviewEntity r " +
             "WHERE r.courseEntity.id = :courseId " +
             "AND (:startDate IS NULL OR r.createdDate >= :startDate) " +
-            "AND (:endDate IS NULL OR r.createdDate < :endDate)")
+            "AND (:endDate IS NULL OR r.createdDate < :endDate) " +
+            "AND r.star > 0")
     Double getAvgRatingByCourse(@Param("courseId") Long courseId,
                                @Param("startDate") Date startDate,
                                @Param("endDate") Date endDate);
@@ -317,4 +319,10 @@ public interface AnalyticsRepository extends JpaRepository<CategoryEntity, Long>
             "AND (:endDate IS NULL OR p.modifiedDate < :endDate)")
     Double getTotalRevenueInPeriod(@Param("startDate") Date startDate,
                                   @Param("endDate") Date endDate);
+
+    /**
+     * Tính average rating tổng thể cho analytics: chỉ tính các review có star > 0 trong khoảng thời gian
+     */
+    @Query("SELECT COALESCE(AVG(CAST(r.star AS double)), 0.0) FROM ReviewEntity r WHERE (:startDate IS NULL OR r.createdDate >= :startDate) AND (:endDate IS NULL OR r.createdDate < :endDate) AND r.star > 0")
+    Double getOverallAverageRating(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }
