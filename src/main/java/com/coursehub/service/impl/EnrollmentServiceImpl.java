@@ -30,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,8 +82,15 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Double percentage = ((double) completedLessons / totalLessons) * 100;
         enrollment.setProgressPercentage(percentage);
 
-        enrollment.setIsCompleted(completedLessons.equals(totalLessons) ? 1L : 0L);
-
+        if (completedLessons.equals(totalLessons)) {
+            enrollment.setIsCompleted(1L);
+            if (enrollment.getCompletedDate() == null) {
+               enrollment.setCompletedDate(new Date());
+            }
+        } else {
+            enrollment.setIsCompleted(0L);
+            enrollment.setCompletedDate(null);
+        }
         enrollmentRepository.save(enrollment);
     }
 
