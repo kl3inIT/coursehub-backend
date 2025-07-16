@@ -7,6 +7,7 @@ import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.ReviewEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.exceptions.course.CourseNotFoundException;
+import com.coursehub.exceptions.review.ReviewAlreadyExistsException;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CourseRepository;
@@ -117,6 +118,36 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    public Long getTotalVisibleReviews() {
+        return reviewRepository.count();
+    }
+
+    @Override
+    public Double getOverallAverageRating() {
+        double average = reviewRepository.findAll()
+                .stream()
+                .mapToInt(ReviewEntity::getStar)
+                .average()
+                .orElse(0.0);
+        
+        // Round to 2 decimal places
+        return Math.round(average * 100.0) / 100.0;
+    }
+
+    @Override
+    public Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable) {
+        if (visibilityStatus != 0 && visibilityStatus != 1) {
+            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+        }
+        
+        Page<ReviewEntity> reviews = visibilityStatus == 0 
+            ? reviewRepository.findVisibleReviews(pageable)
+            : reviewRepository.findHiddenReviews(pageable);
+            
+        return reviews.map(reviewConverter::toResponseDTO);
+    }
+
+    @Override
     @Transactional
     public void setReviewVisibility(Long reviewId, boolean hide) {
         ReviewEntity review = reviewRepository.findById(reviewId)
@@ -137,5 +168,21 @@ public class ReviewServiceImpl implements ReviewService {
                     "REVIEW"
             );
         }
+    }
+
+    @Override
+    public Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable) {
+        // Validate visibilityStatus
+        if (visibilityStatus != 0 && visibilityStatus != 1) {
+            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+        }
+        
+        // Trim search string if not null
+        String trimmedSearch = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+        
+        Page<ReviewEntity> reviews = reviewRepository.findByVisibilityWithFilters(
+                visibilityStatus, star, categoryId, courseId, trimmedSearch, pageable);
+        
+        return reviews.map(reviewConverter::toResponseDTO);
     }
 } 

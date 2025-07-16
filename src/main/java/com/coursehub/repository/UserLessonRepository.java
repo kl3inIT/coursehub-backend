@@ -36,4 +36,10 @@ public interface UserLessonRepository extends JpaRepository<UserLessonEntity, Lo
               AND ul.isCompleted = 1
             """)
     List<UserLessonEntity> findCompletedLessonsByUserAndModule(@Param("userId") Long userId, @Param("moduleId") Long moduleId);
+
+    @Query("SELECT SUM(ul.watchedTime) FROM UserLessonEntity ul " +
+           "JOIN ul.lessonEntity l " +
+           "JOIN l.moduleEntity m " +
+           "WHERE ul.userEntity.id = :userId AND m.courseEntity.id = :courseId")
+    Long getTotalWatchedTimeByUserAndCourse(@Param("userId") Long userId, @Param("courseId") Long courseId);
 }

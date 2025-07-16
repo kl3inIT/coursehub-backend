@@ -651,6 +651,43 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    // Search-specific Exception Handlers
+    @ExceptionHandler(InvalidSearchParametersException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidSearchParametersException(InvalidSearchParametersException ex) {
+        log.error("Invalid search parameters: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Invalid Search Parameters");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(SearchOperationException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleSearchOperationException(SearchOperationException ex) {
+        log.error("Search operation failed: {}", ex.getMessage(), ex);
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Search Operation Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(SearchStatisticsException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleSearchStatisticsException(SearchStatisticsException ex) {
+        log.error("Search statistics calculation failed: {}", ex.getMessage(), ex);
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Search Statistics Failed");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
     // generic phải để cuối vì nếu không sẽ bắt hết các exception khác
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseGeneral<Object>> handleGenericException(Exception ex) {

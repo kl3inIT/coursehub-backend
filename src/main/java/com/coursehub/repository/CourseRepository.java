@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.lang.NonNull;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -35,4 +36,11 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
 
     @Query(value = "SELECT * FROM courses ORDER BY RAND() LIMIT 3", nativeQuery = true)
     List<CourseEntity> getCoursesRecommend();
+
+    @Query("SELECT COUNT(c) FROM CourseEntity c WHERE c.createdDate BETWEEN :startDate AND :endDate")
+    Long countCoursesByCreatedAtBetween(@Param("startDate") Date startDate,
+                                        @Param("endDate") Date endDate);
+
+    @Query("SELECT MONTH(c.createdDate) as month, COUNT(c.id) as total FROM CourseEntity c WHERE YEAR(c.createdDate) = :year GROUP BY MONTH(c.createdDate)")
+    List<Object[]> countNewCoursesByMonth(@Param("year") int year);
 }
