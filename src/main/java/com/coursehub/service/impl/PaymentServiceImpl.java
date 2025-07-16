@@ -57,6 +57,18 @@
         }
 
         @Override
+        public List<PaymentHistoryResponseDTO> getAllPaymentHistory(PaymentHistoryResponseDTO paymentHistoryResponseDTO) {
+            List<PaymentEntity> entities = paymentRepository.findAll();
+            List<PaymentHistoryResponseDTO> dtos = paymentConverter.toPaymentHistoryResponseDTO(entities);
+            return dtos;
+        }
+
+        @Override
+        public BigDecimal getTotalRevenue() {
+            return paymentRepository.sumTotalCompletedPayments();
+        }
+
+        @Override
         public PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO) {
             PaymentEntity paymentEntity = paymentConverter.toPaymentEntity(paymentRequestDTO);
             paymentRepository.save(paymentEntity);

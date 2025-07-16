@@ -65,5 +65,24 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<ResponseGeneral<Long>> countUser() {
+        Long totalUser = userService.countUsers();
+        ResponseGeneral<Long> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage("Total users : " + totalUser);
+        responseDTO.setData(totalUser);
+        responseDTO.setDetail("Total users : " + totalUser);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<ResponseGeneral<Long>> countUsersActive() {
+        Long totalUserActive = userService.countUserIsActive();
+        ResponseGeneral<Long> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage("Total users : " + totalUserActive);
+        responseDTO.setData(totalUserActive);
+        responseDTO.setDetail("Total users active: " + totalUserActive);
+        return ResponseEntity.ok(responseDTO);
+    }
 
 }

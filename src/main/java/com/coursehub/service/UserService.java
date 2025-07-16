@@ -26,5 +26,6 @@ public interface UserService {
     String getDiscount(Long discountId);
     void addWarning(Long userId, ResourceType resourceType, Long resourceId);
     UserEntity getUserBySecurityContext();
-
+    Long countUsers();
+    Long countUserIsActive();
 }
