@@ -1,22 +1,15 @@
 package com.coursehub.service.impl;
 
-import com.coursehub.converter.ReportConverter;
-import com.coursehub.dto.request.report.ReportRequestDTO;
-import com.coursehub.dto.request.report.ReportSearchRequestDTO;
-import com.coursehub.dto.request.report.ReportStatusDTO;
-import com.coursehub.dto.response.report.ReportResponseDTO;
-import com.coursehub.dto.response.report.ResourceLocationDTO;
-import com.coursehub.entity.*;
-import com.coursehub.enums.ReportSeverity;
-import com.coursehub.enums.ReportStatus;
-import com.coursehub.enums.ResourceType;
-import com.coursehub.exceptions.comment.CommentNotFoundException;
-import com.coursehub.exceptions.report.*;
-import com.coursehub.exceptions.review.ReviewNotFoundException;
-import com.coursehub.repository.*;
-import com.coursehub.service.ReportService;
-import lombok.RequiredArgsConstructor;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,8 +18,39 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.util.Date;
+import com.coursehub.converter.ReportConverter;
+import com.coursehub.dto.request.report.ReportRequestDTO;
+import com.coursehub.dto.request.report.ReportSearchRequestDTO;
+import com.coursehub.dto.request.report.ReportStatusDTO;
+import com.coursehub.dto.response.report.AggregatedReportDTO;
+import com.coursehub.dto.response.report.ReportResponseDTO;
+import com.coursehub.dto.response.report.ResourceLocationDTO;
+import com.coursehub.entity.CommentEntity;
+import com.coursehub.entity.CourseEntity;
+import com.coursehub.entity.LessonEntity;
+import com.coursehub.entity.ModuleEntity;
+import com.coursehub.entity.ReportEntity;
+import com.coursehub.entity.ReviewEntity;
+import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.ReportSeverity;
+import com.coursehub.enums.ReportStatus;
+import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
+import com.coursehub.exceptions.comment.CommentNotFoundException;
+import com.coursehub.exceptions.report.ContentAlreadyHiddenException;
+import com.coursehub.exceptions.report.ContentAlreadyReportedException;
+import com.coursehub.exceptions.report.ReasonTooLongException;
+import com.coursehub.exceptions.report.ReportNotFoundException;
+import com.coursehub.exceptions.report.TooManyRequestsException;
+import com.coursehub.exceptions.review.ReviewNotFoundException;
+import com.coursehub.repository.CommentRepository;
+import com.coursehub.repository.ReportRepository;
+import com.coursehub.repository.ReviewRepository;
+import com.coursehub.repository.UserRepository;
+import com.coursehub.service.NotificationService;
+import com.coursehub.service.ReportService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +61,7 @@ public class ReportServiceImpl implements ReportService {
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
     private final StringRedisTemplate redisTemplate;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -131,6 +156,39 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional
+    public void updateAllReportsStatusByResourceId(Long resourceId, ReportStatusDTO statusDTO) {
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+        
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+
+        UserEntity currentUser = getCurrentUser();
+        Date now = new Date();
+
+        for (ReportEntity report : reports) {
+            if (report.getStatus().equals(ReportStatus.PENDING)) {
+                report.setStatus(statusDTO.getStatus());
+                report.setActionNote(statusDTO.getActionNote());
+                report.setResolvedBy(currentUser);
+                report.setModifiedDate(now);
+                
+                // Gửi notification cho reporter
+                notificationService.notifyReportStatusUpdate(
+                    report.getReporter().getId(),
+                    report.getType(),
+                    resourceId,
+                    statusDTO.getStatus(),
+                    statusDTO.getActionNote()
+                );
+            }
+        }
+        
+        reportRepository.saveAll(reports);
+    }
+
+    @Override
+    @Transactional
     public void deleteReport(Long reportId) {
         if (!reportRepository.existsById(reportId)) {
             throw new ReportNotFoundException("Report not found with ID: " + reportId);
@@ -141,13 +199,25 @@ public class ReportServiceImpl implements ReportService {
     private UserEntity getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, 1L);
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     @Override
     public ResourceLocationDTO getResourceLocationByReportId(Long reportId) {
         ReportEntity report = findReportById(reportId);
         return getResourceLocation(report.getType(), report.getResourceId());
+    }
+
+    @Override
+    public ResourceLocationDTO getResourceLocationByResourceId(Long resourceId) {
+        // Tìm report đầu tiên có resourceId này để xác định type
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+        
+        ReportEntity firstReport = reports.getFirst();
+        return getResourceLocation(firstReport.getType(), resourceId);
     }
 
     @Override
@@ -204,5 +274,98 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+    @Override
+    public Page<AggregatedReportDTO> getAggregatedReports(ReportSearchRequestDTO searchRequest) {
+        List<ReportEntity> allReports = reportRepository.findAll();
+        List<ReportEntity> filteredReports = applyFilters(allReports, searchRequest);
+
+        Map<String, List<ReportEntity>> grouped = filteredReports.stream()
+                .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
+
+        List<AggregatedReportDTO> result = new ArrayList<>(grouped.values().stream()
+                .map(this::mapToAggregatedReport)
+                .toList());
+
+        Comparator<AggregatedReportDTO> comparator = getReportComparator(searchRequest.getSortBy());
+        if ("desc".equalsIgnoreCase(searchRequest.getSortDir())) {
+            comparator = comparator.reversed();
+        }
+        result.sort(comparator);
+
+        // Paging
+        int page = searchRequest.getPage() != null ? searchRequest.getPage() : 0;
+        int size = searchRequest.getSize() != null ? searchRequest.getSize() : 10;
+        int start = page * size;
+        int end = Math.min(start + size, result.size());
+        List<AggregatedReportDTO> pageContent = (start < end) ? result.subList(start, end) : new ArrayList<>();
+        return new PageImpl<>(pageContent, PageRequest.of(page, size), result.size());
+    }
+
+
+    private List<ReportEntity> applyFilters(List<ReportEntity> reports, ReportSearchRequestDTO searchRequest) {
+        List<ReportEntity> filtered = reports;
+        if (searchRequest.getType() != null) {
+            filtered = filtered.stream().filter(r -> r.getType() == searchRequest.getType()).toList();
+        }
+        if (searchRequest.getStatus() != null) {
+            filtered = filtered.stream().filter(r -> r.getStatus() == searchRequest.getStatus()).toList();
+        }
+        if (searchRequest.getSeverity() != null) {
+            filtered = filtered.stream().filter(r -> r.getSeverity() == searchRequest.getSeverity()).toList();
+        }
+        if (searchRequest.getSearch() != null && !searchRequest.getSearch().trim().isEmpty()) {
+            String searchTerm = searchRequest.getSearch().toLowerCase().trim();
+            filtered = filtered.stream()
+                    .filter(r -> {
+                        if (r.getType() == ResourceType.COMMENT) {
+                            CommentEntity comment = commentRepository.findById(r.getResourceId()).orElse(null);
+                            return comment != null && comment.getComment().toLowerCase().contains(searchTerm);
+                        } else if (r.getType() == ResourceType.REVIEW) {
+                            ReviewEntity review = reviewRepository.findById(r.getResourceId()).orElse(null);
+                            return review != null && review.getComment().toLowerCase().contains(searchTerm);
+                        }
+                        return false;
+                    }).toList();
+        }
+        return filtered;
+    }
+
+    private Comparator<AggregatedReportDTO> getReportComparator(String sortBy) {
+        return switch (sortBy) {
+            case "severity" -> Comparator.comparing(AggregatedReportDTO::getSeverity, Comparator.nullsLast(Enum::compareTo));
+            case "status" -> Comparator.comparing(AggregatedReportDTO::getStatus, Comparator.nullsLast(Enum::compareTo));
+            case "totalReports" -> Comparator.comparing(AggregatedReportDTO::getTotalReports, Comparator.nullsLast(Long::compareTo));
+            case "resourceContent" -> Comparator.comparing(AggregatedReportDTO::getResourceContent, Comparator.nullsLast(String::compareToIgnoreCase));
+            case "resourceOwner" -> Comparator.comparing(AggregatedReportDTO::getResourceOwner, Comparator.nullsLast(String::compareToIgnoreCase));
+            case "hidden" -> Comparator.comparing(AggregatedReportDTO::isHidden);
+            default -> Comparator.comparing(AggregatedReportDTO::getCreatedAt, Comparator.nullsLast(Date::compareTo));
+        };
+    }
+
+    private AggregatedReportDTO mapToAggregatedReport(List<ReportEntity> group) {
+        ReportEntity first = group.getFirst();
+        AggregatedReportDTO dto = new AggregatedReportDTO();
+        reportConverter.mapResourceInfo(dto, first, group.size());
+        dto.setReports(reportConverter.toReportDetailList(group));
+        return dto;
+    }
+
+    @Override
+    public AggregatedReportDTO getAggregatedReportByResourceId(Long resourceId) {
+        // Tìm tất cả reports cho resourceId này
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+
+        ReportEntity first = reports.getFirst();
+        AggregatedReportDTO dto = new AggregatedReportDTO();
+        reportConverter.mapResourceInfo(dto, first, reports.size());
+
+        // Map các report con
+        dto.setReports(reportConverter.toReportDetailList(reports));
+        return dto;
+    }
 
 }

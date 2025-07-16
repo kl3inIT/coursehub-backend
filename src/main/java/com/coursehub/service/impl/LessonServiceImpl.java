@@ -4,6 +4,7 @@ import com.coursehub.dto.request.lesson.LessonConfirmCreationRequestDTO;
 import com.coursehub.dto.request.lesson.LessonPreparedUploadRequestDTO;
 import com.coursehub.dto.request.lesson.LessonUpdateRequestDTO;
 import com.coursehub.dto.response.lesson.LessonResponseDTO;
+import com.coursehub.dto.response.lesson.LessonVideoUpdateResponseDTO;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.ModuleEntity;
 import com.coursehub.entity.UserLessonEntity;
@@ -114,7 +115,15 @@ public class LessonServiceImpl implements LessonService {
         LessonEntity lesson = getLessonEntityById(lessonId);
 
         // Xóa file từ S3
-        s3Service.deleteObject(lesson.getS3Key());
+        if (lesson.getS3Key() != null && !lesson.getS3Key().isEmpty()) {
+            try {
+                s3Service.deleteObject(lesson.getS3Key());
+                log.info("Successfully deleted video file: {}", lesson.getS3Key());
+            } catch (Exception e) {
+                // Log warning but continue with lesson deletion
+                log.warn("Failed to delete video file {}: {}", lesson.getS3Key(), e.getMessage());
+            }
+        }
 
         // Xóa lesson từ database
         lessonRepository.delete(lesson);
@@ -172,6 +181,49 @@ public class LessonServiceImpl implements LessonService {
         if (requestDTO.getIsPreview() != null) lesson.setIsPreview(requestDTO.getIsPreview() ? 1L : 0L);
         LessonEntity updated = lessonRepository.save(lesson);
         return mapToResponseDTO(updated);
+    }
+
+    @Override
+    @Transactional
+    public LessonVideoUpdateResponseDTO updateLessonVideo(Long lessonId, LessonPreparedUploadRequestDTO requestDTO) {
+        log.info("Updating video for lesson ID: {}", lessonId);
+
+        LessonEntity lessonEntity = getLessonEntityById(lessonId);
+        
+        // Delete old video if exists
+        String oldS3Key = lessonEntity.getS3Key();
+        if (oldS3Key != null && !oldS3Key.isEmpty()) {
+            try {
+                s3Service.deleteObject(oldS3Key);
+                log.info("Successfully deleted old video: {}", oldS3Key);
+            } catch (Exception e) {
+                // Log warning but don't fail the update
+                log.warn("Failed to delete old video {}: {}", oldS3Key, e.getMessage());
+            }
+        }
+
+        // Generate new S3 key for the new video
+        String newS3Key = String.format("private/lessons/%d/%s", 
+            lessonEntity.getModuleEntity().getId(), requestDTO.getFileName());
+        
+        // Update lesson with new video info
+        lessonEntity.setTitle(requestDTO.getTitle());
+        lessonEntity.setS3Key(newS3Key);
+        
+        LessonEntity updatedLesson = lessonRepository.save(lessonEntity);
+        
+        // Generate presigned URL for upload
+        String preSignedPutUrl = s3Service.generatePresignedPutUrl(newS3Key, requestDTO.getFileType());
+        
+        // Return proper DTO
+        return LessonVideoUpdateResponseDTO.builder()
+                .lessonId(updatedLesson.getId())
+                .title(updatedLesson.getTitle())
+                .preSignedPutUrl(preSignedPutUrl)
+                .s3Key(newS3Key)
+                .fileName(requestDTO.getFileName())
+                .fileType(requestDTO.getFileType())
+                .build();
     }
 
 }

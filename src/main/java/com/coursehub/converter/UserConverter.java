@@ -9,13 +9,11 @@ import org.springframework.stereotype.Component;
 import com.coursehub.dto.request.auth.AuthenticationRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
 import com.coursehub.dto.request.user.UserRequestDTO;
+import com.coursehub.dto.response.course.CourseBasicDTO;
 import com.coursehub.dto.response.user.UserActivityDTO;
-import com.coursehub.dto.response.user.UserManagementDTO;
+import com.coursehub.dto.response.user.UserDetailDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.CourseEntity;
-import com.coursehub.entity.EnrollmentEntity;
-import com.coursehub.entity.LessonEntity;
-import com.coursehub.entity.ModuleEntity;
 import com.coursehub.entity.UserEntity;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class UserConverter {
 
     private final ModelMapper modelMapper;
+    private final ActivityConverter activityConverter;
 
     //RequestDTO => Entity
     public UserEntity toUserEntity(UserRequestDTO userRequestDTO) {
@@ -51,112 +50,57 @@ public class UserConverter {
         return modelMapper.map(userEntity, ProfileRequestDTO.class);
     }
 
-    //Entity => UserManagementDTO
-    public UserManagementDTO convertToUserManagementDTO(UserEntity user) {
+    //Entity => UserDetailDTO
+    public UserDetailDTO toUserDetailDTO(UserEntity user) {
         if (user == null) return null;
 
-        UserManagementDTO dto = new UserManagementDTO();
+        UserDetailDTO dto = new UserDetailDTO();
 
         String roleCode = user.getRoleEntity().getCode().isEmpty() ?
                 "LEARNER" :
-                user.getRoleEntity().getCode().toLowerCase(); // Trong frontend component RoleBadge đang dùng switch case chữ thường
+                user.getRoleEntity().getCode().toLowerCase();
 
         dto.setId(user.getId());
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setAvatar(user.getAvatar());
         dto.setRole(roleCode);
-        dto.setStatus(user.getIsActive() == 1L ? "active" : "banned");
+        dto.setStatus(user.getIsActive());
         dto.setJoinDate(user.getCreatedDate());
         dto.setBio(user.getBio());
 
-        List<UserActivityDTO> activities = new ArrayList<>();
-
-        // Add enrollment activities with progress
-        user.getEnrollmentEntities().forEach(enrollment -> {
-            UserActivityDTO activity = new UserActivityDTO();
-            CourseEntity course = enrollment.getCourseEntity();
-            
-            activity.setId(enrollment.getId());
-            activity.setType("enrollment");
-            activity.setTimestamp(enrollment.getCreatedDate());
-            
-            activity.setCourseId(course.getId());
-            activity.setCourseTitle(course.getTitle());
-            activity.setCourseThumbnail(course.getThumbnail());
-            
-            // Calculate and set progress percentage
-            activity.setProgressPercentage(calculateProgress(enrollment));
-            
-            activities.add(activity);
-        });
-
-        // Add comment activities
-        user.getCommentEntities().forEach(comment -> {
-            try {
-                UserActivityDTO activity = new UserActivityDTO();
-                LessonEntity lesson = comment.getLessonEntity();
-                ModuleEntity module = lesson.getModuleEntity();
-                CourseEntity course = module.getCourseEntity();
-                
-                activity.setId(comment.getId());
-                activity.setType("comment");
-                activity.setTimestamp(comment.getCreatedDate());
-                
-                // Set lesson and comment information
-                activity.setLessonId(lesson.getId());
-                activity.setLessonTitle(lesson.getTitle());
-                activity.setCommentText(comment.getComment());
-                
-                // Set course information
-                activity.setCourseId(course.getId());
-                activity.setCourseTitle(course.getTitle());
-                activity.setCourseThumbnail(course.getThumbnail());
-                
-                activities.add(activity);
-            } catch (Exception e) {
-                // Skip
+        // Tách riêng cho learner và manager
+        if ("learner".equals(roleCode)) {
+            // Chỉ set enrolledCourses cho learner
+            List<CourseBasicDTO> enrolledCourses = new ArrayList<>();
+            if (user.getEnrollmentEntities() != null) {
+                user.getEnrollmentEntities().forEach(enrollment -> {
+                    CourseEntity c = enrollment.getCourseEntity();
+                    enrolledCourses.add(new CourseBasicDTO(c.getId(), c.getTitle(), c.getThumbnail()));
+                });
             }
-        });
+            dto.setEnrolledCourses(enrolledCourses);
+            dto.setManagedCourses(new ArrayList<>());
+        } else if ("manager".equals(roleCode)) {
+            // Managed courses
+            List<CourseBasicDTO> managedCourses = new ArrayList<>();
+            if (user.getCourseEntities() != null) {
+                for (CourseEntity c : user.getCourseEntities()) {
+                    managedCourses.add(new CourseBasicDTO(c.getId(), c.getTitle(), c.getThumbnail()));
+                }
+            }
+            dto.setManagedCourses(managedCourses);
+            dto.setEnrolledCourses(new ArrayList<>());
+        } else {
+            dto.setEnrolledCourses(new ArrayList<>());
+            dto.setManagedCourses(new ArrayList<>());
+        }
 
-//        // Add course management activities for managers
-//        if ("manager".equalsIgnoreCase(dto.getRole())) {
-//            user`.getCourseProgressEntities().forEach(progress -> {
-//                UserActivityDTO activity = new UserActivityDTO();
-//                CourseEntity course = progress.getCourseEntity();
-//
-//                activity.setId(progress.getId());
-//                activity.setType(progress.getCreatedDate().equals(progress.getModifiedDate())
-//                    ? "course_creation" : "course_update");
-//                activity.setTimestamp(progress.getModifiedDate());
-//
-//                activity.setCourseId(course.getId());
-//                activity.setCourseTitle(course.getTitle());
-//                activity.setCourseThumbnail(course.getThumbnail());
-//
-//                activity.setActionDescription(progress.getCreatedDate().equals(progress.getModifiedDate())
-//                    ? "Created new course" : "Updated course content");
-//
-//                activities.add(activity);
-//            });
-//        }
-
+        // Delegate activity assembly to ActivityConverter
+        List<UserActivityDTO> activities = activityConverter.assembleFromUser(user);
         dto.setActivities(activities);
+
         return dto;
     }
-
-    private Double calculateProgress(EnrollmentEntity enrollment) {
-        CourseEntity course = enrollment.getCourseEntity();
-        long totalLessons = course.getModuleEntities().stream()
-            .mapToLong(module -> module.getLessonEntities().size())
-            .sum();
-            
-        if (totalLessons == 0) return 0.0;
-
-        long completedLessons = 0;
-        
-        return (double) completedLessons / totalLessons * 100;
-    }
-
 
 }

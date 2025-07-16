@@ -13,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +20,6 @@ public class CategoryServiceImpl implements CategoryService {
     
     private final CategoryRepository categoryRepository;
     private final CategoryConverter categoryConverter;
-    private static final Logger log = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     @Override
     public Page<CategoryResponseDTO> findAllOrNameCategories(String name, Pageable pageable) {
@@ -66,5 +63,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + id));
     }
 
-
+    @Override
+    public CategoryResponseDTO findDTOById(Long id) {
+        CategoryEntity entity = categoryRepository.findById(id)
+            .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + id));
+        return categoryConverter.toResponseDTO(entity);
+    }
 }

@@ -1,50 +1,44 @@
 package com.coursehub.service.impl;
 
-import com.coursehub.components.DiscountScheduler;
-import com.coursehub.converter.DiscountConverter;
-import com.coursehub.components.OtpUtil;
-import com.coursehub.converter.UserConverter;
-import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
-import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
-import com.coursehub.dto.request.user.ProfileRequestDTO;
-import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
-import com.coursehub.dto.response.user.UserManagementDTO;
-import com.coursehub.dto.response.user.UserResponseDTO;
-import com.coursehub.entity.DiscountEntity;
-import com.coursehub.entity.RoleEntity;
-import com.coursehub.entity.UserDiscountEntity;
-import com.coursehub.entity.UserEntity;
-import com.coursehub.enums.ResourceType;
-import com.coursehub.exceptions.auth.DataNotFoundException;
-import com.coursehub.exceptions.user.*;
-import com.coursehub.repository.DiscountRepository;
-import com.coursehub.repository.RoleRepository;
-import com.coursehub.repository.UserDiscountRepository;
-import com.coursehub.repository.UserRepository;
-import com.coursehub.service.NotificationService;
-import com.coursehub.service.S3Service;
-import com.coursehub.service.UserService;
-import com.coursehub.utils.FileValidationUtil;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.*;
+
+import com.coursehub.components.DiscountScheduler;
+import com.coursehub.converter.UserConverter;
+import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
+import com.coursehub.dto.request.user.ProfileRequestDTO;
+import com.coursehub.dto.response.user.UserDetailDTO;
+import com.coursehub.dto.response.user.UserResponseDTO;
+import com.coursehub.entity.DiscountEntity;
+import com.coursehub.entity.UserDiscountEntity;
+import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
+import com.coursehub.exceptions.auth.DataNotFoundException;
+import com.coursehub.exceptions.user.AvatarNotFoundException;
+import com.coursehub.exceptions.user.AvatarUploadException;
+import com.coursehub.exceptions.user.IncorrectPasswordException;
+import com.coursehub.exceptions.user.SamePasswordException;
+import com.coursehub.exceptions.user.UserAlreadyOwnsDiscountException;
+import com.coursehub.exceptions.user.UserNotFoundException;
+import com.coursehub.repository.DiscountRepository;
+import com.coursehub.repository.UserDiscountRepository;
+import com.coursehub.repository.UserRepository;
+import com.coursehub.service.S3Service;
+import com.coursehub.service.UserService;
+import com.coursehub.utils.FileValidationUtil;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -53,21 +47,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserConverter userConverter;
     private final S3Service s3Service;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final DiscountRepository discountRepository;
     private final UserDiscountRepository userDiscountRepository;
     private final DiscountScheduler discountScheduler;
-    private final OtpUtil otpUtil;
-
-    private static final String USER_NOT_FOUND = "User not found";
-    private final NotificationService notificationService;
 
     @Override
     public UserResponseDTO getMyInfo() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(userEntity == null){
             throw new DataNotFoundException("Data not found");
         }
@@ -86,10 +75,11 @@ public class UserServiceImpl implements UserService {
         return userConverter.toProfileRequestDTO(savedUser);
     }
 
-    private UserEntity getCurrentUser() {
+    @Override
+    public UserEntity getCurrentUser() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, 1L);
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     private Date validateAndParseDateOfBirth(String dateOfBirthStr) {
@@ -160,24 +150,6 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(avatarUrl);
     }
 
-    @Override
-    @Transactional
-    public void deleteProfile() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-        if(user == null) {
-            throw new DataNotFoundException(USER_NOT_FOUND);
-        }
-
-        if (user.getAvatar() != null) {
-            s3Service.deleteObject(user.getAvatar());
-        }
-
-        user.setIsActive(0L);
-        userRepository.save(user);
-    }
-
     private String getFileExtension(String filename) {
         if (filename == null) return "";
         int lastDotIndex = filename.lastIndexOf('.');
@@ -185,126 +157,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserManagementDTO> getAllUsers(Integer pageSize, Integer pageNo, String role, String status) {
-        if (pageSize == null) pageSize = 10;
-        if (pageNo == null) pageNo = 0;
-
-        List<String> roles = Arrays.asList("LEARNER", "MANAGER");
-        if (role != null && !role.isEmpty() && !role.equals("all")) {
-            roles = List.of(role.toUpperCase());
-        }
-
-        Page<UserEntity> userPage;
-        if (status != null && !status.isEmpty() && !status.equals("all")) {
-            // Map status to isActive
-            Long isActive = status.equals("active") ? 1L : 0L;
-            userPage = userRepository.findByRoleEntity_CodeInAndIsActive(
-                roles,
-                isActive,
-                Pageable.ofSize(pageSize).withPage(pageNo)
-            );
-        } else {
-            // Get all users regardless of status
-            userPage = userRepository.findByRoleEntity_CodeIn(
-                roles,
-                Pageable.ofSize(pageSize).withPage(pageNo)
-            );
-        }
-        
-        return userPage.map(userConverter::convertToUserManagementDTO);
-    }
-
-    @Override
-    public UserManagementDTO getUserDetails(Long userId) {
+    public UserDetailDTO getUserDetails(Long userId) {
         UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-        return userConverter.convertToUserManagementDTO(user);
-    }
-
-    @Override
-    @Transactional
-    public void updateUserStatus(Long userId, String status) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new DataNotFoundException(USER_NOT_FOUND));
-        if ("ACTIVE".equalsIgnoreCase(status)) {
-            user.setIsActive(1L);
-            notificationService.notifyUnban(userId);
-        } else if ("BANNED".equalsIgnoreCase(status)) {
-            user.setIsActive(0L);
-            notificationService.notifyBan(userId);
-        }
-        userRepository.save(user);
-    }
-
-    @Override
-    @Transactional
-    public void deleteManager(Long userId) {
-        UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-
-        if (user.getAvatar() != null) {
-            try {
-                s3Service.deleteObject(user.getAvatar());
-            } catch (Exception e) {
-                throw new AvatarNotFoundException("Failed to delete avatar: " + e.getMessage());
-            }
-        }
-
-        userRepository.delete(user);
-    }
-
-    @Override
-    @Transactional
-    public UserManagementDTO createManager(ProfileRequestDTO request) {
-        if (userRepository.existsByEmailAndIsActive(request.getEmail(), 1L)) {
-            throw new IllegalArgumentException("Email already exists");
-        }
-
-        RoleEntity learnerRole = roleRepository.findByCode("MANAGER");
-        if (learnerRole == null) {
-            throw new DataNotFoundException("Default role not found");
-        }
-        String tempPassword = generateTemporaryPassword(8);
-        UserEntity user = new UserEntity();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setIsActive(1L);
-        user.setPassword(passwordEncoder.encode(tempPassword));
-        user.setRoleEntity(learnerRole);
-
-        UserEntity savedUser = userRepository.save(user);
-        otpUtil.sendPasswordToManager(savedUser.getEmail(), tempPassword);
-        return userConverter.convertToUserManagementDTO(savedUser);
-    }
-
-    private String generateTemporaryPassword(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%";
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < length; i++) {
-            sb.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return sb.toString();
-    }
-
-
-    @Override
-    @Transactional
-    public void addWarning(Long userId, ResourceType resourceType, Long resourceId) {
-        UserEntity user = userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND));
-
-        long currentWarnings = user.getWarningCount() != null ? user.getWarningCount() : 0L;
-        user.setWarningCount(currentWarnings + 1);
-
-        notificationService.notifyWarn(userId, resourceId, String.valueOf(resourceType));
-
-        if (user.getWarningCount() >= 5) {
-            user.setIsActive(0L);
-            notificationService.notifyBan(userId);
-        }
-
-        userRepository.save(user);
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return userConverter.toUserDetailDTO(user);
     }
 
     @Override
@@ -345,7 +201,7 @@ public class UserServiceImpl implements UserService {
     public UserEntity getUserBySecurityContext() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(userEntity == null){
             throw new UserNotFoundException("User not found with email: " + email);
         }

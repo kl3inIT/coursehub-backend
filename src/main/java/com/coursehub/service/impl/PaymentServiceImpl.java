@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
-
     private final PaymentRepository paymentRepository;
     private final PaymentConverter paymentConverter;
     private final UserDiscountRepository userDiscountRepository;
@@ -66,7 +65,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public byte[] generateOrderPdf(String transactionCode) {
-
         PaymentEntity payment = paymentRepository.findByTransactionCode(transactionCode.toUpperCase().trim());
         if(payment == null){
             throw new DataNotFoundException("Payment not found for transaction code: " + transactionCode);
@@ -119,7 +117,6 @@ public class PaymentServiceImpl implements PaymentService {
         enrollmentEntity.setIsCompleted(0L);
         enrollmentRepository.save(enrollmentEntity);
 
-
         // invalidate user discount if exists
         DiscountEntity discountEntity = paymentEntity.getDiscountEntity();
 
@@ -130,9 +127,7 @@ public class PaymentServiceImpl implements PaymentService {
             userDiscountRepository.save(userDiscountEntity);
             discountScheduler.updateDiscountStatus(discountEntity);
         }
-
     }
-
 
     @Override
     public void sendInvoiceToEmail(Map<String, Object> invoiceData, String transactionCode, String downloadLink) {
@@ -367,11 +362,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-
-
-
-
-
     @Override
     public Map<String, String> getPaymentOverall(PaymentHistoryRequestDTO paymentHistoryRequestDTO) {
         List<PaymentEntity> paymentEntities = paymentRepository.searchPayments(
@@ -394,7 +384,6 @@ public class PaymentServiceImpl implements PaymentService {
             } else{
                 ++pendingPayments;
             }
-
         }
         Map<String, String> paymentOverall = new HashMap<>();
         paymentOverall.put("totalAmount", String.valueOf(totalAmount));
@@ -417,5 +406,4 @@ public class PaymentServiceImpl implements PaymentService {
         );
         return paymentConverter.toPaymentHistoryResponseDTO(paymentHistoryPage);
     }
-
 }
