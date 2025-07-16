@@ -1,6 +1,7 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exceptions.announcement.InternalServerException;
 import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
 import com.coursehub.exceptions.discount.DiscountDuplicateException;
@@ -696,6 +697,16 @@ public class GlobalExceptionHandler {
         ResponseGeneral<Object> response = new ResponseGeneral<>();
         response.setMessage("Internal server error");
         response.setDetail("An unexpected error occurred");
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInternalServerException(InternalServerException ex) {
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Internal Server Error");
+        response.setDetail(ex.getMessage());
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

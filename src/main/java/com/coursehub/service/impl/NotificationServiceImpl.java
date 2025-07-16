@@ -8,12 +8,19 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.coursehub.constant.Constant.CommonConstants.ADMIN;
+import static com.coursehub.constant.Constant.CommonConstants.COMMENT;
+import static com.coursehub.constant.Constant.CommonConstants.REVIEW;
+
 import com.coursehub.dto.response.notification.NotificationDTO;
 import com.coursehub.entity.CommentEntity;
 import com.coursehub.entity.NotificationEntity;
 import com.coursehub.entity.ReviewEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.NotificationType;
+import com.coursehub.enums.ReportStatus;
+import com.coursehub.enums.ResourceType;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CommentRepository;
 import com.coursehub.repository.NotificationRepository;
@@ -22,8 +29,6 @@ import com.coursehub.repository.UserRepository;
 import com.coursehub.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
-
-import static com.coursehub.constant.Constant.CommonConstants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +54,7 @@ public class NotificationServiceImpl implements NotificationService {
         CommentEntity comment = commentRepository.findById(commentId).orElseThrow();
         notification.setUserEntity(user);
         notification.setType(NotificationType.COMMENT_LIKED);
-        notification.setMessage(actor.getName() + " đã thích bình luận '" + comment.getComment() + "' của bạn.");
+        notification.setMessage(actor.getName() + " liked your comment '" + comment.getComment() + "'.");
         notification.setIsRead(0L);
         notification.setResourceId(commentId);
         notification.setResourceType(COMMENT);
@@ -65,8 +70,8 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationEntity notification = new NotificationEntity();
         notification.setUserEntity(user);
         notification.setType(NotificationType.COMMENT_REPLIED);
-        notification.setMessage(actor.getName() + " đã trả lời bình luận '" +
-                comment.getComment() + "' của bạn.");
+        notification.setMessage(actor.getName() + " replied to your comment '" +
+                comment.getComment() + "'.");
         notification.setIsRead(0L);
         notification.setResourceId(commentId);
         notification.setResourceType(COMMENT);
@@ -78,7 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyHideResource(Long userId, Long resourceId, String resourceType) {
         UserEntity user = getUserById(userId);
         Object entity = getResourceEntity(resourceId, resourceType);
-        NotificationEntity notification = buildResourceNotification(user, NotificationType.NOTIFICATION_HIDDEN, "bị ẩn", entity, resourceType);
+        NotificationEntity notification = buildResourceNotification(user, NotificationType.CONTENT_HIDDEN, "hidden", entity, resourceType);
         saveAndSendToUser(notification, null, ADMIN);
     }
 
@@ -86,7 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyShowResource(Long userId, Long resourceId, String resourceType) {
         UserEntity user = getUserById(userId);
         Object entity = getResourceEntity(resourceId, resourceType);
-        NotificationEntity notification = buildResourceNotification(user, NotificationType.NOTIFICATION_SHOWN, "được khôi phục", entity, resourceType);
+        NotificationEntity notification = buildResourceNotification(user, NotificationType.CONTENT_SHOWN, "restored", entity, resourceType);
         saveAndSendToUser(notification, null, ADMIN);
     }
 
@@ -100,33 +105,49 @@ public class NotificationServiceImpl implements NotificationService {
         throw new IllegalArgumentException("Invalid resourceType: " + resourceType);
     }
 
-
-
-    @Override
-    public void notifyBan(Long userId) {
+    private void notifyUserBanOrUnban(
+            Long userId,
+            NotificationType type,
+            String baseMessage,
+            String reason
+    ) {
         UserEntity user = getUserById(userId);
         NotificationEntity notification = new NotificationEntity();
         notification.setUserEntity(user);
-        notification.setType(NotificationType.USER_BANNED);
-        notification.setMessage("Bạn đã bị khoá tài khoản bởi ADMIN do vi phạm quy tắc cộng đồng.");
+        notification.setType(type);
+
+        String message = baseMessage;
+        if (reason != null && !reason.trim().isEmpty()) {
+            message += " Reason: " + reason;
+        }
+        notification.setMessage(message);
         notification.setIsRead(0L);
         notification.setResourceId(null);
         notification.setResourceType(null);
         saveAndSendToUser(notification, null, ADMIN);
     }
 
+
     @Override
-    public void notifyUnban(Long userId) {
-        UserEntity user = getUserById(userId);
-        NotificationEntity notification = new NotificationEntity();
-        notification.setUserEntity(user);
-        notification.setType(NotificationType.USER_UNBANNED);
-        notification.setMessage("Tài khoản của bạn đã được khôi phục bởi ADMIN.");
-        notification.setIsRead(0L);
-        notification.setResourceId(null);
-        notification.setResourceType(null);
-        saveAndSendToUser(notification, null, ADMIN);
+    public void notifyBan(Long userId, String reason) {
+        notifyUserBanOrUnban(
+            userId,
+            NotificationType.USER_BANNED,
+            "Your account has been banned by ADMIN for violating community guidelines.",
+            reason
+        );
     }
+
+    @Override
+    public void notifyUnban(Long userId, String reason) {
+        notifyUserBanOrUnban(
+            userId,
+            NotificationType.USER_UNBANNED,
+            "Your account has been restored by ADMIN.",
+            reason
+        );
+    }
+
 
     @Override
     public void notifyWarn(Long userId, Long resourceId, String resourceType) {
@@ -144,14 +165,13 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setLink(link);
 
         if (COMMENT.equalsIgnoreCase(resourceType)) {
-            notification.setMessage("Bạn đã bị cảnh báo bởi ADMIN vì vi phạm quy tắc cộng đồng trong bình luận: '" + content + "'.");
+            notification.setMessage("You have been warned by ADMIN for violating community guidelines in your comment: '" + content + "'.");
         } else if (REVIEW.equalsIgnoreCase(resourceType)) {
-            notification.setMessage("Bạn đã bị cảnh báo bởi ADMIN vì vi phạm quy tắc cộng đồng trong đánh giá: '" + content + "'.");
+            notification.setMessage("You have been warned by ADMIN for violating community guidelines in your review: '" + content + "'.");
         }
 
         saveAndSendToUser(notification, null, ADMIN);
     }
-
 
     @Override
     public void notifySystem(NotificationType type, String message) {
@@ -171,8 +191,40 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void notifyReportStatusUpdate(Long reporterId, ResourceType resourceType, Long resourceId, ReportStatus status, String actionNote) {
+        UserEntity reporter = getUserById(reporterId);
+        if (reporter == null) {
+            System.err.println("Reporter not found with ID: " + reporterId);
+            return;
+        }
+
+        Object entity = getResourceEntity(resourceId, resourceType.name());
+        String content = getResourceContent(entity, resourceType.name());
+        String link = buildNotificationLink(entity, resourceType.name());
+
+        NotificationEntity notification = new NotificationEntity();
+        notification.setUserEntity(reporter);
+        notification.setIsRead(0L);
+        notification.setResourceId(resourceId);
+        notification.setResourceType(resourceType.name());
+        notification.setLink(link);
+
+        String statusText = status == ReportStatus.APPROVED ? "approved" : "rejected";
+        String message = String.format(
+                "Your report about content '%s' has been %s by ADMIN. %s",
+                content != null ? content.substring(0, Math.min(content.length(), 50)) + "..." : "content",
+                statusText,
+                actionNote != null && !actionNote.trim().isEmpty() ? "Reason: " + actionNote : ""
+        );
+
+        notification.setType(NotificationType.REPORT_PROCESSED);
+        notification.setMessage(message);
+        saveAndSendToUser(notification, null, ADMIN);
+    }
+
+    @Override
     public Page<NotificationDTO> getUserNotificationsByEmail(String email, Pageable pageable) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) throw new UserNotFoundException("User not found");
         return notificationRepository
                 .findByUserEntity_IdOrderByCreatedDateDesc(user.getId(), pageable)
@@ -181,7 +233,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public Long getUnreadCount(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         return notificationRepository.countUnreadByUserId(user.getId());
     }
 
@@ -197,7 +249,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void markAllAsRead(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         notificationRepository.findByUserEntity_IdOrderByCreatedDateDesc(user.getId(), Pageable.unpaged()).forEach(notification -> {
             notification.setIsRead(1L);
             notificationRepository.save(notification);
@@ -213,7 +265,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void deleteAllNotifications(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user != null) {
             notificationRepository.deleteByUserEntity_Id(user.getId());
         }
@@ -222,7 +274,7 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationDTO convertToDTO(NotificationEntity entity, Long actorId, String actorName) {
         return new NotificationDTO(entity.getId(), entity.getUserEntity().
                 getId(), entity.getUserEntity().getName(), actorId, actorName, entity.getType(), entity.getMessage(),
-                entity.getIsRead(), entity.getResourceId(), entity.getResourceType(), entity.getLink(),entity.getCreatedDate());
+                entity.getIsRead(), entity.getResourceId(), entity.getResourceType(), entity.getLink(), entity.getCreatedDate());
     }
 
     private UserEntity getUserById(Long userId) {
@@ -257,7 +309,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType(type);
         notification.setIsRead(0L);
         String content = getResourceContent(entity, resourceType);
-        notification.setMessage("Nội dung '" + content + "' của bạn đã " + action + " bởi ADMIN.");
+        notification.setMessage("Your content '" + content + "' has been " + action + " by ADMIN.");
         notification.setResourceId(entity instanceof CommentEntity cmt ? cmt.getId() : ((ReviewEntity) entity).getId());
         notification.setResourceType(resourceType);
         notification.setLink(buildNotificationLink(entity, resourceType));

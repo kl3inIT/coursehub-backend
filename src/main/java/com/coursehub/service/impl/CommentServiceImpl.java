@@ -8,10 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.coursehub.exceptions.comment.CommentNotFoundException;
-import com.coursehub.exceptions.comment.CommentTooLongException;
-import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
-import com.coursehub.service.NotificationService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +18,10 @@ import com.coursehub.entity.CommentEntity;
 import com.coursehub.entity.CommentLikeEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
+import com.coursehub.exceptions.comment.CommentNotFoundException;
+import com.coursehub.exceptions.comment.CommentTooLongException;
+import com.coursehub.exceptions.comment.ParentCommentNotFoundException;
 import com.coursehub.exceptions.lesson.LessonNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CommentLikeRepository;
@@ -29,6 +29,7 @@ import com.coursehub.repository.CommentRepository;
 import com.coursehub.repository.LessonRepository;
 import com.coursehub.repository.UserRepository;
 import com.coursehub.service.CommentService;
+import com.coursehub.service.NotificationService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class CommentServiceImpl implements CommentService {
 
     private UserEntity getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, 1L);
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     @Override
@@ -154,7 +155,13 @@ public class CommentServiceImpl implements CommentService {
             Map<Long, Long> likeCountMap
     ){
         List<CommentEntity> children = grouped.getOrDefault(parentId, Collections.emptyList());
-        return children.stream()
+        // Nếu là comment con (parentId != 0), sort replies cũ nhất lên trước (tăng dần theo ngày)
+        List<CommentEntity> sortedChildren = (parentId != 0L)
+            ? children.stream()
+                .sorted((a, b) -> a.getCreatedDate().compareTo(b.getCreatedDate()))
+                .toList()
+            : children;
+        return sortedChildren.stream()
                 .map(child -> {
                     List<CommentResponseDTO> replies = buildCommentTree(grouped, child.getId(), currentUser, likeCountMap);
                     Long likeCount = likeCountMap.getOrDefault(child.getId(), 0L);
@@ -221,7 +228,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public boolean toggleLikeComment(Long commentId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) throw new UserNotFoundException("User not found");
         CommentEntity comment = getCommentOrThrow(commentId);
 

@@ -24,7 +24,7 @@ public interface EnrollmentService {
     String enrollInFreeCourse(Long courseId);
 
     List<CourseEnrollmentResponseDTO> getCourseEnrollments(Long courseId);
-    
+
     CourseEnrollmentStatsResponseDTO getCourseEnrollmentStats(Long courseId);
 
     void unenrollStudent(Long courseId, Long studentId);

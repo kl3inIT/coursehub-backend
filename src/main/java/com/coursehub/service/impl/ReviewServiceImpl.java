@@ -6,6 +6,7 @@ import com.coursehub.dto.response.review.ReviewResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.ReviewEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.review.ReviewAlreadyExistsException;
 import com.coursehub.exceptions.review.ReviewNotFoundException;
@@ -50,7 +51,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public ReviewResponseDTO createReview(String email, ReviewRequestDTO requestDTO) {
         // Check if user exists
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }

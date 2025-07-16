@@ -1,23 +1,19 @@
 package com.coursehub.service.impl;
 
-import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.dto.response.course.CourseEnrollmentResponseDTO;
 import com.coursehub.dto.response.course.CourseEnrollmentStatsResponseDTO;
+import com.coursehub.dto.response.enrollment.EnrollmentStatusResponseDTO;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.ReviewEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.course.CourseNotFoundException;
 import com.coursehub.exceptions.course.CourseNotFreeException;
 import com.coursehub.exceptions.enrollment.AlreadyEnrolledException;
 import com.coursehub.exceptions.enrollment.EnrollNotFoundException;
 import com.coursehub.exceptions.user.UserNotFoundException;
-import com.coursehub.repository.CourseRepository;
-import com.coursehub.repository.EnrollmentRepository;
-import com.coursehub.repository.UserLessonRepository;
-import com.coursehub.repository.UserRepository;
-import com.coursehub.repository.ReviewRepository;
-import com.coursehub.repository.CertificateRepository;
+import com.coursehub.repository.*;
 import com.coursehub.service.EnrollmentService;
 import com.coursehub.service.LessonService;
 import com.coursehub.service.ReviewService;
@@ -98,12 +94,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public EnrollmentStatusResponseDTO getEnrollmentStatus(Long courseId) {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(user == null){
             throw new UserNotFoundException("User not found with email: " + email);
         }
         log.info("Checking enrollment status for user ID: {} and course ID: {}", user.getId(), courseId);
-        
+
         EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
         if (enrollment == null) {
             log.warn("No enrollment found for user ID: {} and course ID: {}", user.getId(), courseId);
@@ -131,17 +127,17 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public EnrollmentStatusResponseDTO getEnhancedEnrollmentStatus(Long courseId) {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if(user == null){
             throw new UserNotFoundException("User not found with email: " + email);
         }
-        
-        log.info("Checking enhanced enrollment status for user ID: {} (role: {}) and course ID: {}", 
+
+        log.info("Checking enhanced enrollment status for user ID: {} (role: {}) and course ID: {}",
                 user.getId(), user.getRoleEntity().getCode(), courseId);
-        
+
         // Check if user is Manager or Admin - they have automatic access
         if (UserUtils.isManager(user) || UserUtils.isAdmin(user)) {
-            log.info("User {} has {} role - granting automatic access to course {}", 
+            log.info("User {} has {} role - granting automatic access to course {}",
                     user.getEmail(), user.getRoleEntity().getCode(), courseId);
             return EnrollmentStatusResponseDTO.builder()
                     .enrolled(true) // Virtual enrollment for managers/admins
@@ -152,7 +148,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     .accessReason("Access granted via " + user.getRoleEntity().getCode() + " role")
                     .build();
         }
-        
+
         // For regular users (LEARNER), check actual enrollment
         EnrollmentEntity enrollment = enrollmentRepository.findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
         if (enrollment == null) {
@@ -166,7 +162,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                     .accessReason("Not enrolled in this course")
                     .build();
         }
-        
+
         Boolean isCompleted = enrollment.getIsCompleted() != null && enrollment.getIsCompleted() == 1L;
         return EnrollmentStatusResponseDTO.builder()
                 .enrolled(true)
@@ -188,26 +184,26 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     public String enrollInFreeCourse(Long courseId) {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
-        
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
+
         if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
 
         EnrollmentEntity existingEnrollment = enrollmentRepository
             .findByUserEntity_IdAndCourseEntity_Id(user.getId(), courseId);
-        
+
         if (existingEnrollment != null) {
             throw new AlreadyEnrolledException("You are already enrolled in this course");
         }
 
         CourseEntity course = courseRepository.findById(courseId)
             .orElseThrow(() -> new CourseNotFoundException("Course not found"));
-        
+
         if (course.getPrice().compareTo(BigDecimal.ZERO) != 0) {
             throw new CourseNotFreeException("This course is not free. Please use payment to enroll.");
         }
-        
+
         // Create enrollment
         EnrollmentEntity enrollment = EnrollmentEntity.builder()
             .userEntity(user)
@@ -215,11 +211,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             .isCompleted(0L)
             .progressPercentage(0.0)
             .build();
-        
+
         enrollmentRepository.save(enrollment);
-        
+
         log.info("User {} successfully enrolled in free course {}", user.getEmail(), course.getTitle());
-        
+
         return "Successfully enrolled in free course";
     }
 

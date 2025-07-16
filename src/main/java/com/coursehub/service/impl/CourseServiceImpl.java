@@ -10,6 +10,7 @@ import com.coursehub.entity.EnrollmentEntity;
 import com.coursehub.entity.LessonEntity;
 import com.coursehub.entity.UserEntity;
 import com.coursehub.enums.CourseStatus;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.user.UserNotFoundException;
 import com.coursehub.repository.CategoryRepository;
@@ -29,11 +30,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.coursehub.constant.Constant.SearchConstants.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.coursehub.constant.Constant.SearchConstants.DEFAULT_SORT_BY;
+import static com.coursehub.constant.Constant.SearchConstants.DEFAULT_SORT_DIRECTION;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +63,7 @@ public class CourseServiceImpl implements CourseService {
 
             SecurityContext context = SecurityContextHolder.getContext();
             String email = context.getAuthentication().getName();
-            UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+            UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
             if (user == null) {
                 throw new UserNotFoundException("User not found with email: " + email);
             }
@@ -160,7 +162,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     private UserEntity getActiveUserByEmail(String email) {
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) {
             throw new UserNotFoundException("User not found or inactive: " + email);
         }
@@ -184,7 +186,7 @@ public class CourseServiceImpl implements CourseService {
 
         String email = context.getAuthentication().getName();
 
-        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity userEntity = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (userEntity == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
@@ -355,7 +357,7 @@ public class CourseServiceImpl implements CourseService {
     public List<DashboardCourseResponseDTO> getCoursesByUserId() {
         SecurityContext context = SecurityContextHolder.getContext();
         String email = context.getAuthentication().getName();
-        UserEntity user = userRepository.findByEmailAndIsActive(email, 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) {
             throw new UserNotFoundException("User not found with email: " + email);
         }

@@ -2,6 +2,7 @@ package com.coursehub.utils;
 
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
 
 public class UserUtils {
 
@@ -23,7 +24,7 @@ public class UserUtils {
     }
 
     public static boolean isActive(UserEntity user) {
-        return user != null && user.getIsActive() != null && user.getIsActive() == 1L;
+        return user != null && user.getIsActive() != null && user.getIsActive() == UserStatus.ACTIVE;
     }
 
     public static boolean isOwner(UserEntity user, CourseEntity course) {
