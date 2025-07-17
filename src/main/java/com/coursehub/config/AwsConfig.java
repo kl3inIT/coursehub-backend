@@ -54,12 +54,4 @@ public class AwsConfig {
                 .build();
     }
 
-    /**
-     * Retrieves the configured S3 bucket name.
-     *
-     * @return the S3 bucket name
-     */
-    public String getBucketName() {
-        return bucketName;
-    }
 }
