@@ -32,6 +32,19 @@ public class SecurityConfig {
             "/api/courses/status/courses"
     };
 
+
+
+    // CORS preflight requests (OPTIONS) - allow all without authentication
+    @Bean
+    public SecurityFilterChain optionsSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(request -> "OPTIONS".equals(request.getMethod()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+        return http.build();
+    }
+
     // cac api public gui token hay khong gui token deu cho phep truy cap
     // Khi một filter chain đã khớp ➜ Các filter chain còn lại sẽ bị bỏ qua, không chạy nữa.
     @Bean
