@@ -27,11 +27,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Cần set allowedOriginPatterns để Spring WebSocket không reject
-        // Nginx sẽ override CORS headers của Spring
+        // Spring WebSocket handle CORS - Nginx chỉ proxy
         registry.addEndpoint("/ws")
                 .setHandshakeHandler(customHandshakeHandler)
-                .setAllowedOriginPatterns("*")  // Allow all, Nginx will filter
+                .setAllowedOrigins(
+                    "http://localhost:3000",
+                    "https://it4beginner.vercel.app",
+                    "https://coursehub.io.vn"
+                )
                 .withSockJS();
     }
 } 
