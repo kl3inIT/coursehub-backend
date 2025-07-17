@@ -100,4 +100,6 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM PaymentEntity p WHERE p.status = 'Success'")
     BigDecimal sumTotalCompletedPayments();
+
+
 }

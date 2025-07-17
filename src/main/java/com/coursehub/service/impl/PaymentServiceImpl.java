@@ -69,6 +69,11 @@
         }
 
         @Override
+        public Long countTotalPayments() {
+            return paymentRepository.count();
+        }
+
+        @Override
         public PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO) {
             PaymentEntity paymentEntity = paymentConverter.toPaymentEntity(paymentRequestDTO);
             paymentRepository.save(paymentEntity);

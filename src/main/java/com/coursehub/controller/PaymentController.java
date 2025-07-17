@@ -140,4 +140,13 @@ public class PaymentController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<ResponseGeneral<Long>> countTotalPayment() {
+        Long totalPayment = paymentService.countTotalPayments();
+        ResponseGeneral<Long> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage(SUCCESS);
+        responseDTO.setData(totalPayment);
+        responseDTO.setDetail("Total payment");
+        return ResponseEntity.ok(responseDTO);
+    }
 }

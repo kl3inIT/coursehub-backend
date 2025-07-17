@@ -25,4 +25,5 @@ public interface PaymentService {
     BigDecimal getTotalRevenueByCourseId(Long courseId);
     List<PaymentHistoryResponseDTO> getAllPaymentHistory(PaymentHistoryResponseDTO paymentHistoryResponseDTO);
     BigDecimal getTotalRevenue();
+    Long countTotalPayments();
 }
