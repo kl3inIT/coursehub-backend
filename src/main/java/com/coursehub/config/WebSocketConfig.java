@@ -27,11 +27,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // CORS được handle bởi Nginx - không set allowedOrigins để disable Spring WebSocket CORS
+        // Cần set allowedOriginPatterns để Spring WebSocket không reject
+        // Nginx sẽ override CORS headers của Spring
         registry.addEndpoint("/ws")
                 .setHandshakeHandler(customHandshakeHandler)
+                .setAllowedOriginPatterns("*")  // Allow all, Nginx will filter
                 .withSockJS();
-        // Note: Không có .setAllowedOrigins() hay .setAllowedOriginPatterns() 
-        // → Spring sẽ không add CORS headers, để Nginx handle
     }
 } 
