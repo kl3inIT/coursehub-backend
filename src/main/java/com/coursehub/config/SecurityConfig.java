@@ -32,8 +32,6 @@ public class SecurityConfig {
             "/api/courses/status/courses"
     };
 
-
-
     // CORS preflight requests (OPTIONS) - allow all without authentication
     @Bean
     public SecurityFilterChain optionsSecurityFilterChain(HttpSecurity http) throws Exception {
