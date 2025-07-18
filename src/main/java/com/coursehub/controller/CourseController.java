@@ -308,5 +308,14 @@ public class CourseController {
         return ResponseEntity.ok(response);
     }
 
-
+    @GetMapping("/count")
+    public ResponseEntity<ResponseGeneral<Long>> countAllCourse() {
+        log.info("Counting all courses");
+        Long count = courseService.countAllCourses();
+        ResponseGeneral<Long> response = new ResponseGeneral<>();
+        response.setData(count);
+        response.setMessage("Successfully counting all courses");
+        response.setDetail("Counting all courses");
+        return ResponseEntity.ok(response);
+    }
 }

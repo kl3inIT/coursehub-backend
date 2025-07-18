@@ -161,6 +161,11 @@ public class CourseServiceImpl implements CourseService {
         return "Course restored successfully.";
     }
 
+    @Override
+    public Long countAllCourses() {
+        return courseRepository.count();
+    }
+
     private UserEntity getActiveUserByEmail(String email) {
         UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) {

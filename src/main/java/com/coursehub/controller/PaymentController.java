@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -137,8 +139,33 @@ public class PaymentController {
                 .body(new InputStreamResource(excelFile));
     }
 
+    @GetMapping("/list")
+    public ResponseEntity<ResponseGeneral<List<PaymentHistoryResponseDTO>>> getListPaymentHistory(PaymentHistoryResponseDTO paymentHistoryResponseDTO) {
+        List<PaymentHistoryResponseDTO> dtos = paymentService.getAllPaymentHistory(paymentHistoryResponseDTO);
+        ResponseGeneral<List<PaymentHistoryResponseDTO>> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage(SUCCESS);
+        responseDTO.setData(dtos);
+        responseDTO.setDetail("List payment history");
+        return ResponseEntity.ok(responseDTO);
+    }
 
+    @GetMapping("/revenue")
+    public ResponseEntity<ResponseGeneral<BigDecimal>> getTotalRevenue() {
+        BigDecimal totalRevenue = paymentService.getTotalRevenue();
+        ResponseGeneral<BigDecimal> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage(SUCCESS);
+        responseDTO.setData(totalRevenue);
+        responseDTO.setDetail("Total revenue");
+        return ResponseEntity.ok(responseDTO);
+    }
 
-
-
+    @GetMapping("/count")
+    public ResponseEntity<ResponseGeneral<Long>> countTotalPayment() {
+        Long totalPayment = paymentService.countTotalPayments();
+        ResponseGeneral<Long> responseDTO = new ResponseGeneral<>();
+        responseDTO.setMessage(SUCCESS);
+        responseDTO.setData(totalPayment);
+        responseDTO.setDetail("Total payment");
+        return ResponseEntity.ok(responseDTO);
+    }
 }

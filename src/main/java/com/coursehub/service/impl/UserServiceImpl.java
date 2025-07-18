@@ -209,4 +209,16 @@ public class UserServiceImpl implements UserService {
         return userEntity;
     }
 
+    @Override
+    public Long countUsers() {
+        return userRepository.count();
+    }
+
+    @Override
+    public Long countUserIsActive() {
+        Long countUserActive = userRepository.countByIsActive(UserStatus.ACTIVE);
+        return countUserActive;
+    }
+
 }
+
