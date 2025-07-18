@@ -20,6 +20,6 @@ public class ReviewRequestDTO {
     private Integer star;
 
     @NotBlank(message = "Comment is required")
-    @Size(max = 200, message = "Comment must be at most 200 characters")
+    @Size(min = 10, max = 200, message = "Comment must be between 10 and 200 characters")
     private String comment;
 } 
