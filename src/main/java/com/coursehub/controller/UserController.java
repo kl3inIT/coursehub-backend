@@ -1,20 +1,24 @@
 package com.coursehub.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.coursehub.dto.ResponseGeneral;
-import com.coursehub.dto.request.discount.DiscountSearchRequestDTO;
 import com.coursehub.dto.request.user.ChangePasswordRequestDTO;
 import com.coursehub.dto.request.user.ProfileRequestDTO;
-import com.coursehub.dto.response.discount.DiscountSearchResponseDTO;
-import com.coursehub.dto.response.user.UserManagementDTO;
+import com.coursehub.dto.response.user.UserDetailDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.service.UserService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import static com.coursehub.constant.Constant.CommonConstants.SUCCESS;
 
 @RestController
 @RequestMapping("/api/users")
@@ -41,12 +45,13 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/profile/{userId}")
-    public ResponseEntity<ResponseGeneral<UserManagementDTO>> getUserProfile(@PathVariable Long userId) {
-        ResponseGeneral<UserManagementDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage("Get User Successfully");
-        responseDTO.setData(userService.getUserDetails(userId));
-        return ResponseEntity.ok(responseDTO);
+    @GetMapping("/{userId}")
+    public ResponseEntity<ResponseGeneral<UserDetailDTO>> getUserProfile(@PathVariable Long userId) {
+        ResponseGeneral<UserDetailDTO> response = new ResponseGeneral<>();
+        UserDetailDTO userDetails = userService.getUserDetails(userId);
+        response.setData(userDetails);
+        response.setMessage("User profile retrieved successfully");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/change-password")

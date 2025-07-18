@@ -45,17 +45,14 @@ public class OtpUtil {
             throw new EmailSendingException("Failed to send OTP email", e);
         }
     }
-    public void sendInvoiceToEmail(Map<String, String> invoiceData) {
+    public void sendInvoiceToEmail(Map<String, String> invoiceData, String downloadLink) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            helper.setTo(invoiceData.get("email"));
-            helper.setSubject("Hóa đơn thanh toán - ITCourseHub");
-
-            String htmlTemplate = getInvoiceEmailTemplate(invoiceData);
-            helper.setText(htmlTemplate, true);
-
+            helper.setTo(invoiceData.get("email")); // Customer email
+            helper.setSubject("CourseHub Payment Receipt #" + invoiceData.get("orderId"));
+            helper.setText("Thank you for your purchase at ITCourseHub! Click the link to download your invoice: <a href='" + downloadLink + "'>Download PDF</a>", true);
             mailSender.send(message);
         } catch (MessagingException | MailException e) {
             throw new EmailSendingException("Failed to send invoice email", e);

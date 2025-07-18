@@ -29,6 +29,7 @@ spring:
       hibernate:
         format_sql: false
 
+
   aws:
     access-key: ${AWS_ACCESS_KEY}
     secret-key: ${AWS_SECRET_KEY}
@@ -71,3 +72,13 @@ bank:
   bank-code: TPBank
   account-holder: NHU DINH NHAT
 
+domain: https://coursehub.io.vn
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE

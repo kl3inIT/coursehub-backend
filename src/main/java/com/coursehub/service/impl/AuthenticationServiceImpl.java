@@ -9,6 +9,7 @@ import com.coursehub.dto.response.auth.AuthenticationResponseDTO;
 import com.coursehub.dto.response.user.UserResponseDTO;
 import com.coursehub.entity.InvalidTokenEntity;
 import com.coursehub.entity.UserEntity;
+import com.coursehub.enums.UserStatus;
 import com.coursehub.exceptions.auth.*;
 import com.coursehub.repository.InvalidTokenRepository;
 import com.coursehub.repository.RoleRepository;
@@ -69,7 +70,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
       String email = authenticationRequestDTO.getEmail();
       String googleAccountId = authenticationRequestDTO.getGoogleAccountId();
 
-      UserEntity userByEmail = userRepository.findByEmailAndIsActive(email, 1L);
+      UserEntity userByEmail = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
       // dang nhap local
       if (googleAccountId == null) {
           if (userByEmail == null) {
@@ -83,7 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
       }
 
       // dang nhap bang tai khoan google
-      UserEntity userByGoogle = userRepository.findByGoogleAccountIdAndIsActive(googleAccountId, 1L);
+      UserEntity userByGoogle = userRepository.findByGoogleAccountIdAndIsActive(googleAccountId, UserStatus.ACTIVE);
 
       if (userByGoogle == null) {
           if (userByEmail == null) {
@@ -137,7 +138,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String initUser(UserRequestDTO userDTO) {
-        if (userRepository.findByEmailAndIsActive(userDTO.getEmail(), 1L) != null) {
+        if (userRepository.findByEmailAndIsActive(userDTO.getEmail(), UserStatus.ACTIVE) != null) {
             throw new IllegalEmailException("Email is illegal");
         }
 
@@ -180,7 +181,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String email = otpRequestDTO.getEmail();
 
 
-        if (userRepository.findByEmailAndIsActive(email, 1L) != null || Boolean.TRUE.equals(redisTemplate.hasKey(email))) {
+        if (userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE) != null || Boolean.TRUE.equals(redisTemplate.hasKey(email))) {
             throw new IllegalEmailException("Email is illegal");
         }
         // tao va gui otp
@@ -195,7 +196,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public String sendOtpToResetPassword(OtpRequestDTO otpRequestDTO) {
         String email = otpRequestDTO.getEmail();
-        if (userRepository.findByEmailAndIsActive(email, 1L) == null) {
+        if (userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE) == null) {
             throw new IllegalEmailException("User not found with email: " + otpRequestDTO.getEmail());
         }
         String otp = otpUtil.generateOtp();
@@ -219,7 +220,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO) {
-        UserEntity user = userRepository.findByEmailAndIsActive(resetPasswordRequestDTO.getEmail(), 1L);
+        UserEntity user = userRepository.findByEmailAndIsActive(resetPasswordRequestDTO.getEmail(), UserStatus.ACTIVE);
         if (user == null) {
             throw new IllegalEmailException("User not found with email: " + resetPasswordRequestDTO.getEmail());
         }
@@ -322,9 +323,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     }
 
-    public void deleteFromRedis(String key) {
-        redisTemplate.delete(key);
-    }
+    
 
 
 }

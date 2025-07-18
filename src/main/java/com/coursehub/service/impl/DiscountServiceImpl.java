@@ -109,7 +109,7 @@ public class DiscountServiceImpl implements DiscountService {
                 discountSearchRequestDTO.getCategoryId(),
                 discountSearchRequestDTO.getCourseId(),
                 discountSearchRequestDTO.getPercentage(),
-                discountSearchRequestDTO.getStatus(),
+                DiscountStatus.getDiscountStatus().get(discountSearchRequestDTO.getStatus()),
                 pageable
         );
         return discountConverter.toSearchResponseDTO(discountEntities);

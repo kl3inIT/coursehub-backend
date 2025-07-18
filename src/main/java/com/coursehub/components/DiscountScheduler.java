@@ -34,11 +34,12 @@ public class DiscountScheduler {
             discountEntity.setStatus(DiscountStatus.NOT_STARTED.status());
         } else if(discountEntity.getEndDate().before(new Date())) {
             discountEntity.setStatus(DiscountStatus.EXPIRED.status());
-        } else if(discountEntity.getUserDiscountEntities().size() ==  discountEntity.getQuantity()){
-            discountEntity.setStatus(DiscountStatus.OUT_OF_STOCK.status());
-        } else if(Objects.equals(getUsedDiscount(discountEntity), discountEntity.getQuantity())){
+        }  else if(Objects.equals(getUsedDiscount(discountEntity), discountEntity.getQuantity())){
             discountEntity.setStatus(DiscountStatus.USED_UP.status());
-        } else {
+        } else if(Long.valueOf(discountEntity.getUserDiscountEntities().size()).equals(discountEntity.getQuantity())){
+            discountEntity.setStatus(DiscountStatus.OUT_OF_STOCK.status());
+        }
+        else {
             discountEntity.setStatus(DiscountStatus.AVAILABLE.status());
         }
         discountRepository.save(discountEntity);

@@ -3,14 +3,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import com.coursehub.enums.UserStatus;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -51,7 +45,8 @@ public class UserEntity extends BaseEntity {
     private String bio;
 
     @Column(name = "is_active")
-    private Long isActive = 1L;
+    @Enumerated(EnumType.STRING)
+    private UserStatus isActive = UserStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
@@ -93,16 +88,21 @@ public class UserEntity extends BaseEntity {
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NotificationEntity> notificationEntities = new HashSet<>();
 
+    @Column(name = "action_reason", columnDefinition = "TEXT")
+    private String actionReason;
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FeedbackEntity> feedbackEntities = new HashSet<>();
 
     @Column(name = "ban_reason", columnDefinition = "TEXT")
     private String banReason;
 
-    @Column(name = "banned_at")
-    private Date bannedAt;
+    @Column(name = "last_action_at")
+    private Date lastActionAt;
 
     @Column(name = "warning_count")
     private Long warningCount = 0L;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AnnouncementUserReadEntity> announcementUserReadEntities = new HashSet<>();
 
 }

@@ -9,35 +9,18 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
-/**
- * Configuration class for AWS services.
- * This class provides beans for interacting with AWS S3 services
- * and retrieves configuration properties from the application properties file.
- */
 @Configuration
 public class AwsConfig {
 
-    /**
-     * AWS Access Key ID, injected from application properties.
-     */
     @Value("${spring.aws.access-key}")
     private String accessKey;
 
-    /**
-     * AWS Secret Access Key, injected from application properties.
-     */
     @Value("${spring.aws.secret-key}")
     private String secretKey;
 
-    /**
-     * AWS Region, injected from application properties.
-     */
     @Value("${spring.aws.region}")
     private String region;
 
-    /**
-     * AWS S3 Bucket Name, injected from application properties.
-     */
     @Value("${spring.aws.s3.bucket}")
     private String bucketName;
 
@@ -71,12 +54,4 @@ public class AwsConfig {
                 .build();
     }
 
-    /**
-     * Retrieves the configured S3 bucket name.
-     *
-     * @return the S3 bucket name
-     */
-    public String getBucketName() {
-        return bucketName;
-    }
 }

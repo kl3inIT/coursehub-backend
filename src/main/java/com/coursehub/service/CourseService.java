@@ -1,14 +1,22 @@
 package com.coursehub.service;
 
-import com.coursehub.dto.request.course.*;
-import com.coursehub.dto.response.course.*;
-import com.coursehub.entity.CourseEntity;
-import com.coursehub.enums.CourseStatus;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.data.domain.Pageable;
-import java.util.List;
+import com.coursehub.dto.request.course.CourseCreationRequestDTO;
+import com.coursehub.dto.request.course.CourseSearchRequestDTO;
+import com.coursehub.dto.request.course.CourseUpdateRequestDTO;
+import com.coursehub.dto.response.course.CourseCreateUpdateResponseDTO;
+import com.coursehub.dto.response.course.CourseDetailsResponseDTO;
+import com.coursehub.dto.response.course.CourseResponseDTO;
+import com.coursehub.dto.response.course.CourseSearchStatsResponseDTO;
+import com.coursehub.dto.response.course.DashboardCourseResponseDTO;
+import com.coursehub.dto.response.course.ManagerCourseResponseDTO;
+import com.coursehub.entity.CourseEntity;
+import com.coursehub.enums.CourseStatus;
 
 public interface CourseService {
 
