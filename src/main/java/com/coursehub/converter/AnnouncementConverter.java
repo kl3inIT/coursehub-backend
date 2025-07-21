@@ -25,6 +25,7 @@ public class AnnouncementConverter {
                 createdByName = user.getName();
             }
         }
+        long isRead = (userRead != null) ? 1 : 0;
         AnnouncementResponseDTO dto = new AnnouncementResponseDTO();
         dto.setId(entity.getId());
         dto.setTitle(entity.getTitle());
@@ -35,6 +36,8 @@ public class AnnouncementConverter {
         dto.setSentTime(entity.getSentTime());
         dto.setCreatedByName(createdByName);
         dto.setTargetGroup(entity.getTargetGroup());
+        dto.setIsRead(isRead);
+        dto.setTargetGroupDescription(entity.getTargetGroup().getDescription());
         dto.setType(entity.getType());
         return dto;
     }
