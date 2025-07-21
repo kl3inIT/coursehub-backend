@@ -29,7 +29,6 @@ public class SecurityConfig {
             "/api/users/register/verify",
             "/api/auth/login",
             "/api/auth/logout",
-            "/api/courses/status/courses"
     };
 
     // CORS preflight requests (OPTIONS) - allow all without authentication
