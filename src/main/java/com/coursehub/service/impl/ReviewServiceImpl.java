@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import org.springframework.data.domain.PageImpl;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -138,7 +140,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable) {
         if (visibilityStatus != 0 && visibilityStatus != 1) {
-            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
         
         Page<ReviewEntity> reviews = visibilityStatus == 0 
@@ -175,7 +177,7 @@ public class ReviewServiceImpl implements ReviewService {
     public Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable) {
         // Validate visibilityStatus
         if (visibilityStatus != 0 && visibilityStatus != 1) {
-            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
         
         // Trim search string if not null

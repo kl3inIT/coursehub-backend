@@ -1,13 +1,11 @@
 package com.coursehub.dto.response.analytics;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
 @Setter
+@AllArgsConstructor
 public class CourseAnalyticsDetailResponseDTO {
     // Thông tin cơ bản
     private Long courseId;               // ID khóa học
@@ -30,15 +28,4 @@ public class CourseAnalyticsDetailResponseDTO {
 
     // Trình độ khoá học (Beginner, Intermediate, Advanced...)
     private String level;
-
-    public CourseAnalyticsDetailResponseDTO(Long courseId, String courseName, Integer students, Double rating, Double revenue, Double revenuePercent, Long reviews, String level) {
-        this.courseId = courseId;
-        this.courseName = courseName;
-        this.students = students;
-        this.rating = rating;
-        this.revenue = revenue;
-        this.revenuePercent = revenuePercent;
-        this.reviews = reviews;
-        this.level = level;
-    }
 } 
