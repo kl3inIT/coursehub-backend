@@ -54,4 +54,5 @@ public interface CourseService {
 
     String restoreCourse(Long courseId, String currentUserGmail);
 
+    Long countAllCourses();
 }    

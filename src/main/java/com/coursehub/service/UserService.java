@@ -17,4 +17,6 @@ public interface UserService {
     void changePassword(ChangePasswordRequestDTO request);
     String getDiscount(Long discountId);
     UserEntity getUserBySecurityContext();
+    Long countUsers();
+    Long countUserIsActive();
 }

@@ -24,7 +24,7 @@ public class ReviewEntity extends BaseEntity {
     private Integer star;
 
     @Column(columnDefinition = "TEXT")
-    @Size(max = 200, message = "Comment must be at most 200 characters")
+    @Size(max = 1000, message = "Comment must be at most 1000 characters")
     private String comment;
 
     @Column(name = "is_hidden")

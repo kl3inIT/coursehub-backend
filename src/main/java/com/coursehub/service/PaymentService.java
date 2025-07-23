@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 public interface PaymentService {
@@ -23,5 +24,8 @@ public interface PaymentService {
     Map<String, String> getPaymentOverall(PaymentHistoryRequestDTO paymentHistoryRequestDTO);
     Page<PaymentHistoryResponseDTO> getMyPaymentHistory(PaymentHistoryRequestDTO paymentHistoryRequestDTO);
     BigDecimal getTotalRevenueByCourseId(Long courseId);
+    List<PaymentHistoryResponseDTO> getAllPaymentHistory(PaymentHistoryResponseDTO paymentHistoryResponseDTO);
+    BigDecimal getTotalRevenue();
+    Long countTotalPayments();
     byte[] generateOrderPdf(String transactionCode);
 }

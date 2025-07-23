@@ -59,6 +59,23 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserService userService;
 
     @Override
+    public List<PaymentHistoryResponseDTO> getAllPaymentHistory(PaymentHistoryResponseDTO paymentHistoryResponseDTO) {
+        List<PaymentEntity> entities = paymentRepository.findAll();
+        List<PaymentHistoryResponseDTO> dtos = paymentConverter.toPaymentHistoryResponseDTO(entities);
+        return dtos;
+    }
+
+    @Override
+    public BigDecimal getTotalRevenue() {
+        return paymentRepository.sumTotalCompletedPayments();
+    }
+
+    @Override
+    public Long countTotalPayments() {
+        return paymentRepository.count();
+    }
+
+    @Override
     public BigDecimal getTotalRevenueByCourseId(Long courseId) {
         return paymentRepository.getTotalRevenueByCourseId(courseId);
     }

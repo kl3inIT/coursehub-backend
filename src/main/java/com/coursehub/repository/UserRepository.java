@@ -36,4 +36,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
            "FROM UserEntity u JOIN u.roleEntity r WHERE r.code IN :roles AND u.isActive = :status")
     Page<UserSummaryDTO> findUserSummariesWithStatus(@Param("roles") List<String> roles, @Param("status") UserStatus status, Pageable pageable);
 
+    Long countByIsActive(UserStatus status);
 }
