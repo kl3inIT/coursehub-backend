@@ -1,6 +1,7 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exceptions.announcement.ContentTooLongException;
 import com.coursehub.exceptions.announcement.InternalServerException;
 import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
@@ -711,6 +712,18 @@ public class GlobalExceptionHandler {
         response.setData(null);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(ContentTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleContentTooLongException(ContentTooLongException ex) {
+        log.error("Content too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Content Too Long");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
 

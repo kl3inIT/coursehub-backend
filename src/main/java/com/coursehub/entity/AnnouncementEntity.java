@@ -50,8 +50,6 @@ public class AnnouncementEntity extends BaseEntity{
 
     private Long createdBy;
 
-    private Long isDeleted = 0L;
-
     @Column(columnDefinition = "TEXT")
     private String targetCourseIds;
 

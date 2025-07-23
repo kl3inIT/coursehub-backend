@@ -15,7 +15,6 @@ import com.coursehub.enums.AnnouncementType;
 import com.coursehub.enums.TargetGroup;
 
 public interface AnnouncementRepository extends JpaRepository<AnnouncementEntity, Long> {
-    List<AnnouncementEntity> findByTargetGroupIn(List<TargetGroup> list);
     List<AnnouncementEntity> findByTargetGroupInAndStatus(List<TargetGroup> list, AnnouncementStatus status);
     List<AnnouncementEntity> findByStatusAndScheduledTimeLessThanEqual(AnnouncementStatus status, LocalDateTime time);
 
@@ -25,14 +24,12 @@ public interface AnnouncementRepository extends JpaRepository<AnnouncementEntity
           AND (:targetGroup IS NULL OR a.targetGroup = :targetGroup)
           AND (:search IS NULL OR LOWER(a.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(a.content) LIKE LOWER(CONCAT('%', :search, '%')))
           AND (:statuses IS NULL OR a.status IN :statuses)
-          AND (:isDeleted IS NULL OR a.isDeleted = :isDeleted)
         """)
     Page<AnnouncementEntity> filterAnnouncements(
         @Param("type") AnnouncementType type,
         @Param("statuses") List<AnnouncementStatus> statuses,
         @Param("targetGroup") TargetGroup targetGroup,
         @Param("search") String search,
-        @Param("isDeleted") Long isDeleted,
         Pageable pageable
     );
 

@@ -1,6 +1,7 @@
 package com.coursehub.service.impl;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -109,52 +110,6 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Page<ReportResponseDTO> searchReports(ReportSearchRequestDTO request) {
-        Sort sort = Sort.by(Sort.Direction.fromString(request.getSortDir()), request.getSortBy());
-        PageRequest pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
-
-        Page<ReportEntity> reports = reportRepository.findAllWithFilters(
-                request.getType(),
-                request.getSeverity(),
-                request.getStatus(),
-                request.getSearch(),
-                pageable
-        );
-        return reports.map(reportConverter::toResponseDTO);
-    }
-
-
-    public ReportEntity findReportById(Long reportId) {
-        return reportRepository.findById(reportId)
-                .orElseThrow(() -> new ReportNotFoundException("Report not found with ID: " + reportId));
-    }
-
-    @Override
-    public ReportResponseDTO getReportById(Long reportId) {
-        ReportEntity report = findReportById(reportId);
-        return reportConverter.toResponseDTO(report);
-    }
-
-    @Override
-    @Transactional
-    public ReportResponseDTO updateReportStatus(Long reportId, ReportStatusDTO statusDTO) {
-        ReportEntity report = findReportById(reportId);
-
-        if (!report.getStatus().equals(ReportStatus.PENDING)) {
-            throw new IllegalStateException("Report has already been processed");
-        }
-
-        report.setStatus(statusDTO.getStatus());
-        report.setActionNote(statusDTO.getActionNote());
-        report.setResolvedBy(getCurrentUser());
-        report.setModifiedDate(new Date());
-
-        reportRepository.save(report);
-
-        return reportConverter.toResponseDTO(report);
-    }
-
-    @Override
     @Transactional
     public void updateAllReportsStatusByResourceId(Long resourceId, ReportStatusDTO statusDTO) {
         List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
@@ -185,21 +140,6 @@ public class ReportServiceImpl implements ReportService {
         }
         
         reportRepository.saveAll(reports);
-    }
-
-    @Override
-    @Transactional
-    public void deleteReport(Long reportId) {
-        if (!reportRepository.existsById(reportId)) {
-            throw new ReportNotFoundException("Report not found with ID: " + reportId);
-        }
-        reportRepository.deleteById(reportId);
-    }
-
-    private UserEntity getCurrentUser() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        String email = context.getAuthentication().getName();
-        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
     @Override
@@ -250,6 +190,76 @@ public class ReportServiceImpl implements ReportService {
         return location;
     }
 
+    @Override
+    public Page<AggregatedReportDTO> getAggregatedReports(ReportSearchRequestDTO searchRequest) {
+        // Chuẩn hóa thời gian tìm kiếm
+        LocalDateTime startDate = searchRequest.getStartDate();
+        LocalDateTime endDate = searchRequest.getEndDate();
+        if (startDate == null || endDate == null) {
+            endDate = LocalDateTime.now();
+            startDate = endDate.minusDays(6);
+        }
+
+        int page = searchRequest.getPage() != null ? searchRequest.getPage() : 0;
+        int size = searchRequest.getSize() != null ? searchRequest.getSize() : 10;
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<ReportEntity> pageResult = reportRepository.findAllWithFilters(
+                searchRequest.getType(),
+                searchRequest.getSeverity(),
+                searchRequest.getStatus(),
+                searchRequest.getSearch(),
+                startDate,
+                endDate,
+                Pageable.unpaged() // Không phân trang vì bạn sẽ group trước, phân trang sau
+        );
+
+        List<ReportEntity> reports = pageResult.getContent();
+
+        // Group theo resourceId + type
+        Map<String, List<ReportEntity>> grouped = reports.stream()
+                .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
+
+        List<AggregatedReportDTO> result = new ArrayList<>();
+        for (List<ReportEntity> group : grouped.values()) {
+            AggregatedReportDTO dto = new AggregatedReportDTO();
+            reportConverter.mapResourceInfo(dto, group.getFirst(), group.size());
+            dto.setReports(reportConverter.toReportDetailList(group));
+            result.add(dto);
+        }
+
+        // Sắp xếp
+        Comparator<AggregatedReportDTO> comparator = getReportComparator(searchRequest.getSortBy());
+        if ("desc".equalsIgnoreCase(searchRequest.getSortDir())) {
+            comparator = comparator.reversed();
+        }
+        result.sort(comparator);
+
+        // Phân trang kết quả sau khi group
+        int start = page * size;
+        int end = Math.min(start + size, result.size());
+        List<AggregatedReportDTO> pageContent = (start < end) ? result.subList(start, end) : new ArrayList<>();
+
+        return new PageImpl<>(pageContent, pageable, result.size());
+    }
+
+    @Override
+    public AggregatedReportDTO getAggregatedReportByResourceId(Long resourceId) {
+        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
+
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
+        }
+
+        ReportEntity first = reports.getFirst();
+        AggregatedReportDTO dto = new AggregatedReportDTO();
+        reportConverter.mapResourceInfo(dto, first, reports.size());
+
+        // Map các report con
+        dto.setReports(reportConverter.toReportDetailList(reports));
+        return dto;
+    }
+
     public boolean isAllowedToReport(Long userId) {
         String key = "report:count:user:" + userId;
         int limit = 5;
@@ -274,60 +284,15 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    @Override
-    public Page<AggregatedReportDTO> getAggregatedReports(ReportSearchRequestDTO searchRequest) {
-        List<ReportEntity> allReports = reportRepository.findAll();
-        List<ReportEntity> filteredReports = applyFilters(allReports, searchRequest);
-
-        Map<String, List<ReportEntity>> grouped = filteredReports.stream()
-                .collect(Collectors.groupingBy(r -> r.getType() + "-" + r.getResourceId()));
-
-        List<AggregatedReportDTO> result = new ArrayList<>(grouped.values().stream()
-                .map(this::mapToAggregatedReport)
-                .toList());
-
-        Comparator<AggregatedReportDTO> comparator = getReportComparator(searchRequest.getSortBy());
-        if ("desc".equalsIgnoreCase(searchRequest.getSortDir())) {
-            comparator = comparator.reversed();
-        }
-        result.sort(comparator);
-
-        // Paging
-        int page = searchRequest.getPage() != null ? searchRequest.getPage() : 0;
-        int size = searchRequest.getSize() != null ? searchRequest.getSize() : 10;
-        int start = page * size;
-        int end = Math.min(start + size, result.size());
-        List<AggregatedReportDTO> pageContent = (start < end) ? result.subList(start, end) : new ArrayList<>();
-        return new PageImpl<>(pageContent, PageRequest.of(page, size), result.size());
+    private UserEntity getCurrentUser() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
     }
 
-
-    private List<ReportEntity> applyFilters(List<ReportEntity> reports, ReportSearchRequestDTO searchRequest) {
-        List<ReportEntity> filtered = reports;
-        if (searchRequest.getType() != null) {
-            filtered = filtered.stream().filter(r -> r.getType() == searchRequest.getType()).toList();
-        }
-        if (searchRequest.getStatus() != null) {
-            filtered = filtered.stream().filter(r -> r.getStatus() == searchRequest.getStatus()).toList();
-        }
-        if (searchRequest.getSeverity() != null) {
-            filtered = filtered.stream().filter(r -> r.getSeverity() == searchRequest.getSeverity()).toList();
-        }
-        if (searchRequest.getSearch() != null && !searchRequest.getSearch().trim().isEmpty()) {
-            String searchTerm = searchRequest.getSearch().toLowerCase().trim();
-            filtered = filtered.stream()
-                    .filter(r -> {
-                        if (r.getType() == ResourceType.COMMENT) {
-                            CommentEntity comment = commentRepository.findById(r.getResourceId()).orElse(null);
-                            return comment != null && comment.getComment().toLowerCase().contains(searchTerm);
-                        } else if (r.getType() == ResourceType.REVIEW) {
-                            ReviewEntity review = reviewRepository.findById(r.getResourceId()).orElse(null);
-                            return review != null && review.getComment().toLowerCase().contains(searchTerm);
-                        }
-                        return false;
-                    }).toList();
-        }
-        return filtered;
+    public ReportEntity findReportById(Long reportId) {
+        return reportRepository.findById(reportId)
+                .orElseThrow(() -> new ReportNotFoundException("Report not found with ID: " + reportId));
     }
 
     private Comparator<AggregatedReportDTO> getReportComparator(String sortBy) {
@@ -340,32 +305,6 @@ public class ReportServiceImpl implements ReportService {
             case "hidden" -> Comparator.comparing(AggregatedReportDTO::isHidden);
             default -> Comparator.comparing(AggregatedReportDTO::getCreatedAt, Comparator.nullsLast(Date::compareTo));
         };
-    }
-
-    private AggregatedReportDTO mapToAggregatedReport(List<ReportEntity> group) {
-        ReportEntity first = group.getFirst();
-        AggregatedReportDTO dto = new AggregatedReportDTO();
-        reportConverter.mapResourceInfo(dto, first, group.size());
-        dto.setReports(reportConverter.toReportDetailList(group));
-        return dto;
-    }
-
-    @Override
-    public AggregatedReportDTO getAggregatedReportByResourceId(Long resourceId) {
-        // Tìm tất cả reports cho resourceId này
-        List<ReportEntity> reports = reportRepository.findByResourceId(resourceId);
-
-        if (reports.isEmpty()) {
-            throw new ReportNotFoundException("No reports found for resource ID: " + resourceId);
-        }
-
-        ReportEntity first = reports.getFirst();
-        AggregatedReportDTO dto = new AggregatedReportDTO();
-        reportConverter.mapResourceInfo(dto, first, reports.size());
-
-        // Map các report con
-        dto.setReports(reportConverter.toReportDetailList(reports));
-        return dto;
     }
 
 }

@@ -62,7 +62,7 @@ public class UserManagementController {
         ResponseGeneral<Integer> response = new ResponseGeneral<>();
         UserDetailDTO userDetails = adminService.getUserDetails(userId);
         
-        Integer courseCount = 0;
+        int courseCount = 0;
         if (userDetails.getEnrolledCourses() != null) {
             courseCount += userDetails.getEnrolledCourses().size();
         }

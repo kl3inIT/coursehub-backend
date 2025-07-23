@@ -1,10 +1,15 @@
 package com.coursehub.dto.request.report;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.coursehub.enums.ReportSeverity;
 import com.coursehub.enums.ReportStatus;
 import com.coursehub.enums.ResourceType;
+
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 public class ReportSearchRequestDTO {
@@ -27,4 +32,10 @@ public class ReportSearchRequestDTO {
     private String search;
 
     private Long resourceId;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime startDate;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime endDate;
 }

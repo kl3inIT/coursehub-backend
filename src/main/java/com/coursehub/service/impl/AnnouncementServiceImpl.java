@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.coursehub.exceptions.announcement.ContentTooLongException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,8 +33,6 @@ import com.coursehub.exceptions.announcement.AnnouncementNotFoundException;
 import com.coursehub.exceptions.announcement.InternalServerException;
 import com.coursehub.repository.AnnouncementRepository;
 import com.coursehub.repository.AnnouncementUserReadRepository;
-import com.coursehub.repository.CourseRepository;
-import com.coursehub.repository.EnrollmentRepository;
 import com.coursehub.service.AnnouncementService;
 import com.coursehub.service.UserService;
 
@@ -45,8 +44,6 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
     private final AnnouncementUserReadRepository announcementUserReadRepository;
-    private final CourseRepository courseRepository;
-    private final EnrollmentRepository enrollmentRepository;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final AnnouncementConverter announcementConverter;
@@ -59,6 +56,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public AnnouncementResponseDTO createAnnouncement(AnnouncementCreateRequestDTO dto) {
         AnnouncementEntity announcement = new AnnouncementEntity();
+        if(dto.getTitle().length() > 500) {
+            throw new ContentTooLongException("Title cannot exceed 500 characters");
+        }
+        if(dto.getContent().length() > 5000) {
+            throw new ContentTooLongException("Content cannot exceed 5000 characters");
+        }
+        if(dto.getLink() != null && dto.getLink().length() > 500) {
+            throw new ContentTooLongException("Link cannot exceed 500 characters");
+        }
         announcement.setTitle(dto.getTitle());
         announcement.setContent(dto.getContent());
         announcement.setType(dto.getType() != null ? dto.getType() : AnnouncementType.GENERAL);
@@ -98,10 +104,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         List<AnnouncementStatus> statuses,
         TargetGroup targetGroup,
         String search,
-        Long isDeleted,
         Pageable pageable
     ) {
-        Page<AnnouncementEntity> entities = announcementRepository.filterAnnouncements(type, statuses, targetGroup, search, isDeleted, pageable);
+        Page<AnnouncementEntity> entities = announcementRepository.filterAnnouncements(type, statuses, targetGroup, search, pageable);
         return entities.map(announcementConverter::toDto);
     }
 
@@ -114,6 +119,15 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public AnnouncementResponseDTO updateAnnouncement(Long id, AnnouncementCreateRequestDTO dto) {
         AnnouncementEntity entity = findAnnouncementById(id);
+        if(dto.getTitle().length() > 500) {
+            throw new ContentTooLongException("Title cannot exceed 500 characters");
+        }
+        if(dto.getContent().length() > 5000) {
+            throw new ContentTooLongException("Content cannot exceed 5000 characters");
+        }
+        if(dto.getLink().length() > 500) {
+            throw new ContentTooLongException("Link cannot exceed 500 characters");
+        }
         entity.setTitle(dto.getTitle());
         entity.setContent(dto.getContent());
         entity.setType(dto.getType() != null ? dto.getType() : entity.getType());
@@ -261,7 +275,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public void restoreAnnouncement(Long id) {
         AnnouncementEntity entity = findAnnouncementById(id);
-        entity.setIsDeleted(0L);
+        entity.setStatus(AnnouncementStatus.SENT);
         announcementRepository.save(entity);
     }
 
@@ -273,7 +287,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             throw new InternalServerException("Only sent announcements can be archived");
         }
         
-        entity.setIsDeleted(1L);
+        entity.setStatus(AnnouncementStatus.HIDDEN);
         announcementRepository.save(entity);
     }
 
@@ -308,6 +322,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         stats.put("sent", announcementRepository.countByStatus(AnnouncementStatus.SENT));
         stats.put("draft", announcementRepository.countByStatus(AnnouncementStatus.DRAFT));
         stats.put("scheduled", announcementRepository.countByStatus(AnnouncementStatus.SCHEDULED));
+        stats.put("cancelled", announcementRepository.countByStatus(AnnouncementStatus.CANCELLED));
+        stats.put("hidden", announcementRepository.countByStatus(AnnouncementStatus.HIDDEN));
         return stats;
     }
 
