@@ -91,11 +91,10 @@ public class ReviewController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(
-            @RequestParam Long userId,
+    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(Principal principal,
             @RequestParam Long courseId) {
 
-        boolean exists = reviewService.existsByUserAndCourse(userId, courseId);
+        boolean exists = reviewService.existsByUserAndCourse(principal.getName(), courseId);
         ResponseGeneral<Boolean> response = new ResponseGeneral<>();
         response.setData(exists);
         response.setMessage(SUCCESS);

@@ -16,7 +16,7 @@ public interface ReviewService {
 
     void deleteReview(Long id);
 
-    boolean existsByUserAndCourse(Long userId, Long courseId);
+    boolean existsByUserAndCourse(String email, Long courseId);
 
     Double getAverageRating(Long courseId);
 

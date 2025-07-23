@@ -62,6 +62,12 @@ public class ReviewServiceImpl implements ReviewService {
         CourseEntity course = courseRepository.findById(requestDTO.getCourseId())
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with id: " + requestDTO.getCourseId()));
 
+        // Check if review already exists
+        boolean exists = reviewRepository.existsByUserEntityIdAndCourseEntityId(user.getId(), requestDTO.getCourseId());
+        if (exists) {
+            throw new ReviewAlreadyExistsException("You have already reviewed this course.");
+        }
+
         // Create and save review
         ReviewEntity review = reviewConverter.toEntity(requestDTO);
         review.setUserEntity(user);
@@ -92,8 +98,12 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public boolean existsByUserAndCourse(Long userId, Long courseId) {
-        return reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, courseId);
+    public boolean existsByUserAndCourse(String email, Long courseId) {
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        return reviewRepository.existsByUserEntityIdAndCourseEntityId(user.getId(), courseId);
     }
 
     @Override
