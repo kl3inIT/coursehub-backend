@@ -1,6 +1,7 @@
 package com.coursehub.exceptions;
 
 import com.coursehub.dto.ResponseGeneral;
+import com.coursehub.exceptions.announcement.ContentTooLongException;
 import com.coursehub.exceptions.announcement.InternalServerException;
 import com.coursehub.exceptions.course.*;
 import com.coursehub.exceptions.discount.DiscountDeletionNotAllowedException;
@@ -713,6 +714,53 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
+    @ExceptionHandler(ContentTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleContentTooLongException(ContentTooLongException ex) {
+        log.error("Content too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Content Too Long");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(EmailTooLongException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleEmailTooLongException(EmailTooLongException ex) {
+        log.error("Email too long: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Email Too Long");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(InvalidUserNameException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleInvalidUserNameException(InvalidUserNameException ex) {
+        log.error("Invalid name: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("Invalid Name");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ResponseGeneral<String>> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        log.error("User already exists: {}", ex.getMessage());
+
+        ResponseGeneral<String> response = new ResponseGeneral<>();
+        response.setMessage("User Already Exists");
+        response.setDetail(ex.getMessage());
+        response.setData(null);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
 
     @ExceptionHandler(InternalServerException.class)
     public ResponseEntity<ResponseGeneral<String>> handleInternalServerException(InternalServerException ex) {

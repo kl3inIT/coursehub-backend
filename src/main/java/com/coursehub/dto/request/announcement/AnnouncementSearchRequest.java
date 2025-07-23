@@ -3,6 +3,7 @@ package com.coursehub.dto.request.announcement;
 import com.coursehub.enums.AnnouncementStatus;
 import com.coursehub.enums.AnnouncementType;
 import com.coursehub.enums.TargetGroup;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,5 +19,6 @@ public class AnnouncementSearchRequest {
     private String direction = "DESC";
     private String mode;
     private AnnouncementStatus status;
-    private Long isDeleted; // Đổi sang Long
+    private String startDate; // ISO format yyyy-MM-dd or yyyy-MM-dd'T'HH:mm:ss
+    private String endDate;
 } 

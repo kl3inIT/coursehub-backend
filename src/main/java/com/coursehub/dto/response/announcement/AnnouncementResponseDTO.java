@@ -26,6 +26,7 @@ public class AnnouncementResponseDTO {
     private LocalDateTime scheduledTime;
     private LocalDateTime sentTime;
     private Date createdAt;
+    private Date updatedAt;
     private Long isRead;
     private String createdByName;
 }

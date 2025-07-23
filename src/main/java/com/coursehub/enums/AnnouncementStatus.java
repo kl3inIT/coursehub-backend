@@ -4,6 +4,7 @@ public enum AnnouncementStatus {
     DRAFT("Draft"),
     SCHEDULED("Scheduled"),
     SENT("Sent"),
+    HIDDEN("Hidden"),
     CANCELLED("Cancelled");
 
     private final String displayName;
