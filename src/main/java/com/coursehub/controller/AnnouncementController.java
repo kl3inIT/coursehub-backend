@@ -39,28 +39,6 @@ public class AnnouncementController {
 
     private final AnnouncementService announcementService;
 
-    private List<AnnouncementStatus> resolveStatuses(AnnouncementSearchRequest request) {
-        if (request.getMode().equalsIgnoreCase("history")) {
-            if (request.getStatus() != null) {
-                return List.of(request.getStatus());
-            } else {
-                return Arrays.asList(
-                    AnnouncementStatus.SENT,
-                    AnnouncementStatus.CANCELLED
-                );
-            }
-        } else {
-            if (request.getStatus() != null) {
-                return List.of(request.getStatus());
-            } else {
-                return Arrays.asList(
-                    AnnouncementStatus.DRAFT,
-                    AnnouncementStatus.SCHEDULED
-                );
-            }
-        }
-    }
-
     @PostMapping
     public ResponseEntity<ResponseGeneral<AnnouncementResponseDTO>> createAnnouncement(
             @RequestBody AnnouncementCreateRequestDTO dto
@@ -81,19 +59,20 @@ public class AnnouncementController {
             request.getSize(),
             Sort.by(Sort.Direction.fromString(request.getDirection()), request.getSortBy())
         );
-        
-        // Nếu isDeleted = 1 (hide), không filter theo status
         List<AnnouncementStatus> statuses = null;
-        if (request.getIsDeleted() == null || request.getIsDeleted() == 0) {
+        // Nếu filter status HIDDEN thì chỉ lấy HIDDEN
+        if (request.getStatus() == AnnouncementStatus.HIDDEN) {
+            statuses = List.of(AnnouncementStatus.HIDDEN);
+        } else {
             statuses = resolveStatuses(request);
         }
-
         Page<AnnouncementResponseDTO> result = announcementService.getAllAnnouncements(
             request.getType(),
             statuses,
             request.getTargetGroup(),
             request.getSearch(),
-            request.getIsDeleted(),
+            request.getStartDate(),
+            request.getEndDate(),
             pageable
         );
         ResponseGeneral<Page<AnnouncementResponseDTO>> response = new ResponseGeneral<>();
@@ -268,6 +247,28 @@ public class AnnouncementController {
         response.setMessage("Get announcement stats successfully");
         response.setData(stats);
         return ResponseEntity.ok(response);
+    }
+
+    private List<AnnouncementStatus> resolveStatuses(AnnouncementSearchRequest request) {
+        if (request.getMode().equalsIgnoreCase("history")) {
+            if (request.getStatus() != null) {
+                return List.of(request.getStatus());
+            } else {
+                return Arrays.asList(
+                        AnnouncementStatus.SENT,
+                        AnnouncementStatus.CANCELLED
+                );
+            }
+        } else {
+            if (request.getStatus() != null) {
+                return List.of(request.getStatus());
+            } else {
+                return Arrays.asList(
+                        AnnouncementStatus.DRAFT,
+                        AnnouncementStatus.SCHEDULED
+                );
+            }
+        }
     }
 
 }

@@ -8,7 +8,6 @@ spring:
     active:
       - dev
 
-
 management:
   endpoints:
     web:

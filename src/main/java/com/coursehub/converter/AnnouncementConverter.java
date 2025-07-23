@@ -37,8 +37,12 @@ public class AnnouncementConverter {
         dto.setCreatedByName(createdByName);
         dto.setTargetGroup(entity.getTargetGroup());
         dto.setIsRead(isRead);
-        dto.setTargetGroupDescription(entity.getTargetGroup().getDescription());
+        dto.setTargetGroup(
+                entity.getTargetGroup() != null ? entity.getTargetGroup() : null
+        );
         dto.setType(entity.getType());
+        dto.setLink(entity.getLink());
+        dto.setUpdatedAt(entity.getModifiedDate());
         return dto;
     }
 

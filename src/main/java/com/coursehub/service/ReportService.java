@@ -13,14 +13,6 @@ import com.coursehub.enums.ResourceType;
 public interface ReportService {
     ReportResponseDTO createReport(ReportRequestDTO reportRequestDTO);
 
-    Page<ReportResponseDTO> searchReports(ReportSearchRequestDTO request);
-    
-    ReportResponseDTO getReportById(Long reportId);
-    
-    ReportResponseDTO updateReportStatus(Long reportId, ReportStatusDTO statusDTO);
-    
-    void deleteReport(Long reportId);
-
     ResourceLocationDTO getResourceLocation(ResourceType type, Long resourceId);
 
     ResourceLocationDTO getResourceLocationByReportId(Long reportId);

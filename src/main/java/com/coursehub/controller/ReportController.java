@@ -2,7 +2,6 @@ package com.coursehub.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -39,50 +38,11 @@ public class ReportController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping
-    public ResponseEntity<ResponseGeneral<Page<ReportResponseDTO>>> getAllReports(
-            @ModelAttribute ReportSearchRequestDTO searchRequest
-    ) {
-        Page<ReportResponseDTO> reports = reportService.searchReports(searchRequest);
-        ResponseGeneral<Page<ReportResponseDTO>> response = new ResponseGeneral<>();
-        response.setData(reports);
-        response.setMessage(SUCCESS);
-        response.setDetail("Reports retrieved successfully");
-        return ResponseEntity.ok(response);
-    }
-
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseGeneral<ReportResponseDTO>> getReportById(@PathVariable Long id) {
-        ResponseGeneral<ReportResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setData(reportService.getReportById(id));
-        responseDTO.setMessage(SUCCESS);
-        return ResponseEntity.ok(responseDTO);
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<ResponseGeneral<ReportResponseDTO>> updateReportStatus(
-            @PathVariable Long id,
-            @RequestBody ReportStatusDTO statusDTO) {
-        ResponseGeneral<ReportResponseDTO> responseDTO = new ResponseGeneral<>();
-        responseDTO.setData(reportService.updateReportStatus(id, statusDTO));
-        responseDTO.setMessage(SUCCESS);
-        return ResponseEntity.ok(responseDTO);
-    }
-
     @PatchMapping("/resource/{resourceId}/status")
     public ResponseEntity<ResponseGeneral<Void>> updateResourceReportsStatus(
             @PathVariable Long resourceId,
             @RequestBody ReportStatusDTO statusDTO) {
         reportService.updateAllReportsStatusByResourceId(resourceId, statusDTO);
-        ResponseGeneral<Void> responseDTO = new ResponseGeneral<>();
-        responseDTO.setMessage(SUCCESS);
-        return ResponseEntity.ok(responseDTO);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseGeneral<Void>> deleteReport(@PathVariable Long id) {
-        reportService.deleteReport(id);
         ResponseGeneral<Void> responseDTO = new ResponseGeneral<>();
         responseDTO.setMessage(SUCCESS);
         return ResponseEntity.ok(responseDTO);

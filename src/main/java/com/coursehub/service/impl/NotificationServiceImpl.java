@@ -170,6 +170,12 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setMessage("You have been warned by ADMIN for violating community guidelines in your review: '" + content + "'.");
         }
 
+        long remainingWarnings = 5 - user.getWarningCount();
+        if (remainingWarnings <= 3 && remainingWarnings > 0) {
+            notification.setMessage(notification.getMessage() +
+                    "<br>If you violate " + remainingWarnings + " more time" + (remainingWarnings > 1 ? "s" : "") + ", you will be banned.");
+        }
+
         saveAndSendToUser(notification, null, ADMIN);
     }
 
