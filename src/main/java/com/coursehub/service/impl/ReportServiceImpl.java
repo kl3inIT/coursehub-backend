@@ -262,7 +262,7 @@ public class ReportServiceImpl implements ReportService {
 
     public boolean isAllowedToReport(Long userId) {
         String key = "report:count:user:" + userId;
-        int limit = 5;
+        int limit = 50;
         String val = redisTemplate.opsForValue().get(key);
         long current = 0;
         if (val != null) {

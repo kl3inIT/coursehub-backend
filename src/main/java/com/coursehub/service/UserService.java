@@ -19,4 +19,5 @@ public interface UserService {
     UserEntity getUserBySecurityContext();
     Long countUsers();
     Long countUserIsActive();
+    UserEntity getUserByEmail(String email);
 }

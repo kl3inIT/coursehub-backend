@@ -3,7 +3,6 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
-import com.coursehub.entity.CategoryEntity;
 import com.coursehub.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

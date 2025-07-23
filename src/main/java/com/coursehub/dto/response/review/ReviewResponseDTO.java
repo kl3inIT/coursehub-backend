@@ -15,6 +15,7 @@ public class ReviewResponseDTO {
     private String userName;
     // can remove
     private String userAvatar;
+    private String email;
     private Long courseId;
     private String courseName;
     private String categoryName;
@@ -23,4 +24,5 @@ public class ReviewResponseDTO {
     private Long isHidden;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
+
 } 

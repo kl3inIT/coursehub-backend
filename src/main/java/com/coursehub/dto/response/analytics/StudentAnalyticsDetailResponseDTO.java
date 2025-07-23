@@ -1,5 +1,6 @@
 package com.coursehub.dto.response.analytics;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class StudentAnalyticsDetailResponseDTO {
     // ID khóa học
     private Long id;
@@ -29,20 +31,4 @@ public class StudentAnalyticsDetailResponseDTO {
     // Điểm đánh giá trung bình của khóa học
     private Double avgRating;
 
-    public StudentAnalyticsDetailResponseDTO(
-            Long id,
-            String courseName,
-            Integer newStudents,
-            Integer previousCompletion,
-            Double growth,
-            Integer reviews,
-            Double avgRating) {
-        this.id = id;
-        this.courseName = courseName;
-        this.newStudents = newStudents;
-        this.previousCompletion = previousCompletion;
-        this.growth = growth;
-        this.reviews = reviews;
-        this.avgRating = avgRating;
-    }
 } 

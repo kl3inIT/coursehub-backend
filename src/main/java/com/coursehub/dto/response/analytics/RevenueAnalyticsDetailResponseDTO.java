@@ -1,5 +1,6 @@
 package com.coursehub.dto.response.analytics;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class RevenueAnalyticsDetailResponseDTO {
     // ID khóa học
     private Long id;
@@ -32,22 +34,4 @@ public class RevenueAnalyticsDetailResponseDTO {
     // Tỷ trọng doanh thu (% revenue của course này trên tổng revenue tất cả course)
     private Double revenueShare;
 
-    public RevenueAnalyticsDetailResponseDTO(
-            Long id,
-            String courseName,
-            Double revenue,
-            Double previousRevenue,
-            Double growth,
-            Integer orders,
-            Integer newStudents,
-            Double revenueShare) {
-        this.id = id;
-        this.courseName = courseName;
-        this.revenue = revenue;
-        this.previousRevenue = previousRevenue;
-        this.growth = growth;
-        this.orders = orders;
-        this.newStudents = newStudents;
-        this.revenueShare = revenueShare;
-    }
 }

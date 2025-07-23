@@ -4,9 +4,12 @@ import com.coursehub.dto.response.analytics.CategoryAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.CourseAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.RevenueAnalyticsDetailResponseDTO;
 import com.coursehub.dto.response.analytics.StudentAnalyticsDetailResponseDTO;
+import com.coursehub.entity.CategoryEntity;
 import com.coursehub.entity.CourseEntity;
 import com.coursehub.exceptions.analytics.AnalyticsRetrievalException;
 import com.coursehub.repository.AnalyticsRepository;
+import com.coursehub.repository.CategoryRepository;
+import com.coursehub.repository.CourseRepository;
 import com.coursehub.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +28,8 @@ import java.util.stream.Collectors;
 public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final AnalyticsRepository analyticsRepository;
+    private final CourseRepository courseRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -33,29 +38,37 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Date endDate,
             Pageable pageable) throws AnalyticsRetrievalException {
         try {
-            // 1. Fetch current period data
-            Page<CategoryAnalyticsDetailResponseDTO> currentPeriodPage =
-                    analyticsRepository.getCategoryAnalyticsDetails(startDate, endDate, pageable);
-
-            Double totalOverallRevenueCurrent = analyticsRepository.getTotalRevenue(startDate, endDate);
-
-            // 2. Process current period data, calculate revenue proportion
-            List<CategoryAnalyticsDetailResponseDTO> processedList = currentPeriodPage.getContent().stream()
-                    .map(currentDto -> {
-                        // Calculate revenue proportion for current period
-                        if (totalOverallRevenueCurrent != null && totalOverallRevenueCurrent > 0) {
-                            double revenueProportion = (currentDto.getTotalRevenue() / totalOverallRevenueCurrent) * 100;
-                            // Format to 2 decimal places
-                            currentDto.setRevenueProportion(Double.parseDouble(String.format("%.2f", revenueProportion)));
-                        } else {
-                            currentDto.setRevenueProportion(0.0);
-                        }
-                        return currentDto;
-                    })
-                    .toList();
-
-            return new PageImpl<>(processedList, pageable, currentPeriodPage.getTotalElements());
-
+            // Lấy tất cả category (phân trang thủ công)
+            List<CategoryEntity> categories = categoryRepository.findAll();
+            List<CategoryAnalyticsDetailResponseDTO> result = new ArrayList<>();
+            Double totalRevenue = 0.0;
+            // Tính tổng revenue trước để tính revenueProportion
+            for (CategoryEntity category : categories) {
+                Double revenue = analyticsRepository.sumRevenueByCategoryAndPeriod(category.getId(), startDate, endDate);
+                if (revenue != null) totalRevenue += revenue;
+            }
+            for (CategoryEntity category : categories) {
+                Long courseCount = analyticsRepository.countCoursesByCategoryAndPeriod(category.getId(), startDate, endDate);
+                Long studentCount = analyticsRepository.countStudentsByCategoryAndPeriod(category.getId(), startDate, endDate);
+                Double revenue = analyticsRepository.sumRevenueByCategoryAndPeriod(category.getId(), startDate, endDate);
+                Double revenueProportion = (totalRevenue > 0 && revenue != null) ? Double.parseDouble(String.format("%.2f", (revenue / totalRevenue) * 100)) : 0.0;
+                result.add(new CategoryAnalyticsDetailResponseDTO(
+                    category.getId(),
+                    category.getName(),
+                    category.getDescription(),
+                    courseCount != null ? courseCount : 0,
+                    studentCount != null ? studentCount : 0,
+                    revenue != null ? revenue : 0.0,
+                    revenueProportion,
+                    category.getCreatedDate(),
+                    category.getModifiedDate()
+                ));
+            }
+            // Phân trang thủ công
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), result.size());
+            List<CategoryAnalyticsDetailResponseDTO> paged = start >= result.size() ? Collections.emptyList() : result.subList(start, end);
+            return new PageImpl<>(paged, pageable, result.size());
         } catch (Exception e) {
             throw new AnalyticsRetrievalException("Failed to retrieve category analytics details: " + e.getMessage(), e);
         }
@@ -68,38 +81,45 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Date endDate,
             Pageable pageable) throws AnalyticsRetrievalException {
         try {
-            log.info("Fetching course analytics details for period: {} to {}", startDate, endDate);
-
-            // 1. Fetch course analytics data với revenue sorting handled trong repository
-            Page<CourseAnalyticsDetailResponseDTO> courseAnalyticsPage =
-                    analyticsRepository.getCourseAnalyticsDetails(startDate, endDate, pageable);
-
-            // 2. Tính tổng revenue của tất cả course trong khoảng thời gian
-            Double totalCourseRevenue = analyticsRepository.getTotalCourseRevenue(startDate, endDate);
-            
-            log.debug("Total course revenue for period: {}", totalCourseRevenue);
-
-            // 3. Tính revenuePercent cho từng course
-            List<CourseAnalyticsDetailResponseDTO> processedList = courseAnalyticsPage.getContent().stream()
-                    .map(courseDto -> {
-                        // Tính revenue percent = (course revenue / total revenue) * 100
-                        if (totalCourseRevenue != null && totalCourseRevenue > 0 && courseDto.getRevenue() != null) {
-                            double revenuePercent = (courseDto.getRevenue() / totalCourseRevenue) * 100;
-                            // Format to 2 decimal places
-                            courseDto.setRevenuePercent(Double.parseDouble(String.format("%.2f", revenuePercent)));
-                        } else {
-                            courseDto.setRevenuePercent(0.0);
-                        }
-                        return courseDto;
-                    })
-                    .collect(Collectors.toList());
-
-            log.info("Successfully processed {} course analytics records", processedList.size());
-
-            return new PageImpl<>(processedList, pageable, courseAnalyticsPage.getTotalElements());
-
+            // Lấy tất cả course (phân trang thủ công)
+            List<CourseEntity> courses = courseRepository.findAll();
+            List<CourseAnalyticsDetailResponseDTO> result = new ArrayList<>();
+            Double totalRevenue = 0.0;
+            // Tính tổng revenue trước để tính revenuePercent
+            for (CourseEntity course : courses) {
+                Double revenue = analyticsRepository.sumRevenueByCourseAndPeriod(course.getId(), startDate, endDate);
+                if (revenue != null) totalRevenue += revenue;
+            }
+            for (CourseEntity course : courses) {
+                Integer studentCount = analyticsRepository.countStudentsByCourseAndPeriod(course.getId(), startDate, endDate);
+                Double avgRating = analyticsRepository.avgRatingByCourseAndPeriod(course.getId(), startDate, endDate);
+                Double revenue = analyticsRepository.sumRevenueByCourseAndPeriod(course.getId(), startDate, endDate);
+                Long reviewCount = analyticsRepository.countReviewsByCourseAndPeriod(course.getId(), startDate, endDate);
+                Double revenuePercent = (totalRevenue > 0 && revenue != null) ? Double.parseDouble(String.format("%.2f", (revenue / totalRevenue) * 100)) : 0.0;
+                result.add(new CourseAnalyticsDetailResponseDTO(
+                    course.getId(),
+                    course.getTitle(),
+                    studentCount != null ? studentCount : 0,
+                    avgRating != null ? Double.parseDouble(String.format("%.2f", avgRating)) : 0.0,
+                    revenue != null ? revenue : 0.0,
+                    revenuePercent,
+                    reviewCount != null ? reviewCount : 0L,
+                    course.getLevel() != null ? course.getLevel().toString() : "BEGINNER"
+                ));
+            }
+            // Sort như cũ (revenue DESC, reviewCount DESC, avgRating DESC, title ASC)
+            result = result.stream()
+                .sorted(Comparator.comparing(CourseAnalyticsDetailResponseDTO::getRevenue, Comparator.reverseOrder())
+                    .thenComparing(CourseAnalyticsDetailResponseDTO::getReviews, Comparator.reverseOrder())
+                    .thenComparing(CourseAnalyticsDetailResponseDTO::getRating, Comparator.reverseOrder())
+                    .thenComparing(CourseAnalyticsDetailResponseDTO::getCourseName))
+                .toList();
+            // Phân trang thủ công
+            int start = (int) pageable.getOffset();
+            int end = Math.min(start + pageable.getPageSize(), result.size());
+            List<CourseAnalyticsDetailResponseDTO> paged = start >= result.size() ? Collections.emptyList() : result.subList(start, end);
+            return new PageImpl<>(paged, pageable, result.size());
         } catch (Exception e) {
-            log.error("Failed to retrieve course analytics details", e);
             throw new AnalyticsRetrievalException("Failed to retrieve course analytics details: " + e.getMessage(), e);
         }
     }
@@ -111,80 +131,47 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Date endDate,
             Pageable pageable) throws AnalyticsRetrievalException {
         try {
-            log.info("Fetching student analytics details for period: {} to {}", startDate, endDate);
-
-            // 1. Calculate previous period dates for comparison
-            Date[] previousPeriod = calculatePreviousPeriod(startDate, endDate);
-            Date previousStartDate = previousPeriod[0];
-            Date previousEndDate = previousPeriod[1];
-
-            log.debug("Previous period: {} to {}", previousStartDate, previousEndDate);
-
-            // 2. Get all courses (we'll do pagination manually after sorting)
-            Page<CourseEntity> coursesPage = analyticsRepository.getAllCoursesForStudentAnalytics(
-                    org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
-            );
-
-            // 3. Build analytics data for each course
-            List<StudentAnalyticsDetailResponseDTO> studentAnalyticsList = coursesPage.getContent().stream()
-                    .map(course -> {
-                        // Get current period data
-                        Integer newStudents = analyticsRepository.getNewStudentsByCourse(
-                                course.getId(), startDate, endDate);
-                        Integer reviews = analyticsRepository.getReviewsCountByCourse(
-                                course.getId(), startDate, endDate);
-                        Double avgRating = analyticsRepository.getAvgRatingByCourse(
-                                course.getId(), startDate, endDate);
-
-                        // Get previous period data
-                        Integer previousStudents = analyticsRepository.getPreviousStudentsByCourse(
-                                course.getId(), previousStartDate, previousEndDate);
-
-                        log.debug("Course {}: newStudents={}, previousStudents={}, reviews={}, avgRating={}", 
-                                course.getTitle(), newStudents, previousStudents, reviews, avgRating);
-
-                        // Calculate growth rate
-                        Double growth = calculateGrowthRate(newStudents, previousStudents);
-
-                        // Format avgRating to 2 decimal places
-                        Double formattedAvgRating = avgRating != null ? 
-                                Double.parseDouble(String.format("%.2f", avgRating)) : 0.0;
-
-                        return new StudentAnalyticsDetailResponseDTO(
-                                course.getId(),
-                                course.getTitle(),
-                                newStudents != null ? newStudents : 0,
-                                previousStudents != null ? previousStudents : 0,
-                                growth,
-                                reviews != null ? reviews : 0,
-                                formattedAvgRating
-                        );
-                    })
-                    // 4. Sort according to requirements:
-                    // 1. New Students DESC, 2. Growth DESC, 3. Reviews DESC, 4. Avg Rating DESC, 5. Course Name ASC
-                    .sorted(Comparator
-                            .comparing(StudentAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
-                            .thenComparing(StudentAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
-                            .thenComparing(StudentAnalyticsDetailResponseDTO::getReviews, Comparator.reverseOrder())
-                            .thenComparing(StudentAnalyticsDetailResponseDTO::getAvgRating, Comparator.reverseOrder())
-                            .thenComparing(StudentAnalyticsDetailResponseDTO::getCourseName)
-                    )
-                    .toList();
-
-            log.info("Successfully processed {} student analytics records", studentAnalyticsList.size());
-
-            // 5. Apply pagination manually
+            List<CourseEntity> courses = courseRepository.findAll();
+            List<StudentAnalyticsDetailResponseDTO> result = new ArrayList<>();
+            // Tính previous period chuẩn
+            long millisPerDay = 24 * 60 * 60 * 1000L;
+            long numDays = (endDate.getTime() - startDate.getTime()) / millisPerDay + 1;
+            Date previousEnd = new Date(startDate.getTime() - 1);
+            Date previousStart = new Date(previousEnd.getTime() - (numDays - 1) * millisPerDay);
+            for (CourseEntity course : courses) {
+                Integer newStudents = analyticsRepository.countStudentsByCourseAndPeriod(course.getId(), startDate, endDate);
+                Integer previousCompletion = analyticsRepository.countStudentsByCourseAndPeriod(course.getId(), previousStart, previousEnd);
+                Double growth = 0.0;
+                if (previousCompletion != null && previousCompletion > 0) {
+                    growth = ((double)(newStudents != null ? newStudents : 0) - previousCompletion) / previousCompletion * 100.0;
+                } else if (newStudents != null && newStudents > 0) {
+                    growth = 100.0;
+                }
+                Integer reviews = analyticsRepository.countReviewsByCourseAndPeriod(course.getId(), startDate, endDate).intValue();
+                Double avgRating = analyticsRepository.avgRatingByCourseAndPeriod(course.getId(), startDate, endDate);
+                result.add(new StudentAnalyticsDetailResponseDTO(
+                    course.getId(),
+                    course.getTitle(),
+                    newStudents != null ? newStudents : 0,
+                    previousCompletion != null ? previousCompletion : 0,
+                    Double.parseDouble(String.format("%.2f", growth)),
+                    reviews != null ? reviews : 0,
+                    avgRating != null ? Double.parseDouble(String.format("%.2f", avgRating)) : 0.0
+                ));
+            }
+            // Sort và phân trang thủ công nếu cần
+            result = result.stream()
+                .sorted(Comparator.comparing(StudentAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
+                    .thenComparing(StudentAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
+                    .thenComparing(StudentAnalyticsDetailResponseDTO::getReviews, Comparator.reverseOrder())
+                    .thenComparing(StudentAnalyticsDetailResponseDTO::getAvgRating, Comparator.reverseOrder())
+                    .thenComparing(StudentAnalyticsDetailResponseDTO::getCourseName))
+                .toList();
             int start = (int) pageable.getOffset();
-            int end = Math.min(start + pageable.getPageSize(), studentAnalyticsList.size());
-            List<StudentAnalyticsDetailResponseDTO> paginatedList = 
-                    start >= studentAnalyticsList.size() ? 
-                            Collections.emptyList() : 
-                            studentAnalyticsList.subList(start, end);
-
-            return new PageImpl<>(paginatedList, pageable, studentAnalyticsList.size());
-
+            int end = Math.min(start + pageable.getPageSize(), result.size());
+            List<StudentAnalyticsDetailResponseDTO> paged = start >= result.size() ? Collections.emptyList() : result.subList(start, end);
+            return new PageImpl<>(paged, pageable, result.size());
         } catch (Exception e) {
-            log.error("Failed to retrieve student analytics details", e);
             throw new AnalyticsRetrievalException("Failed to retrieve student analytics details: " + e.getMessage(), e);
         }
     }
@@ -251,88 +238,55 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Date endDate,
             Pageable pageable) throws AnalyticsRetrievalException {
         try {
-            log.info("Fetching revenue analytics details for period: {} to {}", startDate, endDate);
-
-            // 1. Calculate previous period dates for comparison
-            Date[] previousPeriod = calculatePreviousPeriod(startDate, endDate);
-            Date previousStartDate = previousPeriod[0];
-            Date previousEndDate = previousPeriod[1];
-
-            log.debug("Previous period: {} to {}", previousStartDate, previousEndDate);
-
-            // 2. Get total revenue for revenue share calculation
-            Double totalRevenue = analyticsRepository.getTotalRevenueInPeriod(startDate, endDate);
-            log.debug("Total revenue for period: {}", totalRevenue);
-
-            // 3. Get all courses (we'll do pagination manually after sorting)
-            Page<CourseEntity> coursesPage = analyticsRepository.getAllCoursesForRevenueAnalytics(
-                    org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE)
-            );
-
-            // 4. Build analytics data for each course
-            List<RevenueAnalyticsDetailResponseDTO> revenueAnalyticsList = coursesPage.getContent().stream()
-                    .map(course -> {
-                        // Get current period data
-                        Double revenue = analyticsRepository.getRevenueByCourseInPeriod(
-                                course.getId(), startDate, endDate);
-                        Integer orders = analyticsRepository.getOrdersCountByCourse(
-                                course.getId(), startDate, endDate);
-                        Integer newStudents = analyticsRepository.getNewStudentsByCourseFromPayment(
-                                course.getId(), startDate, endDate);
-
-                        // Get previous period data
-                        Double previousRevenue = analyticsRepository.getPreviousRevenueByCourse(
-                                course.getId(), previousStartDate, previousEndDate);
-
-                        log.debug("Course {}: revenue={}, previousRevenue={}, orders={}, newStudents={}", 
-                                course.getTitle(), revenue, previousRevenue, orders, newStudents);
-
-                        // Calculate growth rate using same logic as student analytics
-                        Double growth = calculateRevenueGrowthRate(revenue, previousRevenue);
-
-                        // Calculate revenue share
-                        Double revenueShare = calculateRevenueShare(revenue, totalRevenue);
-
-                        // Ensure values are not null
-                        revenue = revenue != null ? revenue : 0.0;
-                        previousRevenue = previousRevenue != null ? previousRevenue : 0.0;
-
-                        return new RevenueAnalyticsDetailResponseDTO(
-                                course.getId(),
-                                course.getTitle(),
-                                revenue,
-                                previousRevenue,
-                                growth,
-                                orders != null ? orders : 0,
-                                newStudents != null ? newStudents : 0,
-                                revenueShare
-                        );
-                    })
-                    // 5. Sort according to requirements:
-                    // 1. Revenue DESC, 2. Growth DESC, 3. Orders DESC, 4. New Students DESC, 5. Course Name ASC
-                    .sorted(Comparator
-                            .comparing(RevenueAnalyticsDetailResponseDTO::getRevenue, Comparator.reverseOrder())
-                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
-                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getOrders, Comparator.reverseOrder())
-                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
-                            .thenComparing(RevenueAnalyticsDetailResponseDTO::getCourseName)
-                    )
-                    .toList();
-
-            log.info("Successfully processed {} revenue analytics records", revenueAnalyticsList.size());
-
-            // 6. Apply pagination manually
+            List<CourseEntity> courses = courseRepository.findAll();
+            List<RevenueAnalyticsDetailResponseDTO> result = new ArrayList<>();
+            // Tính previous period chuẩn
+            long millisPerDay = 24 * 60 * 60 * 1000L;
+            long numDays = (endDate.getTime() - startDate.getTime()) / millisPerDay + 1;
+            Date previousEnd = new Date(startDate.getTime() - 1);
+            Date previousStart = new Date(previousEnd.getTime() - (numDays - 1) * millisPerDay);
+            Double totalRevenue = 0.0;
+            for (CourseEntity course : courses) {
+                Double revenue = analyticsRepository.sumRevenueByCourseAndPeriod(course.getId(), startDate, endDate);
+                if (revenue != null) totalRevenue += revenue;
+            }
+            for (CourseEntity course : courses) {
+                Double revenue = analyticsRepository.sumRevenueByCourseAndPeriod(course.getId(), startDate, endDate);
+                Double previousRevenue = analyticsRepository.sumRevenueByCourseAndPeriod(course.getId(), previousStart, previousEnd);
+                Double growth = 0.0;
+                if (previousRevenue != null && previousRevenue > 0) {
+                    growth = ((revenue != null ? revenue : 0.0) - previousRevenue) / previousRevenue * 100.0;
+                } else if (revenue != null && revenue > 0) {
+                    growth = 100.0;
+                }
+                Integer orders = 0; // Nếu có method đếm orders thì thay thế ở đây
+                Integer newStudents = analyticsRepository.countStudentsByCourseAndPeriod(course.getId(), startDate, endDate);
+                Double revenueShare = (totalRevenue > 0 && revenue != null) ? Double.parseDouble(String.format("%.2f", (revenue / totalRevenue) * 100)) : 0.0;
+                result.add(new RevenueAnalyticsDetailResponseDTO(
+                    course.getId(),
+                    course.getTitle(),
+                    revenue != null ? revenue : 0.0,
+                    previousRevenue != null ? previousRevenue : 0.0,
+                    Double.parseDouble(String.format("%.2f", growth)),
+                    orders,
+                    newStudents != null ? newStudents : 0,
+                    revenueShare
+                ));
+            }
+            // Sort và phân trang thủ công nếu cần
+            result = result.stream()
+                .sorted(Comparator.comparing(RevenueAnalyticsDetailResponseDTO::getRevenue, Comparator.reverseOrder())
+                    .thenComparing(RevenueAnalyticsDetailResponseDTO::getGrowth, Comparator.reverseOrder())
+                    .thenComparing(RevenueAnalyticsDetailResponseDTO::getOrders, Comparator.reverseOrder())
+                    .thenComparing(RevenueAnalyticsDetailResponseDTO::getNewStudents, Comparator.reverseOrder())
+                    .thenComparing(RevenueAnalyticsDetailResponseDTO::getRevenueShare, Comparator.reverseOrder())
+                    .thenComparing(RevenueAnalyticsDetailResponseDTO::getCourseName))
+                .toList();
             int start = (int) pageable.getOffset();
-            int end = Math.min(start + pageable.getPageSize(), revenueAnalyticsList.size());
-            List<RevenueAnalyticsDetailResponseDTO> paginatedList = 
-                    start >= revenueAnalyticsList.size() ? 
-                            Collections.emptyList() : 
-                            revenueAnalyticsList.subList(start, end);
-
-            return new PageImpl<>(paginatedList, pageable, revenueAnalyticsList.size());
-
+            int end = Math.min(start + pageable.getPageSize(), result.size());
+            List<RevenueAnalyticsDetailResponseDTO> paged = start >= result.size() ? Collections.emptyList() : result.subList(start, end);
+            return new PageImpl<>(paged, pageable, result.size());
         } catch (Exception e) {
-            log.error("Failed to retrieve revenue analytics details", e);
             throw new AnalyticsRetrievalException("Failed to retrieve revenue analytics details: " + e.getMessage(), e);
         }
     }

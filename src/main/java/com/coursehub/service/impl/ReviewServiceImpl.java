@@ -23,6 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import org.springframework.data.domain.PageImpl;
+import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +63,12 @@ public class ReviewServiceImpl implements ReviewService {
         CourseEntity course = courseRepository.findById(requestDTO.getCourseId())
                 .orElseThrow(() -> new CourseNotFoundException("Course not found with id: " + requestDTO.getCourseId()));
 
+        // Check if review already exists
+        boolean exists = reviewRepository.existsByUserEntityIdAndCourseEntityId(user.getId(), requestDTO.getCourseId());
+        if (exists) {
+            throw new ReviewAlreadyExistsException("You have already reviewed this course.");
+        }
+
         // Create and save review
         ReviewEntity review = reviewConverter.toEntity(requestDTO);
         review.setUserEntity(user);
@@ -90,8 +99,12 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public boolean existsByUserAndCourse(Long userId, Long courseId) {
-        return reviewRepository.existsByUserEntityIdAndCourseEntityId(userId, courseId);
+    public boolean existsByUserAndCourse(String email, Long courseId) {
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        return reviewRepository.existsByUserEntityIdAndCourseEntityId(user.getId(), courseId);
     }
 
     @Override
@@ -138,7 +151,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Page<ReviewResponseDTO> findReviewsByVisibility(Integer visibilityStatus, Pageable pageable) {
         if (visibilityStatus != 0 && visibilityStatus != 1) {
-            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
         
         Page<ReviewEntity> reviews = visibilityStatus == 0 
@@ -175,7 +188,7 @@ public class ReviewServiceImpl implements ReviewService {
     public Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable) {
         // Validate visibilityStatus
         if (visibilityStatus != 0 && visibilityStatus != 1) {
-            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
         }
         
         // Trim search string if not null
@@ -185,5 +198,15 @@ public class ReviewServiceImpl implements ReviewService {
                 visibilityStatus, star, categoryId, courseId, trimmedSearch, pageable);
         
         return reviews.map(reviewConverter::toResponseDTO);
+    }
+
+    @Override
+    public boolean isReviewOfUser(String email, Long reviewId) {
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
+        if (user == null)
+            return false;
+        Long userId = user.getId();
+        Optional<ReviewEntity> reviewOpt = reviewRepository.findById(reviewId);
+        return reviewOpt.isPresent() && reviewOpt.get().getUserEntity().getId().equals(userId);
     }
 } 
