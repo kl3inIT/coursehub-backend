@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import com.coursehub.exceptions.user.InvalidUserNameException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +73,14 @@ public class AdminServiceImpl implements AdminService {
     public UserDetailDTO createManager(ProfileRequestDTO request) {
         if (userRepository.existsByEmailAndIsActive(request.getEmail(), UserStatus.ACTIVE)) {
             throw new UserAlreadyExistsException("Email already exists");
+        }
+
+        if(request.getName().length() > 50) {
+            throw new InvalidUserNameException("Name length exceeds maximum limit of 50 characters");
+        }
+
+        if(request.getEmail().length() > 100) {
+            throw new DataNotFoundException("Email length exceeds maximum limit of 100 characters");
         }
 
         RoleEntity managerRole = roleRepository.findByCode("MANAGER");

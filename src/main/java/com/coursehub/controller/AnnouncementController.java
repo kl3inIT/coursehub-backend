@@ -71,6 +71,8 @@ public class AnnouncementController {
             statuses,
             request.getTargetGroup(),
             request.getSearch(),
+            request.getStartDate(),
+            request.getEndDate(),
             pageable
         );
         ResponseGeneral<Page<AnnouncementResponseDTO>> response = new ResponseGeneral<>();

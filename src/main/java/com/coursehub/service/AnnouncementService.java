@@ -20,6 +20,8 @@ public interface AnnouncementService {
         List<AnnouncementStatus> statuses,
         TargetGroup targetGroup,
         String search,
+        String startDate,
+        String endDate,
         Pageable pageable
     );
     AnnouncementResponseDTO getAnnouncement(Long id);

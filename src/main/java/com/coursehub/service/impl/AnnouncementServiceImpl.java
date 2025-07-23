@@ -3,6 +3,8 @@ package com.coursehub.service.impl;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -104,9 +106,29 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         List<AnnouncementStatus> statuses,
         TargetGroup targetGroup,
         String search,
+        String startDate,
+        String endDate,
         Pageable pageable
     ) {
-        Page<AnnouncementEntity> entities = announcementRepository.filterAnnouncements(type, statuses, targetGroup, search, pageable);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime start = null;
+        LocalDateTime end = null;
+        if ((startDate == null || startDate.isEmpty()) || (endDate == null || endDate.isEmpty())) {
+            // Mặc định 7 ngày gần nhất
+            LocalDate today = LocalDate.now();
+            LocalDate sevenDaysAgo = today.minusDays(6);
+            start = sevenDaysAgo.atStartOfDay();
+            end = today.atTime(23, 59, 59);
+        } else {
+            if (startDate != null) {
+                start = LocalDate.parse(startDate, fmt).atStartOfDay();
+            }
+            if (endDate != null) {
+                end = LocalDate.parse(endDate, fmt).atTime(23, 59, 59);
+            }
+        }
+        Page<AnnouncementEntity> entities = announcementRepository.filterAnnouncements(
+            type, statuses, targetGroup, search, start, end, pageable);
         return entities.map(announcementConverter::toDto);
     }
 
