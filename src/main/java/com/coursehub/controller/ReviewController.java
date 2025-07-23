@@ -69,7 +69,7 @@ public class ReviewController {
 
         UserEntity user = userService.getUserByEmail(principal.getName());
         String roleCode = user.getRoleEntity().getCode();
-        if (!"manager".equalsIgnoreCase(roleCode) && !"learner".equalsIgnoreCase(roleCode)) {
+        if (!"learner".equalsIgnoreCase(roleCode)) {
             ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
             response.setMessage("FORBIDDEN");
             response.setDetail("You do not have permission to review!");
