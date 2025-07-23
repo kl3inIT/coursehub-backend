@@ -220,5 +220,10 @@ public class UserServiceImpl implements UserService {
         return countUserActive;
     }
 
+    @Override
+    public UserEntity getUserByEmail(String email) {
+        return userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
+    }
+
 }
 

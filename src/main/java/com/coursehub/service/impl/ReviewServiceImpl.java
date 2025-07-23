@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import org.springframework.data.domain.PageImpl;
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -197,5 +198,15 @@ public class ReviewServiceImpl implements ReviewService {
                 visibilityStatus, star, categoryId, courseId, trimmedSearch, pageable);
         
         return reviews.map(reviewConverter::toResponseDTO);
+    }
+
+    @Override
+    public boolean isReviewOfUser(String email, Long reviewId) {
+        UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
+        if (user == null)
+            return false;
+        Long userId = user.getId();
+        Optional<ReviewEntity> reviewOpt = reviewRepository.findById(reviewId);
+        return reviewOpt.isPresent() && reviewOpt.get().getUserEntity().getId().equals(userId);
     }
 } 

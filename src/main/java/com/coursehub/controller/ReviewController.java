@@ -3,7 +3,10 @@ package com.coursehub.controller;
 import com.coursehub.dto.ResponseGeneral;
 import com.coursehub.dto.request.review.ReviewRequestDTO;
 import com.coursehub.dto.response.review.ReviewResponseDTO;
+import com.coursehub.dto.response.user.UserResponseDTO;
+import com.coursehub.entity.UserEntity;
 import com.coursehub.service.ReviewService;
+import com.coursehub.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -24,13 +29,15 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
+    private final UserService userService;
+
     @GetMapping
     public ResponseEntity<ResponseGeneral<Page<ReviewResponseDTO>>> getAllReviews(
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Integer star,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "modifiedDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
@@ -59,6 +66,15 @@ public class ReviewController {
     @PostMapping
     public ResponseEntity<ResponseGeneral<ReviewResponseDTO>> createReview(
             @Valid @RequestBody ReviewRequestDTO requestDTO, Principal principal) {
+
+        UserEntity user = userService.getUserByEmail(principal.getName());
+        String roleCode = user.getRoleEntity().getCode();
+        if (!"manager".equalsIgnoreCase(roleCode) && !"learner".equalsIgnoreCase(roleCode)) {
+            ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
+            response.setMessage("FORBIDDEN");
+            response.setDetail("You do not have permission to review!");
+            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        }
 
         ReviewResponseDTO review = reviewService.createReview(principal.getName(), requestDTO);
         ResponseGeneral<ReviewResponseDTO> response = new ResponseGeneral<>();
@@ -91,10 +107,11 @@ public class ReviewController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(Principal principal,
+    public ResponseEntity<ResponseGeneral<Boolean>> checkUserReview(
             @RequestParam Long courseId) {
-
-        boolean exists = reviewService.existsByUserAndCourse(principal.getName(), courseId);
+        SecurityContext context = SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        boolean exists = reviewService.existsByUserAndCourse(email, courseId);
         ResponseGeneral<Boolean> response = new ResponseGeneral<>();
         response.setData(exists);
         response.setMessage(SUCCESS);
@@ -173,7 +190,7 @@ public class ReviewController {
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "100") int size,
             @RequestParam(defaultValue = "modifiedDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String direction) {
 
@@ -197,6 +214,18 @@ public class ReviewController {
         ResponseGeneral<String> response = new ResponseGeneral<>();
         response.setMessage(hide ? "Review has been hidden" : "review has been shown");
         response.setData(hide ? "Hidden" : "Visible");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{reviewId}/is-mine")
+    public ResponseEntity<ResponseGeneral<Boolean>> isMyReview(
+            @PathVariable Long reviewId,
+            Principal principal) {
+        boolean isMine = reviewService.isReviewOfUser(principal.getName(), reviewId);
+        ResponseGeneral<Boolean> response = new ResponseGeneral<>();
+        response.setData(isMine);
+        response.setMessage(SUCCESS);
+        response.setDetail(isMine ? "Review belongs to user" : "Review does not belong to user");
         return ResponseEntity.ok(response);
     }
 } 

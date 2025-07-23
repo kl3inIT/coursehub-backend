@@ -31,4 +31,6 @@ public interface ReviewService {
     void setReviewVisibility(Long reviewId, boolean hide);
 
     Page<ReviewResponseDTO> findReviewsByVisibilityWithFilters(Integer visibilityStatus, Integer star, Long categoryId, Long courseId, String search, Pageable pageable);
+
+    boolean isReviewOfUser(String username, Long reviewId);
 } 

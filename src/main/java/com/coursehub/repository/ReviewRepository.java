@@ -20,8 +20,6 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
             "(:star IS NULL OR r.star = :star)")
     Page<ReviewEntity> findAllByFilters(Long courseId, Long userId, Integer star, Pageable pageable);
 
-    boolean existsByUserEntityIdAndCourseEntityId(Long userId, Long courseId);
-
     List<ReviewEntity> findByCourseEntityId(Long courseId);
 
     Long countByCourseEntityId(Long courseId);
@@ -53,4 +51,6 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
             @Param("search") String search,
             Pageable pageable);
     Optional<ReviewEntity> findByCourseEntityIdAndUserEntityId(Long courseId, Long userId);
+
+    boolean existsByUserEntityIdAndCourseEntityId(Long userEntityId, Long courseEntityId);
 }
