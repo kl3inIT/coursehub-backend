@@ -13,7 +13,7 @@ import java.util.List;
 public interface UserDiscountRepository extends JpaRepository<UserDiscountEntity, Long> {
     long countByIsActive(Long isActive);
 
-    UserDiscountEntity findByDiscountEntity_IdAndIsActive(Long discountId, Long isActive);
+    UserDiscountEntity findByDiscountEntity_IdAndIsActiveAndUserEntity_Id(Long discountId, Long isActive, Long userId);
 
     UserDiscountEntity findByUserEntity_IdAndDiscountEntity_Id(Long userId, Long discountId);
 

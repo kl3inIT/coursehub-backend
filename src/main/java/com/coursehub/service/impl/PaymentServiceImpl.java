@@ -138,8 +138,8 @@ public class PaymentServiceImpl implements PaymentService {
         DiscountEntity discountEntity = paymentEntity.getDiscountEntity();
 
         if (discountEntity != null) {
-            UserDiscountEntity userDiscountEntity = userDiscountRepository.findByDiscountEntity_IdAndIsActive(
-                    discountEntity.getId(), 1L);
+            UserDiscountEntity userDiscountEntity = userDiscountRepository.findByDiscountEntity_IdAndIsActiveAndUserEntity_Id(
+                    discountEntity.getId(), 1L, paymentEntity.getUserEntity().getId());
             userDiscountEntity.setIsActive(0L);
             userDiscountRepository.save(userDiscountEntity);
             discountScheduler.updateDiscountStatus(discountEntity);
