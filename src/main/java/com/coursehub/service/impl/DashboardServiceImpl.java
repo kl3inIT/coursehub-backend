@@ -392,7 +392,7 @@ public class DashboardServiceImpl implements DashboardService {
         Date lastStart = Date.valueOf(lastMonthStart);
         Date lastEnd = Date.valueOf(lastMonthEnd);
 
-        LocalDate threeMonthsAgoStart = thisMonthStart.minusMonths(3);
+        LocalDate threeMonthsAgoStart = thisMonthStart.minusMonths(2);
         LocalDate threeMonthsAgoEnd = threeMonthsAgoStart.withDayOfMonth(threeMonthsAgoStart.lengthOfMonth());
         Date threeStart = Date.valueOf(threeMonthsAgoStart);
         Date threeEnd = Date.valueOf(threeMonthsAgoEnd);
