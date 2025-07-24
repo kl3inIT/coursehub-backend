@@ -355,6 +355,7 @@ public class CourseServiceImpl implements CourseService {
                 .totalStudents(enrollmentService.countByCourseEntityId(courseEntity.getId()))
                 .totalModules(moduleService.countByCourseEntityId(courseEntity.getId()))
                 .modules(moduleService.getModulesByCourseId(courseEntity.getId()))
+                .canEdit(canEditCourse(courseEntity))
                 .build();
     }
 

@@ -80,17 +80,17 @@ public class SearchRepositoryImpl implements SearchRepository {
             predicates.add(cb.equal(root.get("level"), level));
         }
 
-        // Lọc theo khoảng giá
-        if (searchRequest.getMinPrice() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get("price"), searchRequest.getMinPrice()));
-        }
-        if (searchRequest.getMaxPrice() != null) {
-            predicates.add(cb.lessThanOrEqualTo(root.get("price"), searchRequest.getMaxPrice()));
-        }
-
         // Lọc theo free courses
         if (searchRequest.getIsFree() != null && searchRequest.getIsFree()) {
             predicates.add(cb.equal(root.get("price"), 0.0));
+        } else {
+            // Lọc theo khoảng giá (chỉ khi không phải free)
+            if (searchRequest.getMinPrice() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), searchRequest.getMinPrice()));
+            }
+            if (searchRequest.getMaxPrice() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), searchRequest.getMaxPrice()));
+            }
         }
 
         // Lọc theo discounted courses

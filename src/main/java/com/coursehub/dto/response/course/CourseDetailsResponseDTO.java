@@ -33,4 +33,5 @@ public class CourseDetailsResponseDTO {
     private Long totalModules;
     private Long totalDuration;
     private List<ModuleResponseDTO> modules;
+    private Boolean canEdit;
 }
