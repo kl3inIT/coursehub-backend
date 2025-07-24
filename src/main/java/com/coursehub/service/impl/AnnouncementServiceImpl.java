@@ -1,10 +1,7 @@
 package com.coursehub.service.impl;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -206,7 +203,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         LocalDateTime scheduled = null;
         if (scheduledTime != null) {
             scheduled = Instant.parse(scheduledTime)
-                    .atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+                    .atZone(ZoneOffset.UTC)
+                    .withZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh"))
                     .toLocalDateTime();
         }
         entity.setScheduledTime(scheduled);
