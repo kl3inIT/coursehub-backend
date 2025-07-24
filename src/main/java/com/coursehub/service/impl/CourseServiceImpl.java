@@ -481,13 +481,12 @@ public class CourseServiceImpl implements CourseService {
                     .max()
                     .orElse(0L);
 
-            // Calculate average rating using a more efficient approach
-            // TODO: This should be optimized with a single database query
-            // For now, using a default value to avoid N+1 query problem
+
             Long avgRating = 4L; // Default average rating, should be calculated in DB
 
-            // Calculate level statistics
+            // Calculate level statistics for published courses only
             Map<String, Long> levelStats = allCourses.stream()
+                    .filter(course -> course.getStatus() == CourseStatus.PUBLISHED)
                     .collect(Collectors.groupingBy(
                             course -> course.getLevel().getLevelName(),
                             Collectors.counting()
