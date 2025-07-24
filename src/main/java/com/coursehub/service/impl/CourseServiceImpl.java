@@ -87,7 +87,6 @@ public class CourseServiceImpl implements CourseService {
         // Validate course exists
         CourseEntity course = findCourseEntityById(courseId);
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         if (!canEditCourse(course)) {
             throw new UnauthorizedAccessException("You are not allowed to update this course");
         }
