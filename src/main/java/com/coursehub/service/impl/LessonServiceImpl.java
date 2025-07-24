@@ -226,4 +226,20 @@ public class LessonServiceImpl implements LessonService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public void setLessonPreview(Long lessonId, boolean isPreview) {
+        LessonEntity lesson = getLessonEntityById(lessonId);
+        Long moduleId = lesson.getModuleEntity().getId();
+        if (isPreview) {
+            List<LessonEntity> lessons = lessonRepository.findByModuleEntityId(moduleId);
+            for (LessonEntity l : lessons) {
+                l.setIsPreview(l.getId().equals(lessonId) ? 1L : 0L);
+            }
+            lessonRepository.saveAll(lessons);
+        } else {
+            lesson.setIsPreview(0L);
+            lessonRepository.save(lesson);
+        }
+    }
 }

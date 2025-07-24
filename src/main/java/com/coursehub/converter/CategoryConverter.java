@@ -3,6 +3,7 @@ package com.coursehub.converter;
 import com.coursehub.dto.request.category.CategoryRequestDTO;
 import com.coursehub.dto.response.category.CategoryResponseDTO;
 import com.coursehub.entity.CategoryEntity;
+import com.coursehub.enums.CourseStatus;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,9 @@ public class CategoryConverter {
 
         // Map toàn bộ trường mặc định
         CategoryResponseDTO responseDTO = modelMapper.map(entity, CategoryResponseDTO.class);
-        responseDTO.setCourseCount((long)entity.getCourseEntities().size());
+        responseDTO.setCourseCount(entity.getCourseEntities().stream()
+                .filter(course -> course.getStatus() == CourseStatus.PUBLISHED)
+                .count());
         return responseDTO;
     }
 

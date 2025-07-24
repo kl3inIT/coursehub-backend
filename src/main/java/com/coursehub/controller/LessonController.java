@@ -143,4 +143,15 @@ public class LessonController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{lessonId}/set-preview")
+    public ResponseEntity<ResponseGeneral<Void>> setLessonPreview(
+            @PathVariable Long lessonId,
+            @RequestParam("isPreview") boolean isPreview) {
+        lessonService.setLessonPreview(lessonId, isPreview);
+        ResponseGeneral<Void> response = new ResponseGeneral<>();
+        response.setMessage(SUCCESS);
+        response.setDetail("Lesson preview status updated");
+        return ResponseEntity.ok(response);
+    }
 }

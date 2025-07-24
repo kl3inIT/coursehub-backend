@@ -41,4 +41,5 @@ public interface LessonService {
 
     LessonResponseDTO updateLesson(Long lessonId, LessonUpdateRequestDTO requestDTO);
 
+    void setLessonPreview(Long lessonId, boolean isPreview);
 }
