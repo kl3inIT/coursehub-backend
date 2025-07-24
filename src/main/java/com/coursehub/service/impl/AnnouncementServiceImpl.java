@@ -67,6 +67,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         if(dto.getLink() != null && dto.getLink().length() > 500) {
             throw new ContentTooLongException("Link cannot exceed 500 characters");
         }
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         announcement.setTitle(dto.getTitle());
         announcement.setContent(dto.getContent());
         announcement.setType(dto.getType() != null ? dto.getType() : AnnouncementType.GENERAL);
@@ -76,14 +77,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         if (dto.getStatus() != null) {
             announcement.setStatus(dto.getStatus());
-        } else if (dto.getScheduledTime() != null && dto.getScheduledTime().isAfter(LocalDateTime.now())) {
+        } else if (dto.getScheduledTime() != null && dto.getScheduledTime().isAfter(now)) {
             announcement.setStatus(AnnouncementStatus.SCHEDULED);
         } else {
             announcement.setStatus(AnnouncementStatus.DRAFT);
         }
 
         if (dto.getStatus() == AnnouncementStatus.SENT) {
-            announcement.setSentTime(LocalDateTime.now());
+            announcement.setSentTime(now);
         } else if (dto.getStatus() == AnnouncementStatus.SCHEDULED && dto.getScheduledTime() != null) {
             announcement.setSentTime(dto.getScheduledTime());
         }
@@ -202,10 +203,11 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
 
         entity.setStatus(AnnouncementStatus.SCHEDULED);
-
         LocalDateTime scheduled = null;
         if (scheduledTime != null) {
-            scheduled = Instant.parse(scheduledTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            scheduled = Instant.parse(scheduledTime)
+                    .atZone(ZoneId.of("Asia/Ho_Chi_Minh"))
+                    .toLocalDateTime();
         }
         entity.setScheduledTime(scheduled);
         entity.setSentTime(scheduled);
@@ -364,11 +366,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Scheduled(fixedRate = 30000)
     @Transactional
     public void processScheduledAnnouncements() {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         List<AnnouncementEntity> scheduledList = announcementRepository
-            .findByStatusAndScheduledTimeLessThanEqual(AnnouncementStatus.SCHEDULED, LocalDateTime.now());
+            .findByStatusAndScheduledTimeLessThanEqual(AnnouncementStatus.SCHEDULED, now);
         for (AnnouncementEntity entity : scheduledList) {
             entity.setStatus(AnnouncementStatus.SENT);
-            entity.setSentTime(LocalDateTime.now());
+            entity.setSentTime(now);
             announcementRepository.save(entity);
             AnnouncementResponseDTO dto = announcementConverter.toDto(entity);
             sendRealtimeNotification(entity, dto);

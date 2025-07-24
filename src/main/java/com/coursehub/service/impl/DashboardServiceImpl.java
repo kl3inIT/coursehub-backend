@@ -169,7 +169,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public BigDecimal getTotalThreeMonthsAgoRevenue() {
         // Tổng doanh thu 3 tháng trước (từ ngày 1 đến cuối tháng 3 tháng trước)
-        LocalDate firstDayThreeMonthsAgo = today.withDayOfMonth(1).minusMonths(3);
+        LocalDate firstDayThreeMonthsAgo = today.withDayOfMonth(1).minusMonths(2);
         LocalDate lastDayThreeMonthsAgo = firstDayThreeMonthsAgo.withDayOfMonth(firstDayThreeMonthsAgo.lengthOfMonth());
         Date start = Date.valueOf(firstDayThreeMonthsAgo);
         Date end = Date.valueOf(lastDayThreeMonthsAgo);
@@ -180,7 +180,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public Float getThreeMonthsAgoRevenueGrowth() {
         // Tăng trưởng doanh thu 3 tháng trước so với 4 tháng trước
-        LocalDate firstDayThreeMonthsAgo = today.withDayOfMonth(1).minusMonths(3);
+        LocalDate firstDayThreeMonthsAgo = today.withDayOfMonth(1).minusMonths(2);
         LocalDate lastDayThreeMonthsAgo = firstDayThreeMonthsAgo.withDayOfMonth(firstDayThreeMonthsAgo.lengthOfMonth());
         LocalDate firstDayFourMonthsAgo = firstDayThreeMonthsAgo.minusMonths(1);
         LocalDate lastDayFourMonthsAgo = firstDayFourMonthsAgo.withDayOfMonth(firstDayFourMonthsAgo.lengthOfMonth());
