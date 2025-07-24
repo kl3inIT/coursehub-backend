@@ -200,15 +200,14 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
 
         entity.setStatus(AnnouncementStatus.SCHEDULED);
-        LocalDateTime scheduled = null;
         if (scheduledTime != null) {
-            scheduled = Instant.parse(scheduledTime)
-                    .atZone(ZoneOffset.UTC)
-                    .withZoneSameInstant(ZoneId.of("Asia/Ho_Chi_Minh"))
-                    .toLocalDateTime();
+            LocalDateTime scheduled = LocalDateTime.ofInstant(
+                    Instant.parse(scheduledTime),
+                    ZoneId.of("Asia/Ho_Chi_Minh")
+            );
+            entity.setScheduledTime(scheduled);
+            entity.setSentTime(scheduled);
         }
-        entity.setScheduledTime(scheduled);
-        entity.setSentTime(scheduled);
 
         AnnouncementEntity saved = announcementRepository.save(entity);
         return announcementConverter.toDto(saved);
