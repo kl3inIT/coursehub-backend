@@ -1,7 +1,6 @@
 package com.coursehub.components;
 
 import com.coursehub.entity.DiscountEntity;
-import com.coursehub.entity.UserDiscountEntity;
 import com.coursehub.enums.DiscountStatus;
 import com.coursehub.repository.DiscountRepository;
 import lombok.RequiredArgsConstructor;

@@ -228,6 +228,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public boolean toggleLikeComment(Long commentId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("[DEBUG] toggleLikeComment called by: " + email + ", commentId: " + commentId);
         UserEntity user = userRepository.findByEmailAndIsActive(email, UserStatus.ACTIVE);
         if (user == null) throw new UserNotFoundException("User not found");
         CommentEntity comment = getCommentOrThrow(commentId);
@@ -235,6 +236,7 @@ public class CommentServiceImpl implements CommentService {
         Optional<CommentLikeEntity> existingLike = commentLikeRepository.findByComment_IdAndUser_Id(commentId, user.getId());
 
         if (existingLike.isPresent()) {
+            System.out.println("[DEBUG] User " + user.getId() + " unliked comment " + commentId);
             commentLikeRepository.delete(existingLike.get());
             return false;
         } else {
@@ -243,12 +245,16 @@ public class CommentServiceImpl implements CommentService {
             like.setUser(user);
             like.setCreatedDate(new Date());
             commentLikeRepository.save(like);
+            System.out.println("[DEBUG] User " + user.getId() + " liked comment " + commentId);
             if (!user.getId().equals(comment.getUserEntity().getId())) {
+                System.out.println("[DEBUG] Sending notifyLikeComment to userId: " + comment.getUserEntity().getId() + ", from userId: " + user.getId() + ", commentId: " + commentId);
                 notificationService.notifyLikeComment(
                         comment.getUserEntity().getId(), // người nhận
                         user.getId(),                    // người like
                         commentId
                 );
+            } else {
+                System.out.println("[DEBUG] User liked their own comment, no notification sent.");
             }
             return true;
         }

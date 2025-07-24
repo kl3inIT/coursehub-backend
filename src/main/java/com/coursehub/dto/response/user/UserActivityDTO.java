@@ -28,15 +28,5 @@ public class UserActivityDTO {
     private String commentText;    
     
     // For course management (managers only)
-    private String actionDescription;  
-    
-    // Helper method to get type as string (for JSON serialization compatibility)
-    public String getTypeValue() {
-        return type != null ? type.getValue() : null;
-    }
-    
-    // Helper method to set type from string (for deserialization)
-    public void setTypeFromString(String typeValue) {
-        this.type = typeValue != null ? UserActivityType.fromValue(typeValue) : null;
-    }
+    private String actionDescription;
 } 

@@ -1,6 +1,7 @@
 package com.coursehub.converter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -27,6 +28,7 @@ public class ActivityConverter {
         // Common activities for all roles
         addEnrollmentActivities(user, activities);
         addCommentActivities(user, activities);
+        addReviewActivities(user, activities);
         addLessonCompletionActivities(user, activities);
         addCourseCompletionActivities(user, activities);
 
@@ -102,7 +104,29 @@ public class ActivityConverter {
                     activity.setCourseThumbnail(course.getThumbnail());
                     activities.add(activity);
                 } catch (Exception e) {
-                    // Ignore malformed comment data
+                    throw new RuntimeException("Malformed comment data", e);
+                }
+            });
+        }
+    }
+
+    private void addReviewActivities(UserEntity user, List<UserActivityDTO> activities) {
+        if (user.getReviewEntities() != null) {
+            user.getReviewEntities().forEach(review -> {
+                try {
+                    CourseEntity course = review.getCourseEntity();
+                    UserActivityDTO activity = new UserActivityDTO();
+
+                    activity.setId(review.getId());
+                    activity.setType(UserActivityType.REVIEW);
+                    activity.setTimestamp(review.getCreatedDate());
+                    activity.setCommentText(review.getComment());
+                    activity.setCourseId(course.getId());
+                    activity.setCourseTitle(course.getTitle());
+                    activity.setCourseThumbnail(course.getThumbnail());
+                    activities.add(activity);
+                } catch (Exception e) {
+                    throw new RuntimeException("Malformed review data", e);
                 }
             });
         }
@@ -115,10 +139,9 @@ public class ActivityConverter {
                 .forEach(userLesson -> {
                     try {
                         LessonEntity lesson = userLesson.getLessonEntity();
-                        CourseEntity course = lesson.getModuleEntity().getCourseEntity();
                         activities.add(createActivityForLesson(lesson, UserActivityType.LESSON_COMPLETION, userLesson.getModifiedDate(), null));
                     } catch (Exception e) {
-                        // Ignore malformed lesson completion data
+                        throw new RuntimeException("Malformed lesson completion data", e);
                     }
                 });
         }
@@ -139,13 +162,13 @@ public class ActivityConverter {
                         }
                         activities.add(activity);
                     } catch (Exception e) {
-                        // Ignore malformed course completion data
+                        throw new RuntimeException("Malformed course completion data", e);
                     }
                 });
         }
     }
 
-    private UserActivityDTO createActivityForCourse(CourseEntity course, UserActivityType type, java.util.Date timestamp, String description) {
+    private UserActivityDTO createActivityForCourse(CourseEntity course, UserActivityType type, Date timestamp, String description) {
         UserActivityDTO activity = new UserActivityDTO();
         activity.setId(course.getId());
         activity.setType(type);
@@ -157,7 +180,7 @@ public class ActivityConverter {
         return activity;
     }
 
-    private UserActivityDTO createActivityForLesson(LessonEntity lesson, UserActivityType type, java.util.Date timestamp, String description) {
+    private UserActivityDTO createActivityForLesson(LessonEntity lesson, UserActivityType type, Date timestamp, String description) {
         UserActivityDTO activity = new UserActivityDTO();
         CourseEntity course = lesson.getModuleEntity().getCourseEntity();
         activity.setId(lesson.getId());
