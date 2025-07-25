@@ -279,7 +279,7 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationDTO convertToDTO(NotificationEntity entity, Long actorId, String actorName) {
         return new NotificationDTO(entity.getId(), entity.getUserEntity().
                 getId(), entity.getUserEntity().getName(), actorId, actorName, entity.getType(), entity.getMessage(),
-                entity.getIsRead(), entity.getResourceId(), entity.getResourceType(), entity.getLink(), entity.getCreatedDate());
+                entity.getIsRead(), entity.getResourceId(), entity.getResourceType(), entity.getLink(), entity.getModifiedDate());
     }
 
     private UserEntity getUserById(Long userId) {
