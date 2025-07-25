@@ -111,7 +111,7 @@ public class CourseServiceImpl implements CourseService {
         UserEntity user = getActiveUserByEmail(userEmail);
 
         if (!canArchiveCourse(user, course)) {
-            throw new UnauthorizedAccessException("You are not allowed to archive this course");
+            throw new InvalidCourseRestoreStateException("You are not allowed to archive this course");
         }
 
         if (course.getStatus() == CourseStatus.ARCHIVED) {
@@ -129,7 +129,7 @@ public class CourseServiceImpl implements CourseService {
         UserEntity user = getActiveUserByEmail(userEmail);
 
         if (!canPublishCourse(user, course)) {
-            throw new UnauthorizedAccessException("You are not allowed to publish this course");
+            throw new InvalidCourseRestoreStateException("You are not allowed to publish this course");
         }
 
         if (course.getModuleEntities() == null || course.getModuleEntities().isEmpty()) {
@@ -147,7 +147,7 @@ public class CourseServiceImpl implements CourseService {
         UserEntity user = getActiveUserByEmail(userEmail);
 
         if (!canRestoreCourse(user, course)) {
-            throw new UnauthorizedAccessException("You are not allowed to restore this course");
+            throw new InvalidCourseRestoreStateException("You are not allowed to restore this course");
         }
 
         if (course.getStatus() != CourseStatus.ARCHIVED) {
