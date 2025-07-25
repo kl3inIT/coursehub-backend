@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Component
@@ -26,12 +30,15 @@ public class AnnouncementConverter {
             }
         }
         long isRead = (userRead != null) ? 1 : 0;
+        LocalDateTime sentTime = entity.getSentTime();
+        ZoneId zone = ZoneId.of("Asia/Ho_Chi_Minh");
+        Date sentTimeAsDate = Date.from(sentTime.atZone(zone).toInstant());
         AnnouncementResponseDTO dto = new AnnouncementResponseDTO();
         dto.setId(entity.getId());
         dto.setTitle(entity.getTitle());
         dto.setContent(entity.getContent());
         dto.setStatus(entity.getStatus());
-        dto.setCreatedAt(entity.getModifiedDate());
+        dto.setCreatedAt(sentTimeAsDate);
         dto.setScheduledTime(entity.getScheduledTime());
         dto.setSentTime(entity.getSentTime());
         dto.setCreatedByName(createdByName);
@@ -42,7 +49,7 @@ public class AnnouncementConverter {
         );
         dto.setType(entity.getType());
         dto.setLink(entity.getLink());
-        dto.setUpdatedAt(entity.getModifiedDate());
+        dto.setUpdatedAt(sentTimeAsDate);
         return dto;
     }
 
