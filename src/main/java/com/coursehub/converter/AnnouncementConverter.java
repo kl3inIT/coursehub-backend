@@ -31,7 +31,7 @@ public class AnnouncementConverter {
         dto.setTitle(entity.getTitle());
         dto.setContent(entity.getContent());
         dto.setStatus(entity.getStatus());
-        dto.setCreatedAt(entity.getCreatedDate());
+        dto.setCreatedAt(entity.getModifiedDate());
         dto.setScheduledTime(entity.getScheduledTime());
         dto.setSentTime(entity.getSentTime());
         dto.setCreatedByName(createdByName);

@@ -39,6 +39,7 @@ public class CommentConverter {
                 .content(entity.getComment())
                 .author(user.getName())
                 .avatar(user.getAvatar())
+                .userId(user.getId())
                 .createdAt(entity.getCreatedDate())
                 .isManager(isManagerOrAdmin)
                 .isHidden(entity.getIsHidden())

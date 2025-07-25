@@ -2,6 +2,7 @@ package com.coursehub.service.impl;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -201,17 +202,27 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
         entity.setStatus(AnnouncementStatus.SCHEDULED);
         if (scheduledTime != null) {
-            LocalDateTime scheduled = LocalDateTime.ofInstant(
-                    Instant.parse(scheduledTime),
-                    ZoneId.of("Asia/Ho_Chi_Minh")
-            );
-            entity.setScheduledTime(scheduled);
-            entity.setSentTime(scheduled);
+            try {
+                // Format: "yyyy-MM-dd'T'HH:mm"
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+                LocalDateTime scheduled = LocalDateTime.parse(scheduledTime, formatter);
+
+                // Đổi múi giờ về "Asia/Ho_Chi_Minh"
+                ZoneId zoneId = ZoneId.of("Asia/Ho_Chi_Minh");
+                ZonedDateTime zonedDateTime = scheduled.atZone(zoneId);
+                LocalDateTime finalScheduledTime = zonedDateTime.toLocalDateTime();
+
+                entity.setScheduledTime(finalScheduledTime);
+                entity.setSentTime(finalScheduledTime);
+            } catch (DateTimeParseException e) {
+                throw new InternalServerException("Invalid date format for scheduledTime");
+            }
         }
 
         AnnouncementEntity saved = announcementRepository.save(entity);
         return announcementConverter.toDto(saved);
     }
+
 
     @Override
     public AnnouncementResponseDTO saveAsDraft(Long id) {

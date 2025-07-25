@@ -17,6 +17,7 @@ public class CommentResponseDTO {
     private String content;
     private String author;
     private String avatar;
+    private Long userId;
     private Date createdAt;
     private boolean isManager;
     private Long isHidden;
