@@ -69,15 +69,17 @@ public class SearchRepositoryImpl implements SearchRepository {
             ));
         }
 
-        // Lọc theo danh mục
-        if (searchRequest.getCategoryId() != null) {
-            predicates.add(cb.equal(root.get("categoryEntity").get("id"), searchRequest.getCategoryId()));
+        // Lọc theo nhiều danh mục
+        if (searchRequest.getCategoryIds() != null && !searchRequest.getCategoryIds().isEmpty()) {
+            predicates.add(root.get("categoryEntity").get("id").in(searchRequest.getCategoryIds()));
         }
 
-        // Lọc theo level
-        if (StringUtils.hasText(searchRequest.getLevel())) {
-            CourseLevel level = CourseLevel.fromString(searchRequest.getLevel());
-            predicates.add(cb.equal(root.get("level"), level));
+        // Lọc theo nhiều level
+        if (searchRequest.getLevels() != null && !searchRequest.getLevels().isEmpty()) {
+            List<CourseLevel> levelEnums = searchRequest.getLevels().stream()
+                .map(CourseLevel::fromString)
+                .toList();
+            predicates.add(root.get("level").in(levelEnums));
         }
 
         // Lọc theo free courses

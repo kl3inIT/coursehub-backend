@@ -5,6 +5,7 @@ import com.coursehub.enums.validator.EnumValue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,10 +17,9 @@ public class CourseSearchRequestDTO {
     @Size(max = 100, message = "Search term must be at most 100 characters")
     private String searchTerm;
 
-    private Long categoryId;
+    private List<Long> categoryIds;
 
-    @EnumValue(name = "level", enumClass = CourseLevel.class, message = "Invalid course level")
-    private String level;
+    private List<String> levels;
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Minimum price cannot be negative")
     private Double minPrice;
